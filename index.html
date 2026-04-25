@@ -135,6 +135,8 @@
         .history-card-select{position:absolute;top:8px;left:8px}
         .highlight-applicant{color:#ffeb3b!important;font-weight:bold}
         .highlight-category{color:#00ff7f!important;font-weight:bold}
+        /* 我的账户卡片竖排显示 */
+        #myAccountContainer{display:flex;flex-direction:column;gap:12px}
         @media(max-width:1400px){.container{flex-direction:column}.user-sidebar{width:100%}}
         @media(max-width:768px){.history-container{grid-template-columns:1fr}.input-with-categories{flex-direction:column}#orderData,.category-button-group{width:100%}.user-card{width:100%}.recycle-panel{width:100%;right:-100%}}
     </style>
@@ -241,7 +243,7 @@
             </div>
             <div class="big-user-card"><div class="big-card-header"><i class="fas fa-user-circle"></i> 用户信息和中奖情况</div><div class="big-card-content" id="userCardsContainer"><div class="empty-history">暂无数据</div></div></div>
             <div class="big-user-card"><div class="big-card-header"><i class="fas fa-chart-bar"></i> 全部汇总</div><div class="big-card-content" id="summaryContainer"><div class="empty-history">暂无数据</div></div></div>
-            <div class="big-user-card"><div class="big-card-header"><i class="fas fa-calculator"></i> 我的账户</div><div class="big-card-content" id="myAccountContainer"><div class="empty-history">暂无数据</div></div></div>
+            <div class="big-user-card"><div class="big-card-header"><i class="fas fa-calculator"></i> 我的账户</div><div class="big-card-content"><div id="myAccountContainer"><div class="empty-history">暂无数据</div></div></div></div>
         </div>
     </div>
 
@@ -519,12 +521,11 @@
                 const mw = {}, gw = {};
                 Object.entries(md.w).forEach(([k, v]) => mw[k] = (mw[k] || 0) + v); Object.entries(mu.w).forEach(([k, v]) => mw[k] = (mw[k] || 0) - v);
                 Object.entries(gd.w).forEach(([k, v]) => gw[k] = (gw[k] || 0) + v); Object.entries(gu.w).forEach(([k, v]) => gw[k] = (gw[k] || 0) - v);
-                c.innerHTML = `<div class="summary-card"><div class="summary-title">我的澳门</div><div class="${mp>=0?'profit-positive':'profit-negative'}">${mp>=0?'+':''}${mp}</div><div class="winning-summary">${Object.keys(mw).length?Object.entries(mw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div><div class="summary-card"><div class="summary-title">我的粤港</div><div class="${gp>=0?'profit-positive':'profit-negative'}">${gp>=0?'+':''}${gp}</div><div class="winning-summary">${Object.keys(gw).length?Object.entries(gw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div>`;
+                c.innerHTML = `<div class="summary-card" style="margin-bottom:12px"><div class="summary-title">我的澳门</div><div class="${mp>=0?'profit-positive':'profit-negative'}">${mp>=0?'+':''}${mp}</div><div class="winning-summary">${Object.keys(mw).length?Object.entries(mw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div><div class="summary-card"><div class="summary-title">我的粤港</div><div class="${gp>=0?'profit-positive':'profit-negative'}">${gp>=0?'+':''}${gp}</div><div class="winning-summary">${Object.keys(gw).length?Object.entries(gw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div>`;
             }
 
             function getCatClass(cat) { switch (cat) { case '澳门上家': return 'category-macau-up'; case '澳门下家': return 'category-macau-down'; case '粤港上家': return 'category-guangdong-up'; case '粤港下家': return 'category-guangdong-down'; } return ''; }
 
-            // 删除 & 回收站
             window.showDeleteConfirm = id => {
                 document.getElementById('confirmTitle').textContent = '确认删除';
                 document.getElementById('confirmMessage').textContent = '移至回收站？';
@@ -557,7 +558,6 @@
                 }).join('');
             }
 
-            // 批量操作
             window.toggleHistorySelection = (id, checked) => { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
             window.toggleRecycleSelection = (id, checked) => { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
             window.toggleSelectAll = type => {
@@ -603,7 +603,6 @@
                 selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error');
             };
 
-            // 导入导出
             window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
             window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
             window.selectFormat = (el, fmt) => { document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); exportFormat = fmt; };
@@ -623,7 +622,6 @@
             };
             window.importData = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById('orderData').value = ev.target.result; toast('已加载到输入框', 'info'); }; r.readAsText(f); };
 
-            // 操作密码
             window.requestClearPassword = () => { currentOperation = 'clear'; document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）'; document.getElementById('passwordDialog').style.display = 'flex'; };
             window.verifyOperationPassword = () => { if (currentOperation === 'clear' && document.getElementById('operationPassword').value === OPERATION_PASSWORD) { closePasswordDialog(); if (confirm('确定清空所有数据？')) { clearDB('records'); clearDB('recycle_bin'); history = []; recycle = []; updateAll(); toast('已清空', 'success'); } } else { document.getElementById('passwordError').style.display = 'block'; } };
             window.closePasswordDialog = () => { document.getElementById('passwordDialog').style.display = 'none'; currentOperation = null; };
