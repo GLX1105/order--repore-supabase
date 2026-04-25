@@ -111,6 +111,14 @@
         .confirm-cancel{background:#95a5a6;color:#fff}
         .import-preview-dialog{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:2000}
         .import-preview-content{background:#fff;padding:25px;border-radius:10px;width:90%;max-width:700px;max-height:80vh;overflow-y:auto}
+        .import-stats{display:flex;justify-content:space-around;margin-bottom:20px;padding:15px;background:#f8f9fa;border-radius:8px}
+        .stat-value{font-size:1.5rem;font-weight:bold;color:#3498db}
+        .import-list{margin-top:15px;max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:6px;padding:10px}
+        .import-item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee}
+        .import-item-status{padding:3px 8px;border-radius:4px;font-size:0.8rem}
+        .status-new{background:rgba(46,204,113,0.2);color:#27ae60}
+        .status-duplicate{background:rgba(231,76,60,0.2);color:#c0392b}
+        .import-preview-buttons{display:flex;gap:10px;justify-content:center;margin-top:20px}
         .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
         .summary-card{background:#f8f9fa;border-radius:8px;padding:12px;border:1px solid #e1e8f0}
         .summary-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -172,6 +180,22 @@
             </div>
             <button class="btn btn-primary" onclick="confirmExport()">确认导出</button>
             <button class="btn btn-secondary" onclick="closeFormatSelector()">取消</button>
+        </div>
+    </div>
+
+    <div class="import-preview-dialog" id="importPreviewDialog">
+        <div class="import-preview-content">
+            <div class="import-preview-header"><h3>导入订单预览</h3><button class="close-preview-btn" onclick="closeImportPreview()">&times;</button></div>
+            <div class="import-stats">
+                <div class="stat-item"><div class="stat-value" id="totalImportCount">0</div><div class="stat-label">总记录数</div></div>
+                <div class="stat-item"><div class="stat-value" id="newImportCount">0</div><div class="stat-label">新记录</div></div>
+                <div class="stat-item"><div class="stat-value" id="duplicateImportCount">0</div><div class="stat-label">重复记录</div></div>
+            </div>
+            <div class="import-list" id="importList"></div>
+            <div class="import-preview-buttons">
+                <button class="btn btn-primary" onclick="confirmImport()"><i class="fas fa-check"></i> 确认导入</button>
+                <button class="btn btn-secondary" onclick="closeImportPreview()"><i class="fas fa-times"></i> 取消</button>
+            </div>
         </div>
     </div>
 
@@ -293,7 +317,7 @@
             const OPERATION_PASSWORD = '891105';
             let history = [], recycle = [];
             let selectedCategory = '澳门下家', exportFormat = 'json', currentOperation = null;
-            let pendingRecord = null;
+            let pendingRecord = null, pendingImportRecords = [];
             let selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
             let filter = { search: '', date: '', category: '', user: '' };
 
@@ -461,7 +485,12 @@
                 return '<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">' + p.join('\n') + '</div></div>';
             }
 
-            function updateAll() { updateHistoryDisplay(); updateUserCards(); updateSummary(); updateMyAccount(); document.getElementById('recycleBadge').textContent = recycle.length; renderRecycle(); updateBatchOpsVisibility(); }
+            function updateAll() { updateHistoryDisplay(); updateUserCards(); updateSummary(); updateMyAccount(); document.getElementById('recycleBadge').textContent = recycle.length; renderRecycle(); updateBatchOpsVisibility(); fillUserFilter(); }
+
+            function fillUserFilter() {
+                const uf = document.getElementById('historyUserFilter'), users = [...new Set(history.map(x => x.applicant))];
+                uf.innerHTML = '<option value="">全部</option>' + users.map(u => `<option>${u}</option>`).join('');
+            }
 
             window.updateHistoryDisplay = function() {
                 const fd = document.getElementById('historyDateFilter').value, fu = document.getElementById('historyUserFilter').value;
@@ -477,9 +506,7 @@
                         <div><span class="history-time">${x.timestamp}</span><button class="delete-btn" onclick="showDeleteConfirm(${x.id})">🗑</button></div></div>
                         <div class="history-body">${x.tableHTML||''}${x.compensationCardHTML||''}</div></div>`;
                 }).join('');
-                const uf = document.getElementById('historyUserFilter');
-                const users = [...new Set(history.map(x => x.applicant))];
-                uf.innerHTML = '<option value="">全部</option>' + users.map(u => `<option>${u}</option>`).join('');
+                fillUserFilter();
             };
 
             function updateUserCards() {
@@ -525,6 +552,7 @@
 
             function getCatClass(cat) { switch (cat) { case '澳门上家': return 'category-macau-up'; case '澳门下家': return 'category-macau-down'; case '粤港上家': return 'category-guangdong-up'; case '粤港下家': return 'category-guangdong-down'; } return ''; }
 
+            // 删除/恢复/回收站/批量操作（保持一致）
             window.showDeleteConfirm = id => {
                 document.getElementById('confirmTitle').textContent = '确认删除';
                 document.getElementById('confirmMessage').textContent = '移至回收站？';
@@ -602,6 +630,7 @@
                 selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error');
             };
 
+            // 导出
             window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
             window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
             window.selectFormat = (el, fmt) => { document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); exportFormat = fmt; };
@@ -615,51 +644,111 @@
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success');
             };
 
-            // 修复导入 JSON（兼容移动端）
+            // 导入预览判断重复
+            function checkDuplicateRecord(item) {
+                return history.some(r => r.timestamp === item.timestamp && r.applicant === item.applicant && extractAmountDetail(r.originalData) === extractAmountDetail(item.originalData));
+            }
+
+            window.importData = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const content = ev.target.result;
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (ext === 'json') {
+                        try {
+                            const data = JSON.parse(content);
+                            if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
+                            const newRecs = [], dups = [];
+                            data.forEach(item => {
+                                if (item.originalData && item.timestamp && item.applicant) {
+                                    checkDuplicateRecord(item) ? dups.push(item) : newRecs.push(item);
+                                }
+                            });
+                            pendingImportRecords = newRecs;
+                            showImportPreview(newRecs.length, dups.length, data);
+                        } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
+                    } else {
+                        document.getElementById('orderData').value = content;
+                        toast('数据已导入到输入框，请手动保存', 'info');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            };
+
+            function showImportPreview(newCnt, dupCnt, all) {
+                document.getElementById('totalImportCount').textContent = newCnt + dupCnt;
+                document.getElementById('newImportCount').textContent = newCnt;
+                document.getElementById('duplicateImportCount').textContent = dupCnt;
+                const list = document.getElementById('importList');
+                list.innerHTML = '';
+                all.slice(0, 10).forEach(r => {
+                    const dup = checkDuplicateRecord(r);
+                    const div = document.createElement('div');
+                    div.className = 'import-item';
+                    div.innerHTML = `<div><strong>${r.applicant}</strong> - ${r.timestamp} <span class="category-tag">${r.category||'未知'}</span></div><div class="import-item-status ${dup?'status-duplicate':'status-new'}">${dup?'重复':'新记录'}</div>`;
+                    list.appendChild(div);
+                });
+                document.getElementById('importPreviewDialog').style.display = 'flex';
+            }
+
+            window.closeImportPreview = function() {
+                document.getElementById('importPreviewDialog').style.display = 'none';
+                pendingImportRecords = [];
+            };
+
+            window.confirmImport = async function() {
+                if (!pendingImportRecords.length) { toast('没有新记录可导入', 'warning'); closeImportPreview(); return; }
+                for (const item of pendingImportRecords) {
+                    const rec = {
+                        id: Date.now() + Math.random(),
+                        timestamp: item.timestamp,
+                        category: item.category || '未知分类',
+                        applicant: item.applicant,
+                        originalData: item.originalData,
+                        tableHTML: item.tableHTML || '',
+                        compensationCardHTML: item.compensationCardHTML || '',
+                        dataCount: item.dataCount || 0,
+                        extractedData: item.extractedData || {},
+                        created_at: new Date().toISOString()
+                    };
+                    history.unshift(rec);
+                    await saveDB('records', rec);
+                }
+                await loadData();
+                updateAll();
+                closeImportPreview();
+                toast(`成功导入 ${pendingImportRecords.length} 条记录`, 'success');
+            };
+
             window.importAllData = function() {
                 const inp = document.createElement('input');
                 inp.type = 'file';
                 inp.accept = '.json';
-                inp.style.display = 'none';
-                document.body.appendChild(inp);
-
-                inp.addEventListener('change', async function(e) {
+                inp.onchange = async function(e) {
                     const file = e.target.files[0];
-                    if (!file) { document.body.removeChild(inp); return; }
-
+                    if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = async function(ev) {
+                    reader.onload = function(ev) {
                         try {
                             const data = JSON.parse(ev.target.result);
-                            if (!Array.isArray(data)) throw new Error('JSON 格式错误：需要数组');
-                            let count = 0;
-                            for (const item of data) {
-                                item.id = Date.now() + Math.floor(Math.random() * 1000000);
-                                item.created_at = item.created_at || new Date().toISOString();
-                                await saveDB('records', item);
-                                count++;
-                            }
-                            await loadData();
-                            updateAll();
-                            toast(`成功导入 ${count} 条记录`, 'success');
-                        } catch (err) {
-                            console.error(err);
-                            toast('导入失败: ' + err.message, 'error');
-                        } finally {
-                            document.body.removeChild(inp);
-                        }
-                    };
-                    reader.onerror = () => {
-                        toast('文件读取失败', 'error');
-                        document.body.removeChild(inp);
+                            if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
+                            const newRecs = [], dups = [];
+                            data.forEach(item => {
+                                if (item.originalData && item.timestamp && item.applicant) {
+                                    checkDuplicateRecord(item) ? dups.push(item) : newRecs.push(item);
+                                }
+                            });
+                            pendingImportRecords = newRecs;
+                            showImportPreview(newRecs.length, dups.length, data);
+                        } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
                     };
                     reader.readAsText(file);
-                });
-
+                };
                 inp.click();
             };
-
-            window.importData = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById('orderData').value = ev.target.result; toast('已加载到输入框', 'info'); }; r.readAsText(f); };
 
             window.requestClearPassword = () => { currentOperation = 'clear'; document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）'; document.getElementById('passwordDialog').style.display = 'flex'; };
             window.verifyOperationPassword = () => { if (currentOperation === 'clear' && document.getElementById('operationPassword').value === OPERATION_PASSWORD) { closePasswordDialog(); if (confirm('确定清空所有数据？')) { clearDB('records'); clearDB('recycle_bin'); history = []; recycle = []; updateAll(); toast('已清空', 'success'); } } else { document.getElementById('passwordError').style.display = 'block'; } };
