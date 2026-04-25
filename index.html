@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>订单报表系统（赔付明细整数显示版）- 云同步版</title>
+    <title>订单报表系统（赔付明细整数显示版）- 云同步完整版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #1a2a6c, #2c3e50); color: #333; min-height: 100vh; padding: 15px; display: block; }
-        .container { max-width: 1700px; width: 100%; margin: 0 auto; display: flex; gap: 20px; }
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .login-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; width: 350px; }
+        .login-box h2 { color: #2c3e50; margin-bottom: 20px; font-size: 1.5rem; }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+        .login-btn { background: linear-gradient(to right, #3498db, #2980b9); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; margin-top: 15px; }
+        .login-error { color: #e74c3c; margin-top: 10px; display: none; }
         .main-content { flex: 1; min-width: 0; }
         .user-sidebar { width: 530px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
-        .sidebar-title { color: white; font-size: 1.2rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 8px; }
         .big-user-card { background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); overflow: hidden; margin-bottom: 20px; width: 100%; }
         .big-card-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 15px; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .big-card-content { padding: 15px; max-height: none; overflow-y: visible; }
@@ -20,95 +23,75 @@
         .search-box { display: flex; margin-bottom: 10px; gap: 8px; }
         .search-input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; }
         .search-btn { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s; font-size: 0.85rem; }
-        .search-btn:hover { background: #2980b9; }
         .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-item { display: flex; flex-direction: column; gap: 2px; }
         .filter-label { font-size: 0.75rem; color: #666; font-weight: 500; }
         .filter-select, .filter-date { padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem; background: white; min-width: 100px; }
-        .filter-date { width: 120px; }
-        .navbar { background: linear-gradient(90deg, #1a3a6c, #2c5aa0); color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); padding: 8px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .navbar { background: linear-gradient(90deg, #1a3a6c, #2c5aa0); color: white; border-radius: 8px; padding: 8px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .navbar-brand { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; font-weight: 600; }
-        .navbar-brand i { font-size: 1.2rem; }
         .nav-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-        .nav-btn { background: rgba(255,255,255,0.18); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; font-weight: 500; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
-        .nav-btn:hover { background: rgba(255,255,255,0.28); transform: translateY(-1px); }
+        .nav-btn { background: rgba(255,255,255,0.18); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+        .nav-btn:hover { background: rgba(255,255,255,0.28); }
         .recycle-bin-btn { position: relative; }
         .recycle-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
         header { text-align: center; padding: 15px 0; margin-bottom: 20px; }
         header h1 { color: white; font-size: 1.8rem; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        header p { color: #ecf0f1; font-size: 0.95rem; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+        header p { color: #ecf0f1; font-size: 0.95rem; }
         .input-section { background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 20px; margin-bottom: 20px; }
         .section-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #3498db; display: flex; align-items: center; gap: 8px; }
-        .section-title i { color: #3498db; font-size: 1.1rem; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50; font-size: 0.9rem; }
         .input-with-categories { display: flex; gap: 15px; align-items: flex-start; }
-        #orderData { width: 65%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; resize: vertical; transition: border-color 0.3s; color: #333; }
+        #orderData { width: 65%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; resize: vertical; }
         #orderData:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52,152,219,0.2); }
         .category-button-group { display: flex; flex-direction: column; gap: 8px; width: 35%; min-width: 180px; }
-        .category-btn { padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; background: white; color: #555; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 4px; justify-content: center; }
-        .category-btn:hover { border-color: #3498db; color: #3498db; transform: translateY(-1px); }
-        .category-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; box-shadow: 0 2px 6px rgba(102,126,234,0.3); }
+        .category-btn { padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; background: white; color: #555; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 4px; justify-content: center; }
+        .category-btn:hover { border-color: #3498db; color: #3498db; }
+        .category-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; }
         .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; }
-        .btn-primary { background: linear-gradient(to right, #3498db, #2980b9); color: white; box-shadow: 0 2px 6px rgba(52,152,219,0.3); }
-        .btn-primary:hover { background: linear-gradient(to right, #2980b9, #2573a7); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(52,152,219,0.4); }
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .btn-primary { background: linear-gradient(to right, #3498db, #2980b9); color: white; }
         .btn-primary.loading { position: relative; pointer-events: none; opacity: 0.7; }
         .btn-primary.loading::after { content: ""; position: absolute; right: 10px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .btn-secondary { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; box-shadow: 0 2px 6px rgba(46,204,113,0.3); }
-        .btn-secondary:hover { background: linear-gradient(to right, #27ae60, #219653); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(46,204,113,0.4); }
-        .btn-warning { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; box-shadow: 0 2px 6px rgba(231,76,60,0.3); }
-        .btn-warning:hover { background: linear-gradient(to right, #c0392b, #a93226); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(231,76,60,0.4); }
-        .message { padding: 10px; border-radius: 6px; margin: 12px 0; text-align: center; font-weight: 500; display: none; font-size: 0.9rem; }
+        .btn-secondary { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; }
+        .btn-warning { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
+        .btn-danger { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
+        .message { padding: 10px; border-radius: 6px; margin: 12px 0; text-align: center; font-weight: 500; display: none; }
         .success { background: rgba(46,204,113,0.15); color: #27ae60; border: 1px solid #2ecc71; }
         .error { background: rgba(231,76,60,0.15); color: #c0392b; border: 1px solid #e74c3c; }
         .history-section { background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 18px; margin-top: 20px; }
         .history-controls { display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .history-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(600px, 1fr)); gap: 15px; margin-top: 15px; }
-        .history-card { background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; transition: transform 0.2s ease; min-width: 0; position: relative; }
-        .history-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .history-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(600px, 1fr)); gap: 15px; }
+        .history-card { background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; position: relative; }
         .history-header { background: linear-gradient(90deg, #1a3a6c, #2c5aa0); color: white; padding: 10px 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
         .history-time { font-size: 0.75rem; opacity: 0.85; }
-        .delete-btn { background: rgba(231,76,60,0.3); color: white; border: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-        .delete-btn:hover { background: rgba(231,76,60,0.8); transform: scale(1.1); }
+        .delete-btn { background: rgba(231,76,60,0.3); color: white; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
+        .delete-btn:hover { background: rgba(231,76,60,0.8); }
         .history-body { padding: 12px; }
-        .history-content { font-size: 0.85rem; line-height: 1.5; min-width: 0; }
-        .compensation-card { background: white; border-radius: 6px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); padding: 10px; margin-top: 8px; border: 1px solid #e1e8f0; }
-        .compensation-header { background: #f1f6fd; color: #2c3e50; padding: 6px 8px; font-weight: 600; border-bottom: 1px solid #e1e8f0; font-size: 0.85rem; border-radius: 4px 4px 0 0; }
-        .compensation-content { padding: 8px; font-family: monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.4; font-size: 0.8rem; font-weight: 700; color: #2c3e50; }
+        .compensation-card { background: white; border-radius: 6px; padding: 10px; margin-top: 8px; border: 1px solid #e1e8f0; }
+        .compensation-header { background: #f1f6fd; padding: 6px 8px; font-weight: 600; font-size: 0.85rem; }
+        .compensation-content { padding: 8px; font-family: monospace; white-space: pre-wrap; word-break: break-word; font-size: 0.8rem; font-weight: 700; }
         .compensation-amount { color: #e74c3c; font-weight: bold; }
         .profit-positive { color: #27ae60; font-weight: bold; }
         .profit-negative { color: #e74c3c; font-weight: bold; }
-        .profit-tag { font-weight: bold; margin-left: 15px; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+        .profit-tag { font-weight: bold; margin-left: 15px; padding: 2px 6px; border-radius: 4px; }
         .pay-me { background-color: rgba(46,204,113,0.2); color: #27ae60; }
         .pay-you { background-color: rgba(231,76,60,0.2); color: #c0392b; }
-        .user-card { background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 12px; margin-bottom: 12px; border: 1px solid #e1e8f0; transition: all 0.3s ease; width: calc(33.333% - 10px); min-width: 0; }
-        .user-card:last-child { margin-bottom: 0; }
+        .user-card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #e1e8f0; width: calc(33.333% - 10px); }
         .user-card:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-        .user-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
-        .user-info-left { display: flex; flex-direction: column; gap: 4px; }
+        .user-card-header { display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
         .user-name { font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
-        .user-category { font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
-        .user-date { font-size: 0.75rem; color: #7f8c8d; white-space: nowrap; }
-        .user-info-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 0.85rem; }
-        .info-label { font-weight: 500; color: #555; }
-        .info-value { font-weight: 600; color: #2980b9; }
-        .winning-section { margin-top: 8px; }
-        .winning-title { font-weight: 600; color: #2c3e50; margin-bottom: 4px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
-        .winning-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 0.8rem; }
-        .winning-type { color: #555; }
-        .winning-amount { color: #27ae60; font-weight: 600; }
+        .user-date { font-size: 0.75rem; color: #7f8c8d; }
         .profit-loss { font-weight: 600; padding: 2px 5px; border-radius: 3px; font-size: 0.8rem; margin-top: 6px; text-align: right; }
         .dynamic-table-container { margin-top: 10px; width: 100%; overflow: auto; }
-        .dynamic-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; table-layout: auto; border: 1px solid #e1e8f0; border-radius: 6px; overflow: hidden; }
-        .dynamic-table th, .dynamic-table td { border: 1px solid #e1e8f0; padding: 8px 4px; text-align: center; word-break: break-all; }
-        .dynamic-table th { background: #f1f6fd; font-weight: 600; color: #2c3e50; position: sticky; top: 0; }
-        .dynamic-table tr:nth-child(even) { background-color: #f8fafd; }
+        .dynamic-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; border: 1px solid #e1e8f0; }
+        .dynamic-table th, .dynamic-table td { border: 1px solid #e1e8f0; padding: 8px 4px; text-align: center; }
+        .dynamic-table th { background: #f1f6fd; font-weight: 600; }
         .serial-number { color: #2980b9; font-weight: 600; }
         .order-amount { font-weight: 600; color: #2c3e50; }
-        .small-font { font-size: 0.75em; line-height: 1.2; word-break: break-all; }
-        .empty-history { text-align: center; padding: 20px; color: #7f8c8d; font-style: italic; font-size: 0.9rem; }
+        .small-font { font-size: 0.75em; }
+        .empty-history { text-align: center; padding: 20px; color: #7f8c8d; }
         .counter { background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-left: 5px; }
         .category-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
         .category-macau-up { background: rgba(52,152,219,0.2); color: #2980b9; }
@@ -116,137 +99,112 @@
         .category-guangdong-up { background: rgba(155,89,182,0.2); color: #8e44ad; }
         .category-guangdong-down { background: rgba(241,196,15,0.2); color: #f39c12; }
         .file-input { display: none; }
-        .confirm-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
-        .confirm-dialog.show { display: flex; opacity: 1; }
-        .confirm-content { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-width: 500px; width: 90%; text-align: center; transform: translateY(-20px); transition: transform 0.3s ease; }
-        .confirm-dialog.show .confirm-content { transform: translateY(0); }
+        .confirm-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .confirm-dialog.show { display: flex; }
+        .confirm-content { background: white; padding: 20px; border-radius: 8px; max-width: 500px; width: 90%; text-align: center; }
         .confirm-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .confirm-btn { padding: 8px 16px; border: none; border-radius: 4px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .confirm-btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
         .confirm-yes { background: #2ecc71; color: white; }
         .confirm-no { background: #e74c3c; color: white; }
         .confirm-cancel { background: #95a5a6; color: white; }
         .import-preview-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .import-preview-content { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; text-align: left; }
-        .import-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .import-preview-title { font-size: 1.3rem; color: #2c3e50; font-weight: 600; }
-        .close-preview-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d; }
+        .import-preview-content { background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
         .import-stats { display: flex; justify-content: space-around; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-        .stat-item { text-align: center; }
         .stat-value { font-size: 1.5rem; font-weight: bold; color: #3498db; }
-        .stat-label { font-size: 0.9rem; color: #7f8c8d; }
         .import-list { margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 10px; }
-        .import-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .import-item:last-child { border-bottom: none; }
-        .import-item-info { flex: 1; }
-        .import-item-status { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; }
+        .import-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .import-item-status { padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
         .status-new { background: rgba(46,204,113,0.2); color: #27ae60; }
         .status-duplicate { background: rgba(231,76,60,0.2); color: #c0392b; }
         .import-preview-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
         .summary-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .summary-card { background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); padding: 12px; border: 1px solid #e1e8f0; }
-        .summary-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
-        .summary-title { font-weight: 600; color: #2c3e50; font-size: 1rem; }
+        .summary-card { background: #f8f9fa; border-radius: 8px; padding: 12px; border: 1px solid #e1e8f0; }
+        .summary-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .summary-title { font-weight: 600; }
         .summary-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .summary-table th, .summary-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #eee; }
-        .summary-table th { background: #f1f6fd; font-weight: 600; color: #2c3e50; width: 60%; }
-        .summary-table tr:last-child td { border-bottom: none; }
+        .summary-table th, .summary-table td { padding: 6px 8px; border-bottom: 1px solid #eee; }
         .summary-value { font-weight: 600; color: #2980b9; }
         .summary-profit-positive { color: #27ae60; }
         .summary-profit-negative { color: #e74c3c; }
-        .winning-summary { margin-top: 8px; }
-        .winning-summary-title { font-weight: 600; color: #2c3e50; margin-bottom: 4px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
-        .winning-summary-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 0.8rem; }
-        .winning-summary-type { color: #555; }
-        .winning-summary-amount { font-weight: 600; }
-        .winning-summary-amount.positive { color: #27ae60; }
-        .winning-summary-amount.negative { color: #e74c3c; }
         #userCardsContainer { display: flex; flex-wrap: wrap; gap: 15px; }
         .my-account-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .history-date-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .history-date-input { background: white; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 0.85rem; color: #333; cursor: pointer; }
-        .history-user-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .history-user-select { background: white; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 0.85rem; color: #333; cursor: pointer; min-width: 120px; }
+        .history-date-selector, .history-user-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 6px; }
+        .history-date-input, .history-user-select { background: white; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 0.85rem; }
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; }
-        .toast { background: white; color: #2c3e50; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; transform: translateX(120%); transition: transform 0.3s ease; }
+        .toast { background: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; transform: translateX(120%); transition: transform 0.3s; }
         .toast.show { transform: translateX(0); }
         .toast.success { border-left: 4px solid #2ecc71; }
         .toast.error { border-left: 4px solid #e74c3c; }
         .toast.warning { border-left: 4px solid #f39c12; }
-        .toast i { font-size: 1.2rem; }
-        .recycle-panel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1500; transition: right 0.3s ease; padding: 20px; overflow-y: auto; }
+        .recycle-panel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1500; transition: right 0.3s; padding: 20px; overflow-y: auto; }
         .recycle-panel.open { right: 0; }
-        .recycle-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
-        .close-recycle-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #7f8c8d; }
+        .recycle-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-recycle-panel { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
         .recycle-item { background: #f8f9fa; border-radius: 6px; padding: 10px; margin-bottom: 10px; border: 1px solid #eee; }
-        .recycle-item-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .restore-btn, .delete-permanently-btn { background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 5px; border-radius: 3px; }
-        .restore-btn { color: #27ae60; }
-        .restore-btn:hover { background: rgba(39,174,96,0.1); }
-        .delete-permanently-btn { color: #e74c3c; }
-        .delete-permanently-btn:hover { background: rgba(231,76,60,0.1); }
-        .batch-operations { background: white; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .recycle-item-header { display: flex; justify-content: space-between; }
+        .restore-btn { color: #27ae60; background: none; border: none; cursor: pointer; }
+        .delete-permanently-btn { color: #e74c3c; background: none; border: none; cursor: pointer; }
+        .batch-operations { background: white; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; display: none; align-items: center; gap: 10px; flex-wrap: wrap; }
         .batch-operations.show { display: flex; }
         .batch-info { font-weight: 600; color: #2c3e50; margin-right: 10px; }
         .select-all-checkbox { margin-right: 10px; }
         .history-card-select { position: absolute; top: 8px; left: 8px; z-index: 10; }
         .recycle-item-select { margin-right: 8px; }
-        .highlight-applicant { color: #ffeb3b !important; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        .highlight-category { color: #00ff7f !important; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .highlight-applicant { color: #ffeb3b !important; font-weight: bold; }
+        .highlight-category { color: #00ff7f !important; font-weight: bold; }
         .password-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .password-content { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; width: 350px; }
-        .password-content h3 { color: #2c3e50; margin-bottom: 20px; }
+        .password-content { background: white; padding: 25px; border-radius: 10px; text-align: center; width: 350px; }
         .password-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
-        .password-btn { background: linear-gradient(to right, #3498db, #2980b9); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; margin-top: 10px; transition: all 0.3s; }
-        .password-btn:hover { background: linear-gradient(to right, #2980b9, #2573a7); transform: translateY(-2px); }
+        .password-btn { background: linear-gradient(to right, #3498db, #2980b9); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; margin-top: 10px; }
         .password-cancel { background: #95a5a6; }
-        .password-cancel:hover { background: #7f8c8d; }
         .password-error { color: #e74c3c; margin-top: 10px; display: none; }
         .storage-indicator { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 10px 15px; border-radius: 6px; font-size: 0.85rem; z-index: 1000; display: flex; align-items: center; gap: 8px; }
         .storage-bar { width: 100px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
-        .storage-fill { height: 100%; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); transition: width 0.3s ease; }
+        .storage-fill { height: 100%; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); transition: width 0.3s; }
+        .format-selector { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 3000; }
+        .format-content { background: white; padding: 25px; border-radius: 10px; text-align: center; width: 350px; }
+        .format-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .format-option { padding: 12px; border: 2px solid #ddd; border-radius: 6px; background: white; cursor: pointer; }
+        .format-option.selected { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; }
+        .format-buttons { display: flex; gap: 10px; justify-content: center; }
+        .format-btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .format-confirm { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; }
+        .format-cancel { background: linear-gradient(to right, #95a5a6, #7f8c8d); color: white; }
         @media (max-width: 1400px) { .container { flex-direction: column; } .user-sidebar { width: 100%; } }
         @media (max-width: 1200px) { .summary-container, .my-account-container { grid-template-columns: repeat(2, 1fr); } .user-card { width: calc(50% - 8px); } }
         @media (max-width: 992px) { .input-with-categories { flex-direction: column; } #orderData, .category-button-group { width: 100%; } .category-button-group { flex-direction: row; flex-wrap: wrap; } .category-btn { flex: 1; min-width: 120px; } }
         @media (max-width: 768px) { .btn-group, .navbar, .history-container, .summary-container, .my-account-container { flex-direction: column; } .user-card { width: 100%; } .recycle-panel { width: 100%; right: -100%; } }
-        .format-selector { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 3000; }
-        .format-content { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; width: 350px; }
-        .format-content h3 { color: #2c3e50; margin-bottom: 20px; }
-        .format-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .format-option { padding: 12px; border: 2px solid #ddd; border-radius: 6px; background: white; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .format-option:hover { border-color: #3498db; color: #3498db; transform: translateY(-1px); }
-        .format-option.selected { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; box-shadow: 0 2px 6px rgba(102,126,234,0.3); }
-        .format-buttons { display: flex; gap: 10px; justify-content: center; }
-        .format-btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .format-confirm { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; }
-        .format-cancel { background: linear-gradient(to right, #95a5a6, #7f8c8d); color: white; }
     </style>
 </head>
 <body>
-    <!-- 操作密码对话框保留（清空等操作仍需验证） -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h2><i class="fas fa-lock"></i> 系统访问受限</h2>
+            <p>请输入访问密码</p>
+            <input type="password" id="accessPassword" class="login-input" placeholder="输入访问密码">
+            <div class="login-error" id="loginError">密码错误，请重试！</div>
+            <button class="login-btn" onclick="checkAccessPassword()">进入系统</button>
+        </div>
+    </div>
+
     <div class="password-dialog" id="passwordDialog">
         <div class="password-content">
-            <h3><i class="fas fa-shield-alt"></i> 操作需要密码验证</h3>
+            <h3>操作需要密码验证</h3>
             <p id="passwordPromptText">请输入操作密码</p>
             <input type="password" id="operationPassword" class="password-input" placeholder="输入密码">
-            <div class="password-error" id="passwordError">密码错误，请重试！</div>
-            <button class="password-btn" id="passwordSubmitBtn" onclick="verifyOperationPassword()">确认</button>
+            <div class="password-error" id="passwordError">密码错误</div>
+            <button class="password-btn" onclick="verifyOperationPassword()">确认</button>
             <button class="password-btn password-cancel" onclick="closePasswordDialog()">取消</button>
         </div>
     </div>
-    
+
     <div class="format-selector" id="formatSelector">
         <div class="format-content">
-            <h3><i class="fas fa-file-export"></i> 选择导出格式</h3>
+            <h3>选择导出格式</h3>
             <div class="format-options">
-                <div class="format-option" data-format="txt" onclick="selectFormat(this, 'txt')">
-                    <i class="fas fa-file-alt"></i> TXT 格式
-                </div>
-                <div class="format-option" data-format="csv" onclick="selectFormat(this, 'csv')">
-                    <i class="fas fa-file-csv"></i> CSV 格式
-                </div>
-                <div class="format-option selected" data-format="json" onclick="selectFormat(this, 'json')">
-                    <i class="fas fa-file-code"></i> JSON 格式
-                </div>
+                <div class="format-option" data-format="txt" onclick="selectFormat(this, 'txt')">TXT 格式</div>
+                <div class="format-option" data-format="csv" onclick="selectFormat(this, 'csv')">CSV 格式</div>
+                <div class="format-option selected" data-format="json" onclick="selectFormat(this, 'json')">JSON 格式</div>
             </div>
             <div class="format-buttons">
                 <button class="format-btn format-confirm" onclick="confirmExport()">确认导出</button>
@@ -254,1500 +212,706 @@
             </div>
         </div>
     </div>
-    
+
     <div class="import-preview-dialog" id="importPreviewDialog">
         <div class="import-preview-content">
-            <div class="import-preview-header">
-                <h3 class="import-preview-title"><i class="fas fa-file-import"></i> 导入订单预览</h3>
-                <button class="close-preview-btn" onclick="closeImportPreview()">&times;</button>
-            </div>
+            <div class="import-preview-header"><h3>导入订单预览</h3><button class="close-preview-btn" onclick="closeImportPreview()">&times;</button></div>
             <div class="import-stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="totalImportCount">0</div>
-                    <div class="stat-label">总记录数</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="newImportCount">0</div>
-                    <div class="stat-label">新记录</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="duplicateImportCount">0</div>
-                    <div class="stat-label">重复记录</div>
-                </div>
+                <div class="stat-item"><div class="stat-value" id="totalImportCount">0</div><div class="stat-label">总记录数</div></div>
+                <div class="stat-item"><div class="stat-value" id="newImportCount">0</div><div class="stat-label">新记录</div></div>
+                <div class="stat-item"><div class="stat-value" id="duplicateImportCount">0</div><div class="stat-label">重复记录</div></div>
             </div>
             <div class="import-list" id="importList"></div>
             <div class="import-preview-buttons">
-                <button class="btn btn-primary" onclick="confirmImport()">
-                    <i class="fas fa-check"></i> 确认导入
-                </button>
-                <button class="btn btn-secondary" onclick="closeImportPreview()">
-                    <i class="fas fa-times"></i> 取消
-                </button>
+                <button class="btn btn-primary" onclick="confirmImport()"><i class="fas fa-check"></i> 确认导入</button>
+                <button class="btn btn-secondary" onclick="closeImportPreview()"><i class="fas fa-times"></i> 取消</button>
             </div>
         </div>
     </div>
-    
+
     <div class="toast-container" id="toastContainer"></div>
     <div class="storage-indicator" id="storageIndicator">
-        <i class="fas fa-cloud"></i>
-        <span id="storageText">云端存储</span>
-        <div class="storage-bar">
-            <div class="storage-fill" id="storageFill" style="width: 0%"></div>
-        </div>
+        <i class="fas fa-database"></i><span id="storageText">云端存储</span>
+        <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
     </div>
-    
-    <div class="container" id="mainContainer">
+
+    <div class="container" id="mainContainer" style="display:none;">
         <div class="main-content">
             <div class="navbar">
-                <div class="navbar-brand">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>订单报表系统（云同步）</span>
-                </div>
+                <div class="navbar-brand"><i class="fas fa-file-invoice-dollar"></i><span>订单报表系统（云同步完整版）</span></div>
                 <div class="nav-buttons">
-                    <button class="nav-btn" onclick="document.getElementById('fileInput').click()">
-                        <i class="fas fa-file-import"></i> 导入订单
-                    </button>
-                    <button class="nav-btn" onclick="showFormatSelector()">
-                        <i class="fas fa-file-export"></i> 导出订单
-                    </button>
-                    <button class="nav-btn" onclick="importAllData()">
-                        <i class="fas fa-database"></i> 导入所有数据
-                    </button>
-                    <button class="nav-btn" onclick="exportAllData()">
-                        <i class="fas fa-database"></i> 导出所有数据
-                    </button>
-                    <button class="nav-btn recycle-bin-btn" onclick="toggleRecyclePanel()">
-                        <i class="fas fa-trash-restore"></i> 回收站
-                        <span class="recycle-badge" id="recycleBadge">0</span>
-                    </button>
-                    <button class="nav-btn" onclick="requestClearPassword()">
-                        <i class="fas fa-trash-alt"></i> 清空
-                    </button>
+                    <button class="nav-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-file-import"></i> 导入订单</button>
+                    <button class="nav-btn" onclick="showFormatSelector()"><i class="fas fa-file-export"></i> 导出订单</button>
+                    <button class="nav-btn" onclick="importAllData()"><i class="fas fa-database"></i> 导入所有数据</button>
+                    <button class="nav-btn" onclick="exportAllData()"><i class="fas fa-database"></i> 导出所有数据</button>
+                    <button class="nav-btn recycle-bin-btn" onclick="toggleRecyclePanel()"><i class="fas fa-trash-restore"></i> 回收站<span class="recycle-badge" id="recycleBadge">0</span></button>
+                    <button class="nav-btn" onclick="requestClearPassword()"><i class="fas fa-trash-alt"></i> 清空</button>
                 </div>
             </div>
-            
             <header>
                 <h1><i class="fas fa-chart-line"></i> 订单报表系统</h1>
-                <p>录入订单数据，系统自动识别所有中奖类型（赔付明细整数显示版）- 云同步版</p>
+                <p>录入订单数据，自动识别中奖类型 · 云端实时同步</p>
             </header>
-            
             <div class="input-section">
                 <h2 class="section-title"><i class="fas fa-edit"></i> 数据录入</h2>
-                <div class="date-selector-container">
-                    <label for="reportDate"><i class="fas fa-calendar-alt"></i> 报表日期：</label>
-                    <input type="date" id="reportDate" class="date-input">
-                </div>
-                <div class="input-group">
-                    <label for="orderData">订单数据录入</label>
+                <div><label>报表日期：</label><input type="date" id="reportDate"></div>
+                <div class="input-group"><label>订单数据录入</label>
                     <div class="input-with-categories">
                         <textarea id="orderData"></textarea>
                         <div class="category-button-group">
-                            <button class="category-btn" data-category="澳门上家" onclick="selectCategory(this, '澳门上家')">
-                                <i class="fas fa-arrow-up"></i> 澳门上家
-                            </button>
-                            <button class="category-btn active" data-category="澳门下家" onclick="selectCategory(this, '澳门下家')">
-                                <i class="fas fa-arrow-down"></i> 澳门下家
-                            </button>
-                            <button class="category-btn" data-category="粤港上家" onclick="selectCategory(this, '粤港上家')">
-                                <i class="fas fa-arrow-up"></i> 粤港上家
-                            </button>
-                            <button class="category-btn" data-category="粤港下家" onclick="selectCategory(this, '粤港下家')">
-                                <i class="fas fa-arrow-down"></i> 粤港下家
-                            </button>
+                            <button class="category-btn" data-category="澳门上家" onclick="selectCategory(this)">澳门上家</button>
+                            <button class="category-btn active" data-category="澳门下家" onclick="selectCategory(this)">澳门下家</button>
+                            <button class="category-btn" data-category="粤港上家" onclick="selectCategory(this)">粤港上家</button>
+                            <button class="category-btn" data-category="粤港下家" onclick="selectCategory(this)">粤港下家</button>
                         </div>
                     </div>
                 </div>
-                <div class="message success" id="successMsg">
-                    <i class="fas fa-check-circle"></i> 报表已成功保存！
-                </div>
-                <div class="message error" id="errorMsg">
-                    <i class="fas fa-exclamation-circle"></i> 未找到"订单金额明细："或"="，请按格式输入！
-                </div>
+                <div class="message success" id="successMsg">保存成功！</div>
+                <div class="message error" id="errorMsg"></div>
                 <div class="btn-group">
-                    <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">
-                        <i class="fas fa-save"></i> 保存报表
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearInput()">
-                        <i class="fas fa-broom"></i> 清空输入
-                    </button>
+                    <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()"><i class="fas fa-save"></i> 保存报表</button>
+                    <button class="btn btn-secondary" onclick="clearInput()">清空输入</button>
                 </div>
             </div>
-            
             <div class="history-section">
                 <div class="history-controls">
                     <h2 class="section-title"><i class="fas fa-history"></i> 历史记录 <span class="counter" id="recordCounter">0</span></h2>
-                    <div class="history-date-selector">
-                        <label for="historyDateFilter"><i class="fas fa-calendar-day"></i> 选择日期：</label>
-                        <input type="date" id="historyDateFilter" class="history-date-input">
-                    </div>
-                    <div class="history-user-selector">
-                        <label for="historyUserFilter"><i class="fas fa-user"></i> 选择用户：</label>
-                        <select id="historyUserFilter" class="history-user-select">
-                            <option value="">所有用户</option>
-                        </select>
-                    </div>
+                    <div class="history-date-selector"><label>选择日期：</label><input type="date" id="historyDateFilter" class="history-date-input"></div>
+                    <div class="history-user-selector"><label>选择用户：</label><select id="historyUserFilter" class="history-user-select"><option value="">所有用户</option></select></div>
                 </div>
                 <div class="batch-operations" id="historyBatchOperations">
                     <span class="batch-info">已选择 <span id="selectedCount">0</span> 项</span>
-                    <input type="checkbox" class="select-all-checkbox" id="selectAllHistory" onchange="toggleSelectAll('history')">
-                    <label for="selectAllHistory">全选</label>
-                    <button class="btn btn-danger" onclick="batchDelete('history')">
-                        <i class="fas fa-trash"></i> 批量删除
-                    </button>
-                    <button class="btn btn-warning" onclick="batchMoveToRecycle('history')">
-                        <i class="fas fa-trash-alt"></i> 批量移至回收站
-                    </button>
+                    <input type="checkbox" class="select-all-checkbox" id="selectAllHistory" onchange="toggleSelectAll('history')"><label for="selectAllHistory">全选</label>
+                    <button class="btn btn-danger" onclick="batchDelete('history')"><i class="fas fa-trash"></i> 批量删除</button>
+                    <button class="btn btn-warning" onclick="batchMoveToRecycle('history')"><i class="fas fa-trash-alt"></i> 批量移至回收站</button>
                 </div>
-                <div class="history-container" id="historyContainer">
-                    <div class="empty-history">
-                        <i class="fas fa-clock" style="font-size: 2.5rem; margin-bottom: 10px; color: #bdc3c7;"></i>
-                        <p>暂无历史记录，请先录入并保存订单数据</p>
-                    </div>
-                </div>
+                <div class="history-container" id="historyContainer"><div class="empty-history">暂无记录</div></div>
             </div>
         </div>
-        
         <div class="user-sidebar">
-            <div class="search-filter-section">
-                <div class="search-box">
-                    <input type="text" id="searchInput" class="search-input" placeholder="搜索用户、日期或分类...">
-                    <button class="search-btn" onclick="applyFilters()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <div class="filter-group">
-                    <div class="filter-item">
-                        <label class="filter-label">日期</label>
-                        <input type="date" id="dateFilter" class="filter-date" onchange="applyFilters()">
-                    </div>
-                    <div class="filter-item">
-                        <label class="filter-label">分类</label>
-                        <select id="categoryFilter" class="filter-select" onchange="applyFilters()">
-                            <option value="">所有分类</option>
-                            <option value="澳门上家">澳门上家</option>
-                            <option value="澳门下家">澳门下家</option>
-                            <option value="粤港上家">粤港上家</option>
-                            <option value="粤港下家">粤港下家</option>
-                        </select>
-                    </div>
-                    <div class="filter-item">
-                        <label class="filter-label">用户</label>
-                        <select id="userFilter" class="filter-select" onchange="applyFilters()">
-                            <option value="">所有用户</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
             <div class="big-user-card">
-                <div class="big-card-header">
-                    <i class="fas fa-user-circle"></i> 用户信息和中奖情况
-                </div>
-                <div class="big-card-content" id="userCardsContainer">
-                    <div class="empty-history">
-                        <i class="fas fa-user-friends" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i>
-                        <p>暂无用户数据</p>
-                    </div>
-                </div>
+                <div class="big-card-header"><i class="fas fa-user-circle"></i> 用户信息和中奖情况</div>
+                <div class="big-card-content" id="userCardsContainer"><div class="empty-history">暂无数据</div></div>
             </div>
-            
             <div class="big-user-card">
-                <div class="big-card-header">
-                    <i class="fas fa-chart-bar"></i> 全部汇总
-                </div>
-                <div class="big-card-content" id="summaryContainer">
-                    <div class="empty-history">
-                        <i class="fas fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i>
-                        <p>暂无汇总数据</p>
-                    </div>
-                </div>
+                <div class="big-card-header"><i class="fas fa-chart-bar"></i> 全部汇总</div>
+                <div class="big-card-content" id="summaryContainer"><div class="empty-history">暂无数据</div></div>
             </div>
-            
             <div class="big-user-card">
-                <div class="big-card-header">
-                    <i class="fas fa-calculator"></i> 我的账户
-                </div>
-                <div class="big-card-content">
-                    <div class="my-account-container" id="myAccountContainer">
-                        <div class="empty-history">
-                            <i class="fas fa-coins" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i>
-                            <p>暂无账户数据</p>
-                        </div>
-                    </div>
-                </div>
+                <div class="big-card-header"><i class="fas fa-calculator"></i> 我的账户</div>
+                <div class="big-card-content"><div class="my-account-container" id="myAccountContainer"><div class="empty-history">暂无数据</div></div></div>
             </div>
         </div>
     </div>
-    
+
     <div class="recycle-panel" id="recyclePanel">
-        <div class="recycle-panel-header">
-            <h3><i class="fas fa-trash-restore"></i> 回收站</h3>
-            <button class="close-recycle-panel" onclick="toggleRecyclePanel()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+        <div class="recycle-panel-header"><h3>回收站</h3><button class="close-recycle-panel" onclick="toggleRecyclePanel()">✕</button></div>
         <div class="batch-operations" id="recycleBatchOperations">
             <span class="batch-info">已选择 <span id="recycleSelectedCount">0</span> 项</span>
-            <input type="checkbox" class="select-all-checkbox" id="selectAllRecycle" onchange="toggleSelectAll('recycle')">
-            <label for="selectAllRecycle">全选</label>
-            <button class="btn btn-secondary" onclick="batchRestore('recycle')">
-                <i class="fas fa-undo"></i> 批量恢复
-            </button>
-            <button class="btn btn-danger" onclick="batchDeletePermanent('recycle')">
-                <i class="fas fa-trash"></i> 批量永久删除
-            </button>
+            <input type="checkbox" class="select-all-checkbox" id="selectAllRecycle" onchange="toggleSelectAll('recycle')"><label for="selectAllRecycle">全选</label>
+            <button class="btn btn-secondary" onclick="batchRestore('recycle')"><i class="fas fa-undo"></i> 批量恢复</button>
+            <button class="btn btn-danger" onclick="batchDeletePermanent('recycle')"><i class="fas fa-trash"></i> 批量永久删除</button>
         </div>
-        <div id="recycleItemsContainer">
-            <div class="empty-history">
-                <i class="fas fa-trash" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i>
-                <p>回收站为空</p>
-            </div>
-        </div>
+        <div id="recycleItemsContainer"><div class="empty-history">回收站为空</div></div>
     </div>
-    
+
     <input type="file" id="fileInput" class="file-input" accept=".txt,.csv,.json" onchange="importData(event)">
-    
     <div class="confirm-dialog" id="confirmDialog">
         <div class="confirm-content">
             <h3 id="confirmTitle">确认删除</h3>
-            <p id="confirmMessage">确定要删除这条订单报表吗？此操作将移至回收站。</p>
+            <p id="confirmMessage"></p>
             <div class="confirm-buttons">
                 <button class="confirm-btn confirm-yes" id="confirmYesBtn">确定</button>
                 <button class="confirm-btn confirm-no" onclick="hideClearConfirm()">取消</button>
             </div>
         </div>
     </div>
-    
     <div class="confirm-dialog" id="duplicateDialog">
         <div class="confirm-content">
             <h3>发现重复录入</h3>
-            <p id="duplicateMessage">检测到相同日期、相同申报人的相似订单记录。</p>
+            <p id="duplicateMessage"></p>
             <div class="confirm-buttons">
-                <button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">
-                    <i class="fas fa-save"></i> 强制保存
-                </button>
-                <button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">
-                    <i class="fas fa-edit"></i> 修改后再存
-                </button>
-                <button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">
-                    <i class="fas fa-times"></i> 取消保存
-                </button>
+                <button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">强制保存</button>
+                <button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">修改后再存</button>
+                <button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">取消保存</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== Supabase 云同步配置 ====================
-        const SUPABASE_URL = 'https://xgoglgmkufrompjtggtj.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_aq2-wq7VsxfyQBvwQQBBkQ_zoehaCDp';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        let db = null;
-        const DB_NAME = "OrderReportSystemDB";
-        const STORE_NAME = "historyRecords";
-        const RECYCLE_STORE_NAME = "recycleBin";
-        const DB_VERSION = 1;
-        
-        const ACCESS_PASSWORD = "160601";
-        const OPERATION_PASSWORD = "891105";
-        
-        // 云数据库操作
-        async function saveToDatabase(storeName, data) {
-            const tableName = storeName === STORE_NAME ? 'records' : 'recycle_bin';
-            const { error } = await supabase.from(tableName).upsert(data);
-            if (error) throw error;
-        }
+        // 动态加载 Supabase SDK（备用 CDN）
+        (function() {
+            const cdns = [
+                'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+                'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+            ];
+            let idx = 0;
+            function load() {
+                if (idx >= cdns.length) { alert('SDK加载失败，请检查网络'); return; }
+                const s = document.createElement('script');
+                s.src = cdns[idx];
+                s.onload = initApp;
+                s.onerror = function() { idx++; load(); };
+                document.head.appendChild(s);
+            }
+            load();
+        })();
 
-        async function getAllFromDatabase(storeName) {
-            const tableName = storeName === STORE_NAME ? 'records' : 'recycle_bin';
-            const { data, error } = await supabase.from(tableName).select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            return data || [];
-        }
+        function initApp() {
+            const supabase = window.supabase.createClient(
+                'https://xgoglgmkufrompjtggtj.supabase.co',
+                'sb_publishable_aq2-wq7VsxfyQBvwQQBBkQ_zoehaCDp'
+            );
 
-        async function deleteFromDatabase(storeName, id) {
-            const tableName = storeName === STORE_NAME ? 'records' : 'recycle_bin';
-            const { error } = await supabase.from(tableName).delete().eq('id', id);
-            if (error) throw error;
-        }
+            const ACCESS_PASSWORD = '160601';
+            const OPERATION_PASSWORD = '891105';
+            const STORE_NAME = 'records';
+            const RECYCLE_NAME = 'recycle_bin';
 
-        async function clearDatabase(storeName) {
-            const tableName = storeName === STORE_NAME ? 'records' : 'recycle_bin';
-            const { error } = await supabase.from(tableName).delete().neq('id', 0);
-            if (error) throw error;
-        }
+            let historyRecords = [], recycleBin = [];
+            let selectedCategory = '澳门下家', exportFormat = 'json', currentOperation = null;
+            let pendingRecord = null, pendingImportRecords = [];
+            let selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
 
-        async function getDatabaseSize() {
-            const { count: cnt1 } = await supabase.from('records').select('*', { count: 'exact', head: true });
-            const { count: cnt2 } = await supabase.from('recycle_bin').select('*', { count: 'exact', head: true });
-            const count = (cnt1 || 0) + (cnt2 || 0);
-            return { size: count * 1024, count: count };
-        }
-        
-        class AutoBackup {
-            constructor() {
-                this.backupKey = 'autoBackup';
-                this.interval = 5 * 60 * 1000;
-                this.maxBackupRecords = 100;
-                this.init();
+            function showToast(msg, type) {
+                const t = document.createElement('div');
+                t.className = 'toast ' + type;
+                t.innerHTML = '<span>' + msg + '</span>';
+                document.getElementById('toastContainer').appendChild(t);
+                setTimeout(function() { t.classList.add('show'); }, 10);
+                setTimeout(function() { t.classList.remove('show'); t.remove(); }, 3000);
             }
-            init() { this.checkAndRestoreBackup(); this.startAutoBackup(); }
-            startAutoBackup() { setInterval(() => this.createBackup(), this.interval); }
-            createBackup() {
-                try {
-                    const backup = { timestamp: new Date().toISOString(), historyRecords: historyRecords.slice(0, this.maxBackupRecords), recycleBin: recycleBin.slice(0, 50) };
-                    localStorage.setItem(this.backupKey, JSON.stringify(backup));
-                } catch (e) { console.error("自动备份失败:", e); }
+
+            // 数据库操作
+            async function saveToDB(store, data) {
+                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const { error } = await supabase.from(table).upsert(data);
+                if (error) throw error;
             }
-            checkAndRestoreBackup() {
-                try {
-                    const backup = localStorage.getItem(this.backupKey);
-                    if (backup) {
-                        const data = JSON.parse(backup);
-                        if (historyRecords.length === 0 && data.historyRecords) historyRecords = data.historyRecords;
-                    }
-                } catch (e) { console.error("恢复备份失败:", e); }
+            async function getAllFromDB(store) {
+                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
             }
-        }
-        
-        class DataValidator {
-            static validateOrderData(input) {
-                const errors = [];
-                if (!input || !input.trim()) { errors.push("订单数据不能为空"); return { isValid: false, errors }; }
-                const requiredPatterns = [
-                    { pattern: /申报人：[^\n]+/, name: "申报人" },
-                    { pattern: /订单金额明细：/, name: "订单金额明细" },
-                    { pattern: /=/, name: "等号分隔符" },
-                    { pattern: /订单总额：[\d.]+/, name: "订单总额" },
-                    { pattern: /盈亏情况：[\d.-]+/, name: "盈亏情况" }
-                ];
-                requiredPatterns.forEach(({ pattern, name }) => { if (!pattern.test(input)) errors.push(`缺少或格式错误：${name}`); });
-                if (input.length > 100000) errors.push("数据过长，请分批提交");
-                return { isValid: errors.length === 0, errors };
+            async function deleteFromDB(store, id) {
+                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                await supabase.from(table).delete().eq('id', id);
             }
-            static validateRecord(record) {
-                const requiredFields = ['id', 'timestamp', 'category', 'applicant', 'originalData'];
-                for (const field of requiredFields) { if (!record[field]) return { valid: false, message: `缺少必填字段: ${field}` }; }
-                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                if (!dateRegex.test(record.timestamp)) return { valid: false, message: "日期格式不正确" };
-                return { valid: true, message: "数据有效" };
+            async function clearDB(store) {
+                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                await supabase.from(table).delete().neq('id', 0);
             }
-        }
-        
-        class PerformanceMonitor {
-            constructor() { this.metrics = {}; }
-            measure(name, fn) {
-                const start = performance.now();
-                const result = fn();
-                const duration = performance.now() - start;
-                this.metrics[name] = duration;
-                if (duration > 100) console.warn(`⚠️ 性能警告: ${name} 耗时 ${duration.toFixed(2)}ms`);
-                return result;
+            async function loadData() {
+                historyRecords = await getAllFromDB(STORE_NAME);
+                recycleBin = await getAllFromDB(RECYCLE_NAME);
             }
-        }
-        
-        let historyRecords = [], recycleBin = [], currentDeleteId = null, pendingRecord = null;
-        let selectedCategory = '澳门下家', summaryCache = {}, selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
-        let currentOperation = null, exportFormat = 'json', pendingImportRecords = [];
-        let autoBackup, performanceMonitor;
-        
-        // 页面加载 - 直接显示主界面
-        window.onload = function() {
-            document.body.style.display = 'block';
-            
-            autoBackup = new AutoBackup();
-            performanceMonitor = new PerformanceMonitor();
-            
-            document.getElementById('orderData').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    saveRecord();
+
+            // 登录
+            window.checkAccessPassword = async function() {
+                if (document.getElementById('accessPassword').value === ACCESS_PASSWORD) {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'flex';
+                    await loadData();
+                    initSystem();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
                 }
-            });
-            
-            // 加载云端数据并初始化
-            loadFromDatabase().then(() => {
-                initSystem();
-            }).catch(e => {
-                console.error("加载数据失败:", e);
-                initSystem();
-            });
-            
-            updateStorageIndicator();
-            setInterval(updateStorageIndicator, 5000);
-        };
-        
-        async function updateStorageIndicator() {
-            try {
-                const { count } = await getDatabaseSize();
-                document.getElementById('storageText').textContent = `云端: ${count}条记录`;
-                document.getElementById('storageFill').style.width = Math.min((count / 1000) * 100, 100) + '%';
-            } catch (e) { 
-                document.getElementById('storageText').textContent = `云端: 连接中...`;
+            };
+
+            // 初始化
+            function initSystem() {
+                setDefaultDates();
+                updateAll();
+                // 实时同步
+                supabase.channel('realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, function() {
+                    loadData().then(updateAll);
+                }).subscribe();
             }
-        }
-        
-        async function loadFromDatabase() {
-            try {
-                historyRecords = await getAllFromDatabase(STORE_NAME) || [];
-                recycleBin = await getAllFromDatabase(RECYCLE_STORE_NAME) || [];
-            } catch (e) {
-                console.error("加载数据失败:", e);
-                historyRecords = [];
-                recycleBin = [];
-            }
-        }
-        
-        function initSystem() {
-            initDatePickers();
-            updateHistoryDisplay();
-            updateUserCardsDisplay();
-            updateSummaryDisplay();
-            updateMyAccountCards();
-            updateRecycleBadge();
-            populateFilterOptions();
-            setInitialCategory();
-            
-            // 实时同步
-            supabase.channel('realtime-records')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => {
-                    loadFromDatabase().then(() => {
-                        updateHistoryDisplay();
-                        updateUserCardsDisplay();
-                        updateSummaryDisplay();
-                        updateMyAccountCards();
-                        updateRecycleBadge();
-                        populateFilterOptions();
-                    });
-                })
-                .subscribe();
-        }
-        
-        function requestClearPassword() {
-            currentOperation = 'clear';
-            document.getElementById('passwordPromptText').innerHTML = '清空操作需要密码保护<br>请输入密码：891105';
-            document.getElementById('passwordDialog').style.display = 'flex';
-            document.getElementById('operationPassword').value = '';
-            document.getElementById('passwordError').style.display = 'none';
-            document.getElementById('operationPassword').focus();
-        }
-        
-        async function verifyOperationPassword() {
-            const pwd = document.getElementById('operationPassword').value;
-            if (currentOperation === 'clear' && pwd === OPERATION_PASSWORD) {
-                closePasswordDialog();
-                showClearConfirm();
-            } else {
-                document.getElementById('passwordError').style.display = 'block';
-                document.getElementById('operationPassword').value = '';
-                document.getElementById('operationPassword').focus();
-            }
-        }
-        
-        function closePasswordDialog() {
-            document.getElementById('passwordDialog').style.display = 'none';
-            currentOperation = null;
-        }
-        
-        function initDatePickers() {
-            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-            const today = `${y}-${m}-${d}`;
-            document.getElementById('reportDate').value = today;
-            document.getElementById('historyDateFilter').value = today;
-            document.getElementById('historyDateFilter').addEventListener('change', function() {
-                updateHistoryUserFilter();
-                updateHistoryDisplay();
-            });
-            document.getElementById('historyUserFilter').addEventListener('change', updateHistoryDisplay);
-        }
-        
-        function updateHistoryUserFilter() {
-            const filterDate = document.getElementById('historyDateFilter').value;
-            const userFilter = document.getElementById('historyUserFilter');
-            let users = [];
-            if (filterDate) users = [...new Set(historyRecords.filter(r => r.timestamp === filterDate).map(r => r.applicant))];
-            else users = [...new Set(historyRecords.map(r => r.applicant))];
-            const currentSelectedUser = userFilter.value;
-            userFilter.innerHTML = '<option value="">所有用户</option>';
-            users.sort().forEach(user => {
-                const option = document.createElement('option');
-                option.value = user;
-                option.textContent = user;
-                if (user === currentSelectedUser) option.selected = true;
-                userFilter.appendChild(option);
-            });
-        }
-        
-        function setInitialCategory() {
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.category === selectedCategory);
-            });
-        }
-        
-        function selectCategory(btn, category) {
-            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedCategory = category;
-        }
-        
-        function populateFilterOptions() {
-            const userFilter = document.getElementById('userFilter');
-            userFilter.innerHTML = '<option value="">所有用户</option>';
-            [...new Set(historyRecords.map(r => r.applicant))].sort().forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u;
-                opt.textContent = u;
-                userFilter.appendChild(opt);
-            });
-            updateHistoryUserFilter();
-        }
-        
-        function showToast(msg, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'exclamation-triangle'}"></i><span>${msg}</span>`;
-            document.getElementById('toastContainer').appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); toast.remove(); }, 3000);
-        }
-        
-        async function saveRecord() {
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.classList.add('loading');
-            const orderDataInput = document.getElementById('orderData').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const successMsg = document.getElementById('successMsg');
-            const dateInput = document.getElementById('reportDate');
-            
-            try {
-                performanceMonitor.measure('validateOrderData', () => {
-                    const validation = DataValidator.validateOrderData(orderDataInput);
-                    if (!validation.isValid) throw new Error(`数据验证失败：${validation.errors.join(', ')}`);
+
+            function setDefaultDates() {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('reportDate').value = today;
+                document.getElementById('historyDateFilter').value = today;
+                document.getElementById('historyDateFilter').addEventListener('change', function() {
+                    updateHistoryUserFilter(); updateHistoryDisplay();
                 });
-                
-                let applicant = "未知申报人";
-                const appMatch = orderDataInput.match(/申报人：([^\n]+)/);
-                if (appMatch) applicant = appMatch[1].trim();
-                
-                const detailStart = orderDataInput.indexOf("订单金额明细：");
-                if (detailStart === -1) throw new Error('未找到"订单金额明细："关键词');
-                const detailEnd = orderDataInput.indexOf("=", detailStart);
-                if (detailEnd === -1) throw new Error('未找到"="符号');
-                const amountDetail = orderDataInput.substring(detailStart + "订单金额明细：".length, detailEnd).trim();
-                if (!amountDetail) throw new Error("订单金额明细内容为空");
-                
-                const filteredData = amountDetail.replace(/[^0-9+]/g, '');
-                if (!filteredData) throw new Error("无有效数字和加号");
-                const orderData = parseOrderData(filteredData);
-                const dataCount = orderData.length;
-                
-                let selectedDate = dateInput.value || new Date().toISOString().split('T')[0];
-                const extractedData = extractOrderData(orderDataInput, applicant);
-                
-                if (checkDuplicate(selectedDate, applicant, orderDataInput)) {
-                    showDuplicateWarning(selectedDate, applicant, orderDataInput);
-                    saveBtn.classList.remove('loading');
-                    return;
-                }
-                
-                await directSaveRecord(selectedDate, selectedCategory, applicant, orderDataInput, orderData, dataCount, extractedData);
-            } catch (e) {
-                errorMsg.textContent = e.message;
-                errorMsg.style.display = 'block';
-                successMsg.style.display = 'none';
-                showToast(e.message, 'error');
-                saveBtn.classList.remove('loading');
+                document.getElementById('historyUserFilter').addEventListener('change', updateHistoryDisplay);
+                document.getElementById('orderData').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRecord(); }
+                });
+                document.getElementById('accessPassword').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') checkAccessPassword();
+                });
+                document.getElementById('operationPassword').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') verifyOperationPassword();
+                });
             }
-        }
-        
-        function extractOrderData(input, applicant) {
-            let totalAmount = "0", profitLoss = "0";
-            const totalMatch = input.match(/订单总额：([\d.]+)/);
-            if (totalMatch) totalAmount = totalMatch[1];
-            const profitMatch = input.match(/盈亏情况：([\d.-]+)/);
-            if (profitMatch) profitLoss = profitMatch[1];
-            const winnings = {};
-            input.split('\n').forEach(line => {
-                if (line.includes(' 中:')) {
-                    const typeMatch = line.match(/^([^\n:]+?) 中:/);
-                    if (typeMatch) {
-                        const type = typeMatch[1].trim();
-                        let amountStr = line.substring(typeMatch[0].length).trim();
-                        if (amountStr.includes('=')) amountStr = amountStr.split('=').pop();
-                        const amtMatch = amountStr.match(/[\d.]+/);
-                        if (amtMatch) {
-                            const amt = amtMatch[0];
-                            winnings[type] = winnings[type] ? (parseFloat(winnings[type]) + parseFloat(amt)).toString() : amt;
+
+            // 分类选择
+            window.selectCategory = function(btn) {
+                document.querySelectorAll('.category-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                selectedCategory = btn.dataset.category;
+            };
+
+            // 提取数据
+            function extractOrderData(input, applicant) {
+                let totalAmount = "0", profitLoss = "0";
+                const tm = input.match(/订单总额：([\d.]+)/); if (tm) totalAmount = tm[1];
+                const pm = input.match(/盈亏情况：([\d.-]+)/); if (pm) profitLoss = pm[1];
+                const winnings = {};
+                input.split('\n').forEach(function(line) {
+                    if (line.includes(' 中:')) {
+                        const m = line.match(/^([^\n:]+?) 中:/);
+                        if (m) {
+                            const type = m[1].trim();
+                            let as = line.substring(m[0].length).trim();
+                            if (as.includes('=')) as = as.split('=').pop();
+                            const am = as.match(/[\d.]+/);
+                            if (am) winnings[type] = winnings[type] ? (parseFloat(winnings[type]) + parseFloat(am[0])).toString() : am[0];
                         }
                     }
+                });
+                return { applicant, totalAmount, winnings, profitLoss };
+            }
+
+            function extractAmountDetail(input) {
+                const s = input.indexOf("订单金额明细："); if (s === -1) return "";
+                const e = input.indexOf("=", s); return e === -1 ? "" : input.substring(s + 7, e).trim();
+            }
+
+            // 保存记录
+            window.saveRecord = async function() {
+                const btn = document.getElementById('saveBtn'); btn.classList.add('loading');
+                const input = document.getElementById('orderData').value;
+                const date = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
+                if (!input.trim()) { showToast('请输入订单数据', 'error'); btn.classList.remove('loading'); return; }
+                let applicant = "未知申报人";
+                const am = input.match(/申报人：([^\n]+)/);
+                if (am) applicant = am[1].trim();
+                const detailStart = input.indexOf("订单金额明细：");
+                if (detailStart === -1) { showToast('未找到"订单金额明细："', 'error'); btn.classList.remove('loading'); return; }
+                const detailEnd = input.indexOf("=", detailStart);
+                if (detailEnd === -1) { showToast('未找到"="', 'error'); btn.classList.remove('loading'); return; }
+                const detail = input.substring(detailStart + 7, detailEnd).trim();
+                const filtered = detail.replace(/[^0-9+]/g, '');
+                const orderData = filtered.split('+').map(function(s) { const n = parseFloat(s.trim()); if (isNaN(n)) throw new Error('无效数字'); return n; });
+                const ed = extractOrderData(input, applicant);
+                // 重复检测
+                if (historyRecords.some(function(r) { return r.timestamp === date && r.applicant === applicant && extractAmountDetail(r.originalData) === extractAmountDetail(input); })) {
+                    pendingRecord = { date, applicant, orderDataInput: input };
+                    document.getElementById('duplicateMessage').innerHTML = '检测到相同日期、相同申报人的相似订单记录。<br>是否继续保存？';
+                    document.getElementById('duplicateDialog').classList.add('show');
+                    btn.classList.remove('loading');
+                    return;
                 }
-            });
-            return { applicant, totalAmount, winnings, profitLoss };
-        }
-        
-        function checkDuplicate(date, applicant, input) {
-            return historyRecords.some(r => 
-                r.timestamp === date && 
-                r.applicant === applicant && 
-                extractAmountDetail(r.originalData) === extractAmountDetail(input)
-            );
-        }
-        
-        function extractAmountDetail(input) {
-            const start = input.indexOf("订单金额明细：");
-            if (start === -1) return "";
-            const end = input.indexOf("=", start);
-            return end === -1 ? "" : input.substring(start + "订单金额明细：".length, end).trim();
-        }
-        
-        function showDuplicateWarning(date, applicant, input) {
-            const dialog = document.getElementById('duplicateDialog');
-            document.getElementById('duplicateMessage').innerHTML = `检测到相同日期（${date}）、相同申报人（${applicant}）的相似订单记录。<br>是否继续保存？`;
-            pendingRecord = { date, applicant, orderDataInput: input };
-            dialog.classList.add('show');
-        }
-        
-        function hideDuplicateDialog() {
-            document.getElementById('duplicateDialog').classList.remove('show');
-            pendingRecord = null;
-        }
-        
-        async function forceSaveRecord() {
-            if (!pendingRecord) return;
-            const { date, applicant, orderDataInput } = pendingRecord;
-            const detailStart = orderDataInput.indexOf("订单金额明细：");
-            const detailEnd = orderDataInput.indexOf("=", detailStart);
-            const amountDetail = orderDataInput.substring(detailStart + "订单金额明细：".length, detailEnd).trim();
-            const filteredData = amountDetail.replace(/[^0-9+]/g, '');
-            const orderData = parseOrderData(filteredData);
-            const dataCount = orderData.length;
-            const extractedData = extractOrderData(orderDataInput, applicant);
-            await directSaveRecord(date, selectedCategory, applicant, orderDataInput, orderData, dataCount, extractedData);
-            hideDuplicateDialog();
-        }
-        
-        async function directSaveRecord(date, category, applicant, input, orderData, dataCount, extractedData) {
-            const errorMsg = document.getElementById('errorMsg');
-            const successMsg = document.getElementById('successMsg');
-            const saveBtn = document.getElementById('saveBtn');
-            
-            try {
+                await directSave(date, applicant, input, orderData, ed);
+            };
+
+            window.forceSaveRecord = async function() {
+                if (!pendingRecord) return;
+                const { date, applicant, orderDataInput } = pendingRecord;
+                const detailStart = orderDataInput.indexOf("订单金额明细："), detailEnd = orderDataInput.indexOf("=", detailStart);
+                const detail = orderDataInput.substring(detailStart + 7, detailEnd).trim();
+                const filtered = detail.replace(/[^0-9+]/g, '');
+                const orderData = filtered.split('+').map(function(s) { return parseFloat(s.trim()); });
+                const ed = extractOrderData(orderDataInput, applicant);
+                await directSave(date, applicant, orderDataInput, orderData, ed);
+                hideDuplicateDialog();
+            };
+            window.hideDuplicateDialog = function() { document.getElementById('duplicateDialog').classList.remove('show'); pendingRecord = null; };
+
+            async function directSave(date, applicant, input, orderData, ed) {
                 const record = {
                     id: Date.now(),
                     timestamp: date,
-                    category,
-                    applicant,
+                    category: selectedCategory,
+                    applicant: applicant,
                     originalData: input,
-                    tableHTML: createDynamicTableHTML(orderData, dataCount, true),
-                    compensationCardHTML: createCompensationCardHTML(input, category),
-                    dataCount,
-                    extractedData,
+                    tableHTML: createDynamicTableHTML(orderData, orderData.length),
+                    compensationCardHTML: createCompensationCardHTML(input, selectedCategory),
+                    dataCount: orderData.length,
+                    extractedData: ed,
                     created_at: new Date().toISOString()
                 };
-                
-                const validation = DataValidator.validateRecord(record);
-                if (!validation.valid) throw new Error(validation.message);
-                
                 historyRecords.unshift(record);
-                await saveToDatabase(STORE_NAME, record);
-                
-                updateSummaryCache();
-                updateHistoryDisplay();
-                updateUserCardsDisplay();
-                updateSummaryDisplay();
-                updateMyAccountCards();
-                populateFilterOptions();
-                updateRecycleBadge();
+                await saveToDB(STORE_NAME, record);
+                updateAll();
                 document.getElementById('orderData').value = '';
-                
-                errorMsg.style.display = 'none';
-                successMsg.style.display = 'block';
-                showToast('报表已保存并同步到云端！', 'success');
-                setTimeout(() => { successMsg.style.display = 'none'; saveBtn.classList.remove('loading'); }, 3000);
-                updateStorageIndicator();
-            } catch (e) {
-                errorMsg.textContent = e.message;
-                errorMsg.style.display = 'block';
-                successMsg.style.display = 'none';
-                showToast(e.message, 'error');
-                saveBtn.classList.remove('loading');
+                document.getElementById('successMsg').style.display = 'block';
+                showToast('保存成功！', 'success');
+                setTimeout(function() { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
             }
-        }
-        
-        function parseOrderData(str) {
-            return str.split('+').map(s => {
-                const num = parseFloat(s.trim());
-                if (isNaN(num)) throw new Error(`无效数字：${s}`);
-                return num;
-            });
-        }
-        
-        function createDynamicTableHTML(data, count, showAll = false) {
-            const isMobile = window.innerWidth <= 768, isSmall = window.innerWidth <= 480;
-            let maxRows = showAll ? count : 10;
-            if (!showAll) { if (count > 20) maxRows = 15; if (count > 50) maxRows = 20; }
-            let cols;
-            if (isSmall) {
-                if (count <= 3) cols = 1; else if (count <= 6) cols = 2; else if (count <= 9) cols = 3; else if (count <= 12) cols = 4; else cols = 4;
-            } else if (isMobile) {
-                if (window.innerWidth <= 480) { if (count <= 2) cols = 1; else if (count <= 4) cols = 2; else cols = 2; }
-                else { if (count <= 5) cols = 1; else if (count <= 10) cols = 2; else if (count <= 15) cols = 3; else if (count <= 20) cols = 4; else cols = 5; }
-            } else {
-                if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4;
-                else if (count <= 60) cols = 5; else if (count <= 84) cols = 6; else if (count <= 112) cols = 7; else cols = 8;
-            }
-            const dispRows = showAll ? Math.ceil(count / cols) : Math.min(maxRows, Math.ceil(count / cols));
-            const dispCount = showAll ? count : Math.min(count, dispRows * cols);
-            let html = `<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>`;
-            for (let i = 0; i < cols; i++) html += `<th>序</th><th>下单</th>`;
-            html += `</tr></thead><tbody>`;
-            for (let r = 0; r < dispRows; r++) {
-                html += '<tr>';
-                for (let c = 0; c < cols; c++) {
-                    const idx = r + c * dispRows;
-                    if (idx < dispCount) {
-                        const amt = data[idx], str = amt.toString();
-                        const cls = str.length > 6 ? ' class="small-font"' : '';
-                        html += `<td><span class="serial-number">${idx+1}</span></td><td${cls}><span class="order-amount">${amt}</span></td>`;
-                    } else html += '<td></td><td></td>';
-                }
-                html += '</tr>';
-            }
-            if (!showAll && count > dispCount) {
-                html += `<tr><td colspan="${cols*2}" style="text-align:center;color:#7f8c8d;font-style:italic;padding:8px;">还有 ${count - dispCount} 条记录未显示（共 ${count} 条）</td></tr>`;
-            }
-            html += `</tbody></table></div>`;
-            return html;
-        }
-        
-        function createCompensationCardHTML(input, category) {
-            if (!input) return '';
-            const filterRegex = /订单金额明细：.*?\(共计\d+条\)/s;
-            let content = input.replace(filterRegex, '').trim().split('\n');
-            let processed = [];
-            content.forEach(line => {
-                if (line.includes('盈亏情况：')) {
-                    const match = line.match(/盈亏情况：([\d.-]+)/);
-                    if (match) {
-                        let amt = match[1], num = parseFloat(amt);
-                        if (!isNaN(num)) amt = Math.trunc(num).toString();
-                        const cls = num >= 0 ? 'profit-positive' : 'profit-negative';
-                        const sign = num >= 0 ? '+' : '';
-                        let tag = '';
-                        if (category.includes('下家')) {
-                            tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : '';
-                        } else {
-                            tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : '';
-                        }
-                        processed.push(line.replace(/(盈亏情况：)([\d.-]+)/, `$1<span class="${cls}">${sign}${amt}</span>${tag}`));
-                    } else processed.push(line);
-                } else {
-                    let newLine = line.replace(/(赔:)([\d.]+)/g, (m, p1, p2) => {
-                        const num = parseFloat(p2);
-                        return p1 + `<span class="compensation-amount">${isNaN(num)?p2:Math.trunc(num)}</span>`;
-                    });
-                    newLine = newLine.replace(/(\d+\.\d+)/g, m => {
-                        const num = parseFloat(m);
-                        return isNaN(num)?m:Math.trunc(num);
-                    }).replace(/(-\d+\.\d+)/g, m => {
-                        const num = parseFloat(m);
-                        return isNaN(num)?m:Math.trunc(num);
-                    });
-                    processed.push(newLine);
-                }
-            });
-            return `<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">${processed.join('\n') || '无过滤后内容'}</div></div>`;
-        }
-        
-        function updateHistoryDisplay() {
-            const container = document.getElementById('historyContainer');
-            const counter = document.getElementById('recordCounter');
-            const filterDate = document.getElementById('historyDateFilter').value;
-            const filterUser = document.getElementById('historyUserFilter').value;
-            let records = historyRecords;
-            if (filterDate) records = records.filter(r => r.timestamp === filterDate);
-            if (filterUser) records = records.filter(r => r.applicant === filterUser);
-            counter.textContent = records.length;
-            if (records.length === 0) {
-                container.innerHTML = `<div class="empty-history"><i class="fas fa-clock" style="font-size: 2.5rem; margin-bottom: 10px; color: #bdc3c7;"></i><p>${filterDate?'该日期无记录':'暂无记录'}</p></div>`;
-                return;
-            }
-            let html = '';
-            records.forEach((r, i) => {
-                const sel = selectedHistoryIds.has(r.id);
-                html += `<div class="history-card" data-id="${r.id}">
-                    <div class="history-card-select"><input type="checkbox" class="history-checkbox" ${sel?'checked':''} onchange="toggleHistorySelection(${r.id},this.checked)"></div>
-                    <div class="history-header">
-                        <div><span class="category-tag highlight-applicant"><i class="fas fa-user"></i> ${r.applicant}</span><span>订单报表 #${i+1}</span><span class="category-tag ${getCategoryClass(r.category)} highlight-category">${r.category}</span></div>
-                        <div style="display:flex;align-items:center;gap:8px;"><span class="history-time">${r.timestamp}</span><button class="delete-btn" onclick="showDeleteConfirm(${r.id})"><i class="fas fa-trash"></i></button></div>
-                    </div>
-                    <div class="history-body"><div class="history-content">${r.tableHTML}${r.compensationCardHTML}</div></div>
-                </div>`;
-            });
-            container.innerHTML = html;
-            updateBatchOperationsVisibility();
-        }
-        
-        function showDeleteConfirm(id) {
-            currentDeleteId = id;
-            const dialog = document.getElementById('confirmDialog');
-            document.getElementById('confirmTitle').textContent = '确认删除';
-            document.getElementById('confirmMessage').textContent = '确定要删除这条订单报表吗？此操作将移至回收站。';
-            document.getElementById('confirmYesBtn').onclick = async () => { await moveToRecycleBin(id); hideClearConfirm(); };
-            dialog.classList.add('show');
-        }
-        
-        function hideClearConfirm() {
-            document.getElementById('confirmDialog').classList.remove('show');
-        }
-        
-        async function moveToRecycleBin(id) {
-            const idx = historyRecords.findIndex(r => r.id === id);
-            if (idx === -1) return;
-            const [rec] = historyRecords.splice(idx, 1);
-            rec.deletedAt = new Date().toISOString();
-            await saveToDatabase(RECYCLE_STORE_NAME, rec);
-            await deleteFromDatabase(STORE_NAME, id);
-            recycleBin.unshift(rec);
-            selectedHistoryIds.delete(id);
-            updateAllDisplays();
-            showToast('已移至回收站', 'warning');
-        }
-        
-        async function restoreFromRecycleBin(id) {
-            const idx = recycleBin.findIndex(r => r.id === id);
-            if (idx === -1) return;
-            const [rec] = recycleBin.splice(idx, 1);
-            delete rec.deletedAt;
-            await saveToDatabase(STORE_NAME, rec);
-            await deleteFromDatabase(RECYCLE_STORE_NAME, id);
-            historyRecords.unshift(rec);
-            selectedRecycleIds.delete(id);
-            updateAllDisplays();
-            toggleRecyclePanel();
-            showToast('已恢复至原位置', 'success');
-        }
-        
-        async function deletePermanently(id) {
-            await deleteFromDatabase(RECYCLE_STORE_NAME, id);
-            recycleBin = recycleBin.filter(r => r.id !== id);
-            selectedRecycleIds.delete(id);
-            updateRecycleBadge();
-            renderRecycleItems();
-            updateBatchOperationsVisibility();
-            showToast('已永久删除', 'error');
-        }
-        
-        function updateAllDisplays() {
-            updateSummaryCache();
-            updateHistoryDisplay();
-            updateUserCardsDisplay();
-            updateSummaryDisplay();
-            updateMyAccountCards();
-            updateRecycleBadge();
-            populateFilterOptions();
-            updateStorageIndicator();
-        }
-        
-        function updateRecycleBadge() {
-            document.getElementById('recycleBadge').textContent = recycleBin.length;
-        }
-        
-        function toggleRecyclePanel() {
-            const panel = document.getElementById('recyclePanel');
-            panel.classList.toggle('open');
-            if (panel.classList.contains('open')) renderRecycleItems();
-        }
-        
-        function renderRecycleItems() {
-            const container = document.getElementById('recycleItemsContainer');
-            if (recycleBin.length === 0) {
-                container.innerHTML = `<div class="empty-history"><i class="fas fa-trash" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i><p>回收站为空</p></div>`;
-                return;
-            }
-            let html = '';
-            recycleBin.forEach(r => {
-                const sel = selectedRecycleIds.has(r.id);
-                html += `<div class="recycle-item" data-id="${r.id}">
-                    <div class="recycle-item-header">
-                        <div style="display:flex;align-items:center;">
-                            <input type="checkbox" class="recycle-checkbox recycle-item-select" ${sel?'checked':''} onchange="toggleRecycleSelection(${r.id},this.checked)">
-                            <div><strong class="highlight-applicant">${r.applicant}</strong> - ${r.timestamp}<span class="category-tag ${getCategoryClass(r.category)} highlight-category">${r.category}</span></div>
-                        </div>
-                        <div>
-                            <button class="restore-btn" onclick="restoreFromRecycleBin(${r.id})"><i class="fas fa-undo"></i> 恢复</button>
-                            <button class="delete-permanently-btn" onclick="deletePermanently(${r.id})"><i class="fas fa-trash"></i> 删除</button>
-                        </div>
-                    </div>
-                    <div class="recycle-item-content">${r.compensationCardHTML}</div>
-                </div>`;
-            });
-            container.innerHTML = html;
-            updateBatchOperationsVisibility();
-        }
-        
-        function toggleHistorySelection(id, sel) {
-            sel ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id);
-            updateBatchOperationsVisibility();
-        }
-        
-        function toggleRecycleSelection(id, sel) {
-            sel ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id);
-            updateBatchOperationsVisibility();
-        }
-        
-        function toggleSelectAll(type) {
-            if (type === 'history') {
-                const chk = document.getElementById('selectAllHistory').checked;
-                document.querySelectorAll('.history-checkbox').forEach(cb => {
-                    cb.checked = chk;
-                    toggleHistorySelection(parseInt(cb.closest('.history-card').dataset.id), chk);
-                });
-            } else if (type === 'recycle') {
-                const chk = document.getElementById('selectAllRecycle').checked;
-                document.querySelectorAll('.recycle-checkbox').forEach(cb => {
-                    cb.checked = chk;
-                    toggleRecycleSelection(parseInt(cb.closest('.recycle-item').dataset.id), chk);
-                });
-            }
-        }
-        
-        function updateBatchOperationsVisibility() {
-            const histOps = document.getElementById('historyBatchOperations');
-            const recOps = document.getElementById('recycleBatchOperations');
-            const histSel = document.getElementById('selectedCount');
-            const recSel = document.getElementById('recycleSelectedCount');
-            
-            histOps.classList.toggle('show', selectedHistoryIds.size > 0);
-            histSel.textContent = selectedHistoryIds.size;
-            
-            recOps.classList.toggle('show', selectedRecycleIds.size > 0);
-            recSel.textContent = selectedRecycleIds.size;
-            
-            const histChk = document.getElementById('selectAllHistory');
-            if (histChk) histChk.checked = selectedHistoryIds.size === historyRecords.length && historyRecords.length > 0;
-            
-            const recChk = document.getElementById('selectAllRecycle');
-            if (recChk) recChk.checked = selectedRecycleIds.size === recycleBin.length && recycleBin.length > 0;
-        }
-        
-        async function batchDelete(type) {
-            if (type === 'history' && selectedHistoryIds.size > 0) {
-                if (confirm(`确定删除选中的 ${selectedHistoryIds.size} 条记录吗？`)) {
-                    const ids = [...selectedHistoryIds];
-                    for (const id of ids) await moveToRecycleBin(id);
-                    selectedHistoryIds.clear();
-                    updateBatchOperationsVisibility();
-                }
-            }
-        }
-        
-        async function batchMoveToRecycle(type) {
-            if (type === 'history' && selectedHistoryIds.size > 0) {
-                const ids = [...selectedHistoryIds];
-                for (const id of ids) await moveToRecycleBin(id);
-                selectedHistoryIds.clear();
-                updateBatchOperationsVisibility();
-            }
-        }
-        
-        async function batchRestore(type) {
-            if (type === 'recycle' && selectedRecycleIds.size > 0) {
-                if (confirm(`确定恢复选中的 ${selectedRecycleIds.size} 条记录吗？`)) {
-                    const ids = [...selectedRecycleIds];
-                    for (const id of ids) await restoreFromRecycleBin(id);
-                    selectedRecycleIds.clear();
-                    updateBatchOperationsVisibility();
-                }
-            }
-        }
-        
-        async function batchDeletePermanent(type) {
-            if (type === 'recycle' && selectedRecycleIds.size > 0) {
-                if (confirm(`确定永久删除选中的 ${selectedRecycleIds.size} 条记录吗？`)) {
-                    const ids = [...selectedRecycleIds];
-                    for (const id of ids) await deletePermanently(id);
-                    selectedRecycleIds.clear();
-                    updateBatchOperationsVisibility();
-                }
-            }
-        }
-        
-        function updateUserCardsDisplay() {
-            const container = document.getElementById('userCardsContainer');
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const dateF = document.getElementById('dateFilter').value;
-            const catF = document.getElementById('categoryFilter').value;
-            const userF = document.getElementById('userFilter').value;
-            
-            let records = historyRecords.filter(r => {
-                const matchSearch = r.applicant.toLowerCase().includes(search) || r.timestamp.includes(search) || r.category.toLowerCase().includes(search);
-                const matchDate = dateF ? r.timestamp === dateF : true;
-                const matchCat = catF ? r.category === catF : true;
-                const matchUser = userF ? r.applicant === userF : true;
-                return matchSearch && matchDate && matchCat && matchUser;
-            });
-            
-            if (records.length === 0) {
-                container.innerHTML = `<div class="empty-history"><i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i><p>没有找到匹配的用户</p></div>`;
-                return;
-            }
-            
-            let html = '';
-            records.forEach(r => {
-                const data = r.extractedData;
-                const total = Math.trunc(parseFloat(data.totalAmount || 0));
-                const profit = Math.trunc(parseFloat(data.profitLoss || 0));
-                const cls = profit >= 0 ? 'profit-positive' : 'profit-negative';
-                const icon = profit >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-                const catCls = getCategoryClass(r.category);
-                
-                html += `<div class="user-card">
-                    <div class="user-card-header">
-                        <div class="user-info-left">
-                            <div class="user-name">${data.applicant}</div>
-                            <span class="user-category category-tag ${catCls}">${r.category}</span>
-                        </div>
-                        <div class="user-date">${r.timestamp}</div>
-                    </div>
-                    <div class="user-info-row"><span class="info-label">订单总额:</span><span class="info-value">${total}</span></div>
-                    <div class="winning-section">
-                        <div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
-                
-                Object.entries(data.winnings).forEach(([type, amt]) => {
-                    html += `<div class="winning-item"><span class="winning-type">${type}:</span><span class="winning-amount">${Math.trunc(parseFloat(amt||0))}</span></div>`;
-                });
-                
-                html += `</div><div class="profit-loss ${cls}"><i class="fas ${icon}"></i> 盈亏: ${profit}</div></div>`;
-            });
-            container.innerHTML = html;
-        }
-        
-        function updateSummaryCache() {
-            summaryCache = { lastUpdated: Date.now(), data: {} };
-            ['澳门上家', '澳门下家', '粤港上家', '粤港下家'].forEach(cat => {
-                summaryCache.data[cat] = { totalAmount: 0, totalWinning: 0, totalProfit: 0, winnings: {} };
-            });
-            
-            historyRecords.forEach(r => {
-                const cat = r.category;
-                if (!summaryCache.data[cat]) return;
-                const d = r.extractedData;
-                summaryCache.data[cat].totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
-                
-                let winSum = 0;
-                Object.entries(d.winnings).forEach(([t, a]) => {
-                    const amt = Math.trunc(parseFloat(a || 0));
-                    winSum += amt;
-                    summaryCache.data[cat].winnings[t] = (summaryCache.data[cat].winnings[t] || 0) + amt;
-                });
-                
-                summaryCache.data[cat].totalWinning += winSum;
-                summaryCache.data[cat].totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
-            });
-        }
-        
-        function updateSummaryDisplay() {
-            const container = document.getElementById('summaryContainer');
-            const dateF = document.getElementById('dateFilter').value;
-            let records = dateF ? historyRecords.filter(r => r.timestamp === dateF) : [...historyRecords];
-            
-            if (records.length === 0) {
-                container.innerHTML = `<div class="empty-history"><i class="fas fa-chart-pie" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i><p>暂无汇总数据</p></div>`;
-                return;
-            }
-            
-            if (!summaryCache.lastUpdated || Date.now() - summaryCache.lastUpdated > 5000) updateSummaryCache();
-            const cats = [
-                { id: '澳门上家', name: '澳门上家', icon: 'fas fa-arrow-up', color: '#3498db' },
-                { id: '澳门下家', name: '澳门下家', icon: 'fas fa-arrow-down', color: '#2ecc71' },
-                { id: '粤港上家', name: '粤港上家', icon: 'fas fa-arrow-up', color: '#9b59b6' },
-                { id: '粤港下家', name: '粤港下家', icon: 'fas fa-arrow-down', color: '#f1c40f' }
-            ];
-            
-            let html = '<div class="summary-container">';
-            cats.forEach(cat => {
-                const data = dateF ? calculateCategorySummary(records, cat.id) : summaryCache.data[cat.id] || { totalAmount: 0, totalProfit: 0, winnings: {} };
-                data.totalAmount = Math.trunc(data.totalAmount);
-                data.totalProfit = Math.trunc(data.totalProfit);
-                Object.keys(data.winnings).forEach(k => data.winnings[k] = Math.trunc(data.winnings[k]));
-                
-                const cls = data.totalProfit >= 0 ? 'summary-profit-positive' : 'summary-profit-negative';
-                const sign = data.totalProfit >= 0 ? '+' : '';
-                
-                html += `<div class="summary-card">
-                    <div class="summary-header"><i class="${cat.icon}" style="color:${cat.color};"></i><div class="summary-title">${cat.name}</div></div>
-                    <table class="summary-table">
-                        <tr><th>订单总额</th><td class="summary-value">${data.totalAmount}</td></tr>
-                        <tr><th>盈亏总额</th><td class="summary-value ${cls}">${sign}${data.totalProfit}</td></tr>
-                    </table>
-                    <div class="winning-summary">
-                        <div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
-                
-                if (Object.keys(data.winnings).length > 0) {
-                    Object.entries(data.winnings).forEach(([t, a]) => {
-                        const aCls = a >= 0 ? 'positive' : 'negative';
-                        const aSign = a >= 0 ? '+' : '';
-                        html += `<div class="winning-summary-item"><span class="winning-summary-type">${t}:</span><span class="winning-summary-amount ${aCls}">${aSign}${a}</span></div>`;
-                    });
-                } else {
-                    html += `<div class="winning-summary-item"><span class="winning-summary-type">无中奖记录</span></div>`;
-                }
-                
-                html += `</div></div>`;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-        }
-        
-        function calculateCategorySummary(records, cat) {
-            const sum = { totalAmount: 0, totalWinning: 0, totalProfit: 0, winnings: {} };
-            records.filter(r => r.category === cat).forEach(r => {
-                const d = r.extractedData;
-                sum.totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
-                
-                let winSum = 0;
-                Object.entries(d.winnings).forEach(([t, a]) => {
-                    const amt = Math.trunc(parseFloat(a || 0));
-                    winSum += amt;
-                    sum.winnings[t] = (sum.winnings[t] || 0) + amt;
-                });
-                
-                sum.totalWinning += winSum;
-                sum.totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
-            });
-            return sum;
-        }
-        
-        function updateMyAccountCards() {
-            const container = document.getElementById('myAccountContainer');
-            const dateF = document.getElementById('dateFilter').value;
-            let records = dateF ? historyRecords.filter(r => r.timestamp === dateF) : [...historyRecords];
-            
-            if (records.length === 0) {
-                container.innerHTML = `<div class="empty-history"><i class="fas fa-coins" style="font-size: 2rem; margin-bottom: 10px; color: #bdc3c7;"></i><p>暂无账户数据</p></div>`;
-                return;
-            }
-            
-            const cats = [
-                { id: '澳门上家', name: '澳门上家' },
-                { id: '澳门下家', name: '澳门下家' },
-                { id: '粤港上家', name: '粤港上家' },
-                { id: '粤港下家', name: '粤港下家' }
-            ];
-            
-            const sumData = {};
-            cats.forEach(cat => {
-                sumData[cat.id] = { totalAmount: 0, totalWinning: 0, totalProfit: 0, winnings: {} };
-            });
-            
-            records.forEach(r => {
-                const cat = r.category;
-                if (!sumData[cat]) return;
-                const d = r.extractedData;
-                sumData[cat].totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
-                
-                let winSum = 0;
-                Object.entries(d.winnings).forEach(([t, a]) => {
-                    const amt = Math.trunc(parseFloat(a || 0));
-                    winSum += amt;
-                    sumData[cat].winnings[t] = (sumData[cat].winnings[t] || 0) + amt;
-                });
-                
-                sumData[cat].totalWinning += winSum;
-                sumData[cat].totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
-            });
-            
-            const myMacau = { totalAmount: 0, totalWinning: 0, totalProfit: 0, winnings: {} };
-            myMacau.totalAmount = (sumData['澳门下家']?.totalAmount || 0) - (sumData['澳门上家']?.totalAmount || 0);
-            myMacau.totalProfit = (sumData['澳门下家']?.totalProfit || 0) - (sumData['澳门上家']?.totalProfit || 0);
-            
-            const myGd = { totalAmount: 0, totalWinning: 0, totalProfit: 0, winnings: {} };
-            myGd.totalAmount = (sumData['粤港下家']?.totalAmount || 0) - (sumData['粤港上家']?.totalAmount || 0);
-            myGd.totalProfit = (sumData['粤港下家']?.totalProfit || 0) - (sumData['粤港上家']?.totalProfit || 0);
-            
-            let html = `<div class="summary-card">
-                <div class="summary-header"><i class="fas fa-arrow-down" style="color:#2ecc71;"></i><div class="summary-title">我的澳门</div></div>
-                <table class="summary-table">
-                    <tr><th>订单总额</th><td class="summary-value">${myMacau.totalAmount}</td></tr>
-                    <tr><th>盈亏总额</th><td class="summary-value ${myMacau.totalProfit >=0?'summary-profit-positive':'summary-profit-negative'}">${myMacau.totalProfit >=0?'+':''}${myMacau.totalProfit}</td></tr>
-                </table>
-            </div>
-            <div class="summary-card">
-                <div class="summary-header"><i class="fas fa-arrow-down" style="color:#f1c40f;"></i><div class="summary-title">我的粤港</div></div>
-                <table class="summary-table">
-                    <tr><th>订单总额</th><td class="summary-value">${myGd.totalAmount}</td></tr>
-                    <tr><th>盈亏总额</th><td class="summary-value ${myGd.totalProfit >=0?'summary-profit-positive':'summary-profit-negative'}">${myGd.totalProfit >=0?'+':''}${myGd.totalProfit}</td></tr>
-                </table>
-            </div>`;
-            container.innerHTML = html;
-        }
-        
-        function getCategoryClass(cat) {
-            switch(cat) {
-                case '澳门上家': return 'category-macau-up';
-                case '澳门下家': return 'category-macau-down';
-                case '粤港上家': return 'category-guangdong-up';
-                case '粤港下家': return 'category-guangdong-down';
-                default: return '';
-            }
-        }
-        
-        function clearInput() {
-            document.getElementById('orderData').value = '';
-            document.getElementById('errorMsg').style.display = 'none';
-            document.getElementById('successMsg').style.display = 'none';
-        }
-        
-        function showClearConfirm() {
-            const dialog = document.getElementById('confirmDialog');
-            document.getElementById('confirmTitle').textContent = '确认清空数据';
-            document.getElementById('confirmMessage').textContent = '确定要清空所有历史记录和当前数据吗？此操作不可恢复！';
-            document.getElementById('confirmYesBtn').onclick = async () => { await clearAllData(); hideClearConfirm(); };
-            dialog.classList.add('show');
-        }
-        
-        async function clearAllData() {
-            try {
-                await clearDatabase(STORE_NAME);
-                await clearDatabase(RECYCLE_STORE_NAME);
-                historyRecords = [];
-                recycleBin = [];
-                selectedHistoryIds.clear();
-                selectedRecycleIds.clear();
-                updateAllDisplays();
-                document.getElementById('orderData').value = '';
-                initDatePickers();
-                showToast('所有数据已清空！', 'success');
-            } catch (e) {
-                showToast('清空失败', 'error');
-            }
-        }
-        
-        function importData(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const content = ev.target.result;
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    if (ext === 'json') {
-                        const data = JSON.parse(content);
-                        prepareImportPreview(data);
-                    } else {
-                        document.getElementById('orderData').value = content;
-                        showToast('数据已导入到输入框，请手动保存', 'info');
+
+            function createDynamicTableHTML(data, count) {
+                let cols = 4;
+                if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6;
+                const rows = Math.ceil(count / cols);
+                let html = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>';
+                for (let i = 0; i < cols; i++) html += '<th>序</th><th>下单</th>';
+                html += '</tr></thead><tbody>';
+                for (let r = 0; r < rows; r++) {
+                    html += '<tr>';
+                    for (let c = 0; c < cols; c++) {
+                        const idx = r + c * rows;
+                        if (idx < count) html += '<td><span class="serial-number">' + (idx+1) + '</span></td><td><span class="order-amount">' + data[idx] + '</span></td>';
+                        else html += '<td></td><td></td>';
                     }
-                } catch (e) {
-                    showToast(`导入失败: ${e.message}`, 'error');
+                    html += '</tr>';
+                }
+                html += '</tbody></table></div>';
+                return html;
+            }
+
+            function createCompensationCardHTML(input, category) {
+                if (!input) return '';
+                const filtered = input.replace(/订单金额明细：.*?\(共计\d+条\)/s, '').trim().split('\n');
+                let processed = [];
+                filtered.forEach(function(line) {
+                    if (line.includes('盈亏情况：')) {
+                        const m = line.match(/盈亏情况：([\d.-]+)/);
+                        if (m) {
+                            let amt = m[1], num = parseFloat(amt);
+                            if (!isNaN(num)) amt = Math.trunc(num).toString();
+                            const cls = num >= 0 ? 'profit-positive' : 'profit-negative';
+                            const sign = num >= 0 ? '+' : '';
+                            let tag = '';
+                            if (category.includes('下家')) tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : '';
+                            else tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : '';
+                            processed.push(line.replace(/(盈亏情况：)([\d.-]+)/, '$1<span class="' + cls + '">' + sign + amt + '</span>' + tag));
+                        } else processed.push(line);
+                    } else {
+                        processed.push(line.replace(/(赔:)([\d.]+)/g, function(m, p1, p2) { return p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>'; }));
+                    }
+                });
+                return '<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">' + processed.join('\n') + '</div></div>';
+            }
+
+            // 界面更新
+            function updateAll() {
+                updateHistoryDisplay();
+                updateUserCards();
+                updateSummary();
+                updateMyAccount();
+                updateRecycleBadge();
+                renderRecycleItems();
+                updateBatchOpsVisibility();
+            }
+
+            window.updateHistoryDisplay = function() {
+                const fd = document.getElementById('historyDateFilter').value;
+                const fu = document.getElementById('historyUserFilter').value;
+                let records = historyRecords;
+                if (fd) records = records.filter(function(r) { return r.timestamp === fd; });
+                if (fu) records = records.filter(function(r) { return r.applicant === fu; });
+                document.getElementById('recordCounter').textContent = records.length;
+                const c = document.getElementById('historyContainer');
+                if (records.length === 0) { c.innerHTML = '<div class="empty-history">暂无记录</div>'; return; }
+                c.innerHTML = records.map(function(r, i) {
+                    const sel = selectedHistoryIds.has(r.id);
+                    return '<div class="history-card" data-id="' + r.id + '">' +
+                        '<div class="history-card-select"><input type="checkbox" class="history-checkbox" ' + (sel?'checked':'') + ' onchange="toggleHistorySelection(' + r.id + ', this.checked)"></div>' +
+                        '<div class="history-header"><div><span class="highlight-applicant">' + r.applicant + '</span> #' + (i+1) + ' <span class="category-tag ' + getCatClass(r.category) + ' highlight-category">' + r.category + '</span></div>' +
+                        '<div><span class="history-time">' + r.timestamp + '</span><button class="delete-btn" onclick="showDeleteConfirm(' + r.id + ')">🗑</button></div></div>' +
+                        '<div class="history-body">' + (r.tableHTML || '') + (r.compensationCardHTML || '') + '</div></div>';
+                }).join('');
+                updateHistoryUserFilter();
+            };
+
+            function updateHistoryUserFilter() {
+                const uf = document.getElementById('historyUserFilter');
+                const users = [...new Set(historyRecords.map(function(r) { return r.applicant; }))];
+                uf.innerHTML = '<option value="">所有用户</option>' + users.map(function(u) { return '<option value="' + u + '">' + u + '</option>'; }).join('');
+            }
+
+            function updateUserCards() {
+                const c = document.getElementById('userCardsContainer');
+                if (historyRecords.length === 0) { c.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
+                const grouped = {};
+                historyRecords.forEach(function(r) {
+                    if (!grouped[r.applicant]) grouped[r.applicant] = [];
+                    grouped[r.applicant].push(r);
+                });
+                c.innerHTML = Object.entries(grouped).map(function(e) {
+                    const name = e[0], recs = e[1];
+                    const profit = recs.reduce(function(s, r) { return s + parseFloat(r.extractedData?.profitLoss || 0); }, 0);
+                    return '<div class="user-card"><div class="user-card-header"><div class="user-name">' + name + '</div></div>' +
+                    '<div class="profit-loss ' + (profit>=0?'profit-positive':'profit-negative') + '">盈亏: ' + profit + '</div></div>';
+                }).join('');
+            }
+
+            function updateSummary() {
+                const c = document.getElementById('summaryContainer');
+                if (historyRecords.length === 0) { c.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
+                const cats = ['澳门上家','澳门下家','粤港上家','粤港下家'];
+                c.innerHTML = '<div class="summary-container">' + cats.map(function(cat) {
+                    const recs = historyRecords.filter(function(r) { return r.category === cat; });
+                    const total = recs.reduce(function(s, r) { return s + parseFloat(r.extractedData?.totalAmount || 0); }, 0);
+                    const profit = recs.reduce(function(s, r) { return s + parseFloat(r.extractedData?.profitLoss || 0); }, 0);
+                    return '<div class="summary-card"><div class="summary-header"><div class="summary-title">' + cat + '</div></div>' +
+                    '<div>订单总额: ' + total + '</div><div class="' + (profit>=0?'profit-positive':'profit-negative') + '">盈亏: ' + (profit>=0?'+':'') + profit + '</div></div>';
+                }).join('') + '</div>';
+            }
+
+            function updateMyAccount() {
+                const c = document.getElementById('myAccountContainer');
+                if (historyRecords.length === 0) { c.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
+                const calc = function(cat) { return historyRecords.filter(function(r){return r.category===cat;}).reduce(function(s,r){return s+parseFloat(r.extractedData?.profitLoss||0);},0); };
+                const mm = calc('澳门下家') - calc('澳门上家');
+                const gg = calc('粤港下家') - calc('粤港上家');
+                c.innerHTML = '<div class="summary-card"><div class="summary-title">我的澳门</div><div class="' + (mm>=0?'profit-positive':'profit-negative') + '" style="font-size:1.5rem;">' + (mm>=0?'+':'') + mm + '</div></div>' +
+                '<div class="summary-card"><div class="summary-title">我的粤港</div><div class="' + (gg>=0?'profit-positive':'profit-negative') + '" style="font-size:1.5rem;">' + (gg>=0?'+':'') + gg + '</div></div>';
+            }
+
+            function getCatClass(cat) {
+                switch(cat) {
+                    case '澳门上家': return 'category-macau-up';
+                    case '澳门下家': return 'category-macau-down';
+                    case '粤港上家': return 'category-guangdong-up';
+                    case '粤港下家': return 'category-guangdong-down';
+                    default: return '';
+                }
+            }
+
+            // 删除/恢复/回收站
+            window.showDeleteConfirm = function(id) {
+                document.getElementById('confirmTitle').textContent = '确认删除';
+                document.getElementById('confirmMessage').textContent = '移至回收站？';
+                document.getElementById('confirmYesBtn').onclick = async function() {
+                    const idx = historyRecords.findIndex(function(r) { return r.id === id; });
+                    if (idx === -1) return;
+                    const rec = historyRecords.splice(idx, 1)[0];
+                    rec.deletedAt = new Date().toISOString();
+                    await saveToDB(RECYCLE_NAME, rec);
+                    await deleteFromDB(STORE_NAME, id);
+                    recycleBin.unshift(rec);
+                    selectedHistoryIds.delete(id);
+                    updateAll();
+                    document.getElementById('confirmDialog').classList.remove('show');
+                    showToast('已移至回收站', 'warning');
+                };
+                document.getElementById('confirmDialog').classList.add('show');
+            };
+            window.hideClearConfirm = function() { document.getElementById('confirmDialog').classList.remove('show'); };
+
+            window.restoreFromRecycleBin = async function(id) {
+                const idx = recycleBin.findIndex(function(r) { return r.id === id; });
+                if (idx === -1) return;
+                const rec = recycleBin.splice(idx, 1)[0];
+                delete rec.deletedAt;
+                await saveToDB(STORE_NAME, rec);
+                await deleteFromDB(RECYCLE_NAME, id);
+                historyRecords.unshift(rec);
+                selectedRecycleIds.delete(id);
+                updateAll();
+                showToast('已恢复', 'success');
+            };
+            window.deletePermanently = async function(id) {
+                await deleteFromDB(RECYCLE_NAME, id);
+                recycleBin = recycleBin.filter(function(r) { return r.id !== id; });
+                selectedRecycleIds.delete(id);
+                updateAll();
+                showToast('已永久删除', 'error');
+            };
+            window.toggleRecyclePanel = function() {
+                document.getElementById('recyclePanel').classList.toggle('open');
+                renderRecycleItems();
+            };
+            function renderRecycleItems() {
+                const c = document.getElementById('recycleItemsContainer');
+                if (recycleBin.length === 0) { c.innerHTML = '<div class="empty-history">回收站为空</div>'; return; }
+                c.innerHTML = recycleBin.map(function(r) {
+                    const sel = selectedRecycleIds.has(r.id);
+                    return '<div class="recycle-item"><div class="recycle-item-header"><div><input type="checkbox" class="recycle-checkbox" ' + (sel?'checked':'') + ' onchange="toggleRecycleSelection(' + r.id + ', this.checked)"><strong>' + r.applicant + '</strong> - ' + r.timestamp + '</div>' +
+                    '<div><button class="restore-btn" onclick="restoreFromRecycleBin(' + r.id + ')">恢复</button><button class="delete-permanently-btn" onclick="deletePermanently(' + r.id + ')">永久删除</button></div></div></div>';
+                }).join('');
+            }
+            function updateRecycleBadge() { document.getElementById('recycleBadge').textContent = recycleBin.length; }
+
+            // 批量操作
+            window.toggleHistorySelection = function(id, checked) { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
+            window.toggleRecycleSelection = function(id, checked) { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
+            window.toggleSelectAll = function(type) {
+                if (type === 'history') {
+                    const chk = document.getElementById('selectAllHistory').checked;
+                    document.querySelectorAll('.history-checkbox').forEach(function(cb) { cb.checked = chk; toggleHistorySelection(parseInt(cb.closest('.history-card').dataset.id), chk); });
+                } else {
+                    const chk = document.getElementById('selectAllRecycle').checked;
+                    document.querySelectorAll('.recycle-checkbox').forEach(function(cb) { cb.checked = chk; toggleRecycleSelection(parseInt(cb.closest('.recycle-item').dataset.id), chk); });
                 }
             };
-            reader.readAsText(file);
-            e.target.value = '';
-        }
-        
-        function prepareImportPreview(data) {
-            if (!Array.isArray(data)) {
-                showToast("导入失败: 数据不是有效数组", 'error');
-                return;
+            function updateBatchOpsVisibility() {
+                document.getElementById('historyBatchOperations').classList.toggle('show', selectedHistoryIds.size > 0);
+                document.getElementById('selectedCount').textContent = selectedHistoryIds.size;
+                document.getElementById('recycleBatchOperations').classList.toggle('show', selectedRecycleIds.size > 0);
+                document.getElementById('recycleSelectedCount').textContent = selectedRecycleIds.size;
             }
-            
-            const newRecs = [], dups = [];
-            data.forEach(item => {
-                if (item.originalData && item.timestamp && item.applicant) {
-                    const dup = historyRecords.some(r => 
-                        r.timestamp === item.timestamp && 
-                        r.applicant === item.applicant && 
-                        extractAmountDetail(r.originalData) === extractAmountDetail(item.originalData)
-                    );
-                    dup ? dups.push(item) : newRecs.push(item);
+            window.batchDelete = async function() {
+                const ids = [...selectedHistoryIds];
+                for (const id of ids) { await window.restoreFromRecycleBin ? null : moveToRecycleBin(id); }
+                // 实际调用 moveToRecycleBin
+                for (const id of ids) {
+                    const idx = historyRecords.findIndex(function(r) { return r.id === id; });
+                    if (idx === -1) continue;
+                    const rec = historyRecords.splice(idx, 1)[0];
+                    rec.deletedAt = new Date().toISOString();
+                    await saveToDB(RECYCLE_NAME, rec);
+                    await deleteFromDB(STORE_NAME, id);
+                    recycleBin.unshift(rec);
                 }
-            });
-            
-            pendingImportRecords = newRecs;
-            showImportPreview(newRecs.length, dups.length, data);
-        }
-        
-        function showImportPreview(newCnt, dupCnt, all) {
-            const dialog = document.getElementById('importPreviewDialog');
-            document.getElementById('totalImportCount').textContent = newCnt + dupCnt;
-            document.getElementById('newImportCount').textContent = newCnt;
-            document.getElementById('duplicateImportCount').textContent = dupCnt;
-            
-            const list = document.getElementById('importList');
-            list.innerHTML = '';
-            all.slice(0, 10).forEach((r, i) => {
-                const dup = historyRecords.some(ex => 
-                    ex.timestamp === r.timestamp && 
-                    ex.applicant === r.applicant && 
-                    extractAmountDetail(ex.originalData) === extractAmountDetail(r.originalData)
-                );
-                const div = document.createElement('div');
-                div.className = 'import-item';
-                div.innerHTML = `<div class="import-item-info">
-                    <div><strong>${r.applicant}</strong> - ${r.timestamp}</div>
-                    <div class="category-tag ${getCategoryClass(r.category || '未知分类')}">${r.category || '未知分类'}</div>
-                </div><div class="import-item-status ${dup?'status-duplicate':'status-new'}">${dup?'重复':'新记录'}</div>`;
-                list.appendChild(div);
-            });
-            
-            if (all.length > 10) {
-                const more = document.createElement('div');
-                more.className = 'import-item';
-                more.innerHTML = `<div class="import-item-info">...还有 ${all.length - 10} 条记录未显示</div>`;
-                list.appendChild(more);
+                selectedHistoryIds.clear();
+                updateAll();
+                showToast('批量移至回收站', 'warning');
+            };
+            window.batchMoveToRecycle = window.batchDelete;
+            window.batchRestore = async function() {
+                const ids = [...selectedRecycleIds];
+                for (const id of ids) {
+                    const idx = recycleBin.findIndex(function(r) { return r.id === id; });
+                    if (idx === -1) continue;
+                    const rec = recycleBin.splice(idx, 1)[0];
+                    delete rec.deletedAt;
+                    await saveToDB(STORE_NAME, rec);
+                    await deleteFromDB(RECYCLE_NAME, id);
+                    historyRecords.unshift(rec);
+                }
+                selectedRecycleIds.clear();
+                updateAll();
+                showToast('批量恢复成功', 'success');
+            };
+            window.batchDeletePermanent = async function() {
+                const ids = [...selectedRecycleIds];
+                for (const id of ids) { await deleteFromDB(RECYCLE_NAME, id); }
+                recycleBin = recycleBin.filter(function(r) { return !ids.includes(r.id); });
+                selectedRecycleIds.clear();
+                updateAll();
+                showToast('批量永久删除', 'error');
+            };
+
+            // 导入导出
+            window.showFormatSelector = function() { document.getElementById('formatSelector').style.display = 'flex'; };
+            window.closeFormatSelector = function() { document.getElementById('formatSelector').style.display = 'none'; };
+            window.selectFormat = function(el, fmt) {
+                document.querySelectorAll('.format-option').forEach(function(o) { o.classList.remove('selected'); });
+                el.classList.add('selected');
+                exportFormat = fmt;
+            };
+            window.confirmExport = function() { closeFormatSelector(); exportAllData(); };
+            window.exportAllData = function() {
+                if (historyRecords.length === 0) return showToast('无数据', 'error');
+                if (exportFormat === 'json') {
+                    const blob = new Blob([JSON.stringify(historyRecords, null, 2)], { type: 'application/json' });
+                    downloadFile(blob, '订单数据.json');
+                } else if (exportFormat === 'csv') {
+                    let csv = 'ID,日期,分类,申报人,订单总额,盈亏\n';
+                    historyRecords.forEach(function(r) {
+                        csv += r.id + ',' + r.timestamp + ',' + r.category + ',' + r.applicant + ',' + (r.extractedData?.totalAmount || '') + ',' + (r.extractedData?.profitLoss || '') + '\n';
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    downloadFile(blob, '订单数据.csv');
+                } else {
+                    let txt = '';
+                    historyRecords.forEach(function(r, i) { txt += '=== 订单 #' + (i+1) + ' ===\n' + r.originalData + '\n\n'; });
+                    const blob = new Blob([txt], { type: 'text/plain' });
+                    downloadFile(blob, '订单数据.txt');
+                }
+                showToast('导出成功', 'success');
+            };
+            function downloadFile(blob, name) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = name;
+                a.click();
             }
-            
-            dialog.style.display = 'flex';
-        }
-        
-        function closeImportPreview() {
-            document.getElementById('importPreviewDialog').style.display = 'none';
-            pendingImportRecords = [];
-        }
-        
-        async function confirmImport() {
-            if (pendingImportRecords.length === 0) {
-                showToast('没有新记录可导入', 'warning');
-                closeImportPreview();
-                return;
-            }
-            
-            try {
-                for (const item of pendingImportRecords) {
-                    const newRec = {
-                        id: Date.now() + Math.random(),
-                        timestamp: item.timestamp,
-                        category: item.category || '未知分类',
-                        applicant: item.applicant,
-                        originalData: item.originalData,
-                        tableHTML: item.tableHTML || '',
-                        compensationCardHTML: item.compensationCardHTML || '',
-                        dataCount: item.dataCount || 0,
-                        extractedData: item.extractedData || {},
-                        created_at: new Date().toISOString()
+
+            window.importAllData = function() {
+                const inp = document.createElement('input');
+                inp.type = 'file'; inp.accept = '.json';
+                inp.onchange = async function(e) {
+                    const file = e.target.files[0]; if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = async function(ev) {
+                        try {
+                            const data = JSON.parse(ev.target.result);
+                            for (const item of data) {
+                                item.id = Date.now() + Math.random();
+                                await saveToDB(STORE_NAME, item);
+                            }
+                            await loadData();
+                            updateAll();
+                            showToast('导入成功', 'success');
+                        } catch(ex) { showToast('导入失败', 'error'); }
                     };
-                    
-                    const validation = DataValidator.validateRecord(newRec);
-                    if (!validation.valid) {
-                        console.warn("跳过无效记录:", validation.message);
-                        continue;
-                    }
-                    
-                    historyRecords.unshift(newRec);
-                    await saveToDatabase(STORE_NAME, newRec);
-                }
-                
-                updateAllDisplays();
-                showToast(`成功导入 ${pendingImportRecords.length} 条新记录`, 'success');
-            } catch (e) {
-                showToast('导入失败', 'error');
-            } finally {
-                closeImportPreview();
-            }
-        }
-        
-        async function importAllDataFromJSON(data) {
-            try {
-                if (!Array.isArray(data)) throw new Error("数据不是有效数组");
-                let cnt = 0;
-                for (const item of data) {
-                    if (item.originalData && item.timestamp && item.applicant && item.category) {
-                        const newRec = {
-                            id: Date.now() + Math.random(),
-                            timestamp: item.timestamp,
-                            category: item.category,
-                            applicant: item.applicant,
-                            originalData: item.originalData,
-                            tableHTML: item.tableHTML || '',
-                            compensationCardHTML: item.compensationCardHTML || '',
-                            dataCount: item.dataCount || 0,
-                            extractedData: item.extractedData || {},
-                            created_at: new Date().toISOString()
-                        };
-                        
-                        const validation = DataValidator.validateRecord(newRec);
-                        if (!validation.valid) {
-                            console.warn("跳过无效记录:", validation.message);
-                            continue;
-                        }
-                        
-                        historyRecords.unshift(newRec);
-                        await saveToDatabase(STORE_NAME, newRec);
-                        cnt++;
-                    }
-                }
-                updateAllDisplays();
-                showToast(`成功导入 ${cnt} 条历史记录！`, 'success');
-            } catch (e) {
-                showToast(`导入失败: ${e.message}`, 'error');
-            }
-        }
-        
-        function importAllData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+                    reader.readAsText(file);
+                };
+                inp.click();
+            };
+
+            window.importData = function(e) {
+                const file = e.target.files[0]; if (!file) return;
                 const reader = new FileReader();
-                reader.onload = (ev) => {
-                    try {
-                        const data = JSON.parse(ev.target.result);
-                        importAllDataFromJSON(data);
-                    } catch (e) {
-                        showToast(`导入失败: ${e.message}`, 'error');
+                reader.onload = function(ev) {
+                    const content = ev.target.result;
+                    if (file.name.endsWith('.json')) {
+                        try {
+                            const data = JSON.parse(content);
+                            pendingImportRecords = data.filter(function(item) { return item.originalData && item.timestamp && item.applicant; });
+                            document.getElementById('totalImportCount').textContent = data.length;
+                            document.getElementById('newImportCount').textContent = pendingImportRecords.length;
+                            document.getElementById('duplicateImportCount').textContent = data.length - pendingImportRecords.length;
+                            document.getElementById('importPreviewDialog').style.display = 'flex';
+                        } catch(ex) { showToast('JSON解析失败', 'error'); }
+                    } else {
+                        document.getElementById('orderData').value = content;
+                        showToast('已加载到输入框', 'info');
                     }
                 };
                 reader.readAsText(file);
+                e.target.value = '';
             };
-            input.click();
+            window.closeImportPreview = function() { document.getElementById('importPreviewDialog').style.display = 'none'; };
+            window.confirmImport = async function() {
+                for (const item of pendingImportRecords) {
+                    item.id = Date.now() + Math.random();
+                    await saveToDB(STORE_NAME, item);
+                }
+                await loadData();
+                updateAll();
+                closeImportPreview();
+                showToast('导入成功', 'success');
+            };
+
+            // 清空密码
+            window.requestClearPassword = function() {
+                currentOperation = 'clear';
+                document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）';
+                document.getElementById('passwordDialog').style.display = 'flex';
+                document.getElementById('operationPassword').value = '';
+                document.getElementById('passwordError').style.display = 'none';
+            };
+            window.verifyOperationPassword = function() {
+                if (currentOperation === 'clear' && document.getElementById('operationPassword').value === OPERATION_PASSWORD) {
+                    closePasswordDialog();
+                    document.getElementById('confirmTitle').textContent = '确认清空';
+                    document.getElementById('confirmMessage').textContent = '确定清空所有数据？此操作不可恢复！';
+                    document.getElementById('confirmYesBtn').onclick = async function() {
+                        await clearDB(STORE_NAME);
+                        await clearDB(RECYCLE_NAME);
+                        historyRecords = []; recycleBin = [];
+                        updateAll();
+                        document.getElementById('confirmDialog').classList.remove('show');
+                        showToast('已清空所有数据', 'success');
+                    };
+                    document.getElementById('confirmDialog').classList.add('show');
+                } else {
+                    document.getElementById('passwordError').style.display = 'block';
+                }
+            };
+            window.closePasswordDialog = function() { document.getElementById('passwordDialog').style.display = 'none'; currentOperation = null; };
+
+            window.clearInput = function() { document.getElementById('orderData').value = ''; };
         }
-        
-        function exportAllData() {
-            if (historyRecords.length === 0) {
-                showToast('没有历史记录可导出！', 'error');
-                return;
-            }
-            try {
-                const blob = new Blob([JSON.stringify(historyRecords, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `订单报表系统_所有数据_${new Date().toISOString().slice(0,10)}.json`;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 0);
-                showToast('所有数据导出成功！', 'success');
-            } catch (e) {
-                showToast('导出失败', 'error');
-            }
-        }
-        
-        function showFormatSelector() { document.getElementById('formatSelector').style.display = 'flex'; }
-        function closeFormatSelector() { document.getElementById('formatSelector').style.display = 'none'; }
-        
-        function selectFormat(el, fmt) {
-            document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
-            exportFormat = fmt;
-        }
-        
-        function confirmExport() {
-            closeFormatSelector();
-            exportAllData();
-        }
-        
-        function applyFilters() {
-            updateUserCardsDisplay();
-            updateSummaryDisplay();
-            updateMyAccountCards();
-        }
-        
-        document.getElementById('operationPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verifyOperationPassword();
-        });
     </script>
 </body>
 </html>
