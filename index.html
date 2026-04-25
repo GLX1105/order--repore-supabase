@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>订单报表系统（赔付明细整数显示版）- 云同步完整版</title>
+    <title>订单报表系统（云同步完整版）</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #1a2a6c, #2c3e50); color: #333; min-height: 100vh; padding: 15px; display: block; }
+        body { background: linear-gradient(135deg, #1a2a6c, #2c3e50); color: #333; min-height: 100vh; padding: 15px; }
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .login-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; width: 350px; }
-        .login-box h2 { color: #2c3e50; margin-bottom: 20px; font-size: 1.5rem; }
+        .login-box h2 { color: #2c3e50; margin-bottom: 20px; }
         .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
         .login-btn { background: linear-gradient(to right, #3498db, #2980b9); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; margin-top: 15px; }
         .login-error { color: #e74c3c; margin-top: 10px; display: none; }
+        .container { max-width: 1700px; width: 100%; margin: 0 auto; display: flex; gap: 20px; }
         .main-content { flex: 1; min-width: 0; }
         .user-sidebar { width: 530px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
         .big-user-card { background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); overflow: hidden; margin-bottom: 20px; width: 100%; }
         .big-card-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 15px; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .big-card-content { padding: 15px; max-height: none; overflow-y: visible; }
+        .big-card-content { padding: 15px; }
         .search-filter-section { background: white; border-radius: 8px; padding: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .search-box { display: flex; margin-bottom: 10px; gap: 8px; }
         .search-input { flex: 1; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; }
-        .search-btn { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: background 0.3s; font-size: 0.85rem; }
+        .search-btn { background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-item { display: flex; flex-direction: column; gap: 2px; }
-        .filter-label { font-size: 0.75rem; color: #666; font-weight: 500; }
+        .filter-label { font-size: 0.75rem; color: #666; }
         .filter-select, .filter-date { padding: 5px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem; background: white; min-width: 100px; }
         .navbar { background: linear-gradient(90deg, #1a3a6c, #2c5aa0); color: white; border-radius: 8px; padding: 8px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .navbar-brand { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; font-weight: 600; }
         .nav-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-        .nav-btn { background: rgba(255,255,255,0.18); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+        .nav-btn { background: rgba(255,255,255,0.18); color: white; border: none; padding: 5px 10px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; }
         .nav-btn:hover { background: rgba(255,255,255,0.28); }
         .recycle-bin-btn { position: relative; }
         .recycle-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; }
@@ -38,21 +39,17 @@
         header h1 { color: white; font-size: 1.8rem; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         header p { color: #ecf0f1; font-size: 0.95rem; }
         .input-section { background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 20px; margin-bottom: 20px; }
-        .section-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #3498db; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 1.2rem; color: #2c3e50; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #3498db; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; color: #2c3e50; font-size: 0.9rem; }
         .input-with-categories { display: flex; gap: 15px; align-items: flex-start; }
         #orderData { width: 65%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; resize: vertical; }
         .category-button-group { display: flex; flex-direction: column; gap: 8px; width: 35%; min-width: 180px; }
-        .category-btn { padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; background: white; color: #555; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 4px; justify-content: center; }
-        .category-btn:hover { border-color: #3498db; }
+        .category-btn { padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; background: white; color: #555; font-size: 0.85rem; cursor: pointer; }
         .category-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: #667eea; }
         .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .btn-primary { background: linear-gradient(to right, #3498db, #2980b9); color: white; }
-        .btn-primary.loading { position: relative; pointer-events: none; opacity: 0.7; }
-        .btn-primary.loading::after { content: ""; position: absolute; right: 10px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .btn-secondary { background: linear-gradient(to right, #2ecc71, #27ae60); color: white; }
         .btn-warning { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
         .btn-danger { background: linear-gradient(to right, #e74c3c, #c0392b); color: white; }
@@ -73,15 +70,13 @@
         .compensation-amount { color: #e74c3c; font-weight: bold; }
         .profit-positive { color: #27ae60; font-weight: bold; }
         .profit-negative { color: #e74c3c; font-weight: bold; }
-        .profit-tag { font-weight: bold; margin-left: 15px; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+        .profit-tag { font-weight: bold; margin-left: 15px; padding: 2px 6px; border-radius: 4px; }
         .pay-me { background-color: rgba(46,204,113,0.2); color: #27ae60; }
         .pay-you { background-color: rgba(231,76,60,0.2); color: #c0392b; }
         .user-card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #e1e8f0; width: calc(33.333% - 10px); }
         .user-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
-        .user-info-left { display: flex; flex-direction: column; gap: 4px; }
-        .user-name { font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
-        .user-category { font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; display: inline-block; }
-        .user-date { font-size: 0.75rem; color: #7f8c8d; white-space: nowrap; }
+        .user-name { font-weight: 600; color: #2c3e50; }
+        .user-date { font-size: 0.75rem; color: #7f8c8d; }
         .user-info-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 0.85rem; }
         .info-label { font-weight: 500; color: #555; }
         .info-value { font-weight: 600; color: #2980b9; }
@@ -97,9 +92,10 @@
         .dynamic-table th { background: #f1f6fd; font-weight: 600; }
         .serial-number { color: #2980b9; font-weight: 600; }
         .order-amount { font-weight: 600; color: #2c3e50; }
+        .small-font { font-size: 0.75em; }
         .empty-history { text-align: center; padding: 20px; color: #7f8c8d; }
         .counter { background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-left: 5px; }
-        .category-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+        .category-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
         .category-macau-up { background: rgba(52,152,219,0.2); color: #2980b9; }
         .category-macau-down { background: rgba(46,204,113,0.2); color: #27ae60; }
         .category-guangdong-up { background: rgba(155,89,182,0.2); color: #8e44ad; }
@@ -243,15 +239,12 @@
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
-    <div class="storage-indicator" id="storageIndicator">
-        <i class="fas fa-cloud"></i><span id="storageText">云端存储</span>
-        <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
-    </div>
+    <div class="storage-indicator" id="storageIndicator"><i class="fas fa-cloud"></i><span id="storageText">云端存储</span><div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div></div>
 
     <div class="container" id="mainContainer" style="display:none;">
         <div class="main-content">
             <div class="navbar">
-                <div class="navbar-brand"><i class="fas fa-file-invoice-dollar"></i><span>订单报表系统（云同步完整版）</span></div>
+                <div class="navbar-brand"><i class="fas fa-file-invoice-dollar"></i><span>订单报表系统（云同步）</span></div>
                 <div class="nav-buttons">
                     <button class="nav-btn" onclick="document.getElementById('fileInput').click()"><i class="fas fa-file-import"></i> 导入订单</button>
                     <button class="nav-btn" onclick="showFormatSelector()"><i class="fas fa-file-export"></i> 导出订单</button>
@@ -302,48 +295,20 @@
             </div>
         </div>
         <div class="user-sidebar">
-            <!-- 筛选器 -->
             <div class="search-filter-section">
                 <div class="search-box">
                     <input type="text" id="searchInput" class="search-input" placeholder="搜索用户、日期或分类...">
                     <button class="search-btn" onclick="applyFilters()"><i class="fas fa-search"></i> 搜索</button>
                 </div>
                 <div class="filter-group">
-                    <div class="filter-item">
-                        <label class="filter-label">日期</label>
-                        <input type="date" id="dateFilter" class="filter-date" onchange="applyFilters()">
-                    </div>
-                    <div class="filter-item">
-                        <label class="filter-label">分类</label>
-                        <select id="categoryFilter" class="filter-select" onchange="applyFilters()">
-                            <option value="">所有分类</option>
-                            <option value="澳门上家">澳门上家</option>
-                            <option value="澳门下家">澳门下家</option>
-                            <option value="粤港上家">粤港上家</option>
-                            <option value="粤港下家">粤港下家</option>
-                        </select>
-                    </div>
-                    <div class="filter-item">
-                        <label class="filter-label">用户</label>
-                        <select id="userFilter" class="filter-select" onchange="applyFilters()">
-                            <option value="">所有用户</option>
-                        </select>
-                    </div>
+                    <div class="filter-item"><label class="filter-label">日期</label><input type="date" id="dateFilter" class="filter-date" onchange="applyFilters()"></div>
+                    <div class="filter-item"><label class="filter-label">分类</label><select id="categoryFilter" class="filter-select" onchange="applyFilters()"><option value="">所有分类</option><option value="澳门上家">澳门上家</option><option value="澳门下家">澳门下家</option><option value="粤港上家">粤港上家</option><option value="粤港下家">粤港下家</option></select></div>
+                    <div class="filter-item"><label class="filter-label">用户</label><select id="userFilter" class="filter-select" onchange="applyFilters()"><option value="">所有用户</option></select></div>
                 </div>
             </div>
-
-            <div class="big-user-card">
-                <div class="big-card-header"><i class="fas fa-user-circle"></i> 用户信息和中奖情况</div>
-                <div class="big-card-content" id="userCardsContainer"><div class="empty-history">暂无数据</div></div>
-            </div>
-            <div class="big-user-card">
-                <div class="big-card-header"><i class="fas fa-chart-bar"></i> 全部汇总</div>
-                <div class="big-card-content" id="summaryContainer"><div class="empty-history">暂无数据</div></div>
-            </div>
-            <div class="big-user-card">
-                <div class="big-card-header"><i class="fas fa-calculator"></i> 我的账户</div>
-                <div class="big-card-content"><div class="my-account-container" id="myAccountContainer"><div class="empty-history">暂无数据</div></div></div>
-            </div>
+            <div class="big-user-card"><div class="big-card-header"><i class="fas fa-user-circle"></i> 用户信息和中奖情况</div><div class="big-card-content" id="userCardsContainer"><div class="empty-history">暂无数据</div></div></div>
+            <div class="big-user-card"><div class="big-card-header"><i class="fas fa-chart-bar"></i> 全部汇总</div><div class="big-card-content" id="summaryContainer"><div class="empty-history">暂无数据</div></div></div>
+            <div class="big-user-card"><div class="big-card-header"><i class="fas fa-calculator"></i> 我的账户</div><div class="big-card-content"><div class="my-account-container" id="myAccountContainer"><div class="empty-history">暂无数据</div></div></div></div>
         </div>
     </div>
 
@@ -382,6 +347,7 @@
     </div>
 
     <script>
+        // 动态加载 Supabase SDK
         (function() {
             const cdns = [
                 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
@@ -407,14 +373,10 @@
 
             const ACCESS_PASSWORD = '160601';
             const OPERATION_PASSWORD = '891105';
-            const STORE_NAME = 'records';
-            const RECYCLE_NAME = 'recycle_bin';
-
             let historyRecords = [], recycleBin = [];
             let selectedCategory = '澳门下家', exportFormat = 'json', currentOperation = null;
             let pendingRecord = null, pendingImportRecords = [];
             let selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
-            // 当前筛选条件（右侧边栏）
             let currentFilter = { search: '', date: '', category: '', user: '' };
 
             function showToast(msg, type) {
@@ -422,75 +384,57 @@
                 t.className = 'toast ' + type;
                 t.innerHTML = '<span>' + msg + '</span>';
                 document.getElementById('toastContainer').appendChild(t);
-                setTimeout(function() { t.classList.add('show'); }, 10);
-                setTimeout(function() { t.classList.remove('show'); t.remove(); }, 3000);
+                setTimeout(() => t.classList.add('show'), 10);
+                setTimeout(() => { t.classList.remove('show'); t.remove(); }, 3000);
             }
 
             async function saveToDB(store, data) {
-                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const table = store === 'records' ? 'records' : 'recycle_bin';
                 const { error } = await supabase.from(table).upsert(data);
                 if (error) throw error;
             }
             async function getAllFromDB(store) {
-                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const table = store === 'records' ? 'records' : 'recycle_bin';
                 const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 return data || [];
             }
             async function deleteFromDB(store, id) {
-                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const table = store === 'records' ? 'records' : 'recycle_bin';
                 await supabase.from(table).delete().eq('id', id);
             }
             async function clearDB(store) {
-                const table = store === STORE_NAME ? 'records' : 'recycle_bin';
+                const table = store === 'records' ? 'records' : 'recycle_bin';
                 await supabase.from(table).delete().neq('id', 0);
             }
             async function loadData() {
-                historyRecords = await getAllFromDB(STORE_NAME);
-                recycleBin = await getAllFromDB(RECYCLE_NAME);
+                historyRecords = await getAllFromDB('records');
+                recycleBin = await getAllFromDB('recycle_bin');
             }
 
-            // 获取过滤后的记录（用于右侧卡片）
             function getFilteredRecords() {
                 let records = historyRecords;
-                const search = currentFilter.search.toLowerCase();
-                if (search) {
-                    records = records.filter(function(r) {
-                        return r.applicant.toLowerCase().includes(search) ||
-                               r.timestamp.includes(search) ||
-                               r.category.toLowerCase().includes(search);
-                    });
-                }
-                if (currentFilter.date) {
-                    records = records.filter(function(r) { return r.timestamp === currentFilter.date; });
-                }
-                if (currentFilter.category) {
-                    records = records.filter(function(r) { return r.category === currentFilter.category; });
-                }
-                if (currentFilter.user) {
-                    records = records.filter(function(r) { return r.applicant === currentFilter.user; });
-                }
+                const s = currentFilter.search.toLowerCase();
+                if (s) records = records.filter(r => r.applicant.toLowerCase().includes(s) || r.timestamp.includes(s) || r.category.toLowerCase().includes(s));
+                if (currentFilter.date) records = records.filter(r => r.timestamp === currentFilter.date);
+                if (currentFilter.category) records = records.filter(r => r.category === currentFilter.category);
+                if (currentFilter.user) records = records.filter(r => r.applicant === currentFilter.user);
                 return records;
             }
 
-            // 右侧筛选器搜索按钮
             window.applyFilters = function() {
                 currentFilter.search = document.getElementById('searchInput').value.trim();
                 currentFilter.date = document.getElementById('dateFilter').value;
                 currentFilter.category = document.getElementById('categoryFilter').value;
                 currentFilter.user = document.getElementById('userFilter').value;
-                updateUserCards();
-                updateSummary();
-                updateMyAccount();
-                // 同时更新用户筛选下拉选项
+                updateUserCards(); updateSummary(); updateMyAccount();
                 populateUserFilterOptions();
             };
 
             function populateUserFilterOptions() {
                 const uf = document.getElementById('userFilter');
-                const users = [...new Set(historyRecords.map(function(r) { return r.applicant; }))];
-                uf.innerHTML = '<option value="">所有用户</option>' + users.map(function(u) { return '<option value="' + u + '">' + u + '</option>'; }).join('');
-                // 恢复选中值
+                const users = [...new Set(historyRecords.map(r => r.applicant))];
+                uf.innerHTML = '<option value="">所有用户</option>' + users.map(u => `<option value="${u}">${u}</option>`).join('');
                 if (currentFilter.user) uf.value = currentFilter.user;
             }
 
@@ -509,41 +453,24 @@
                 setDefaultDates();
                 populateUserFilterOptions();
                 updateAll();
-                supabase.channel('realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, function() {
-                    loadData().then(function() {
-                        populateUserFilterOptions();
-                        // 保持筛选条件，更新右侧卡片
-                        updateUserCards();
-                        updateSummary();
-                        updateMyAccount();
-                        updateHistoryDisplay();
-                        updateRecycleBadge();
-                        renderRecycleItems();
-                    });
+                supabase.channel('realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => {
+                    loadData().then(() => { updateAll(); populateUserFilterOptions(); });
                 }).subscribe();
             }
 
             function setDefaultDates() {
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('reportDate').value = today;
-                document.getElementById('historyDateFilter').value = today;
-                document.getElementById('historyDateFilter').addEventListener('change', function() {
-                    updateHistoryUserFilter(); updateHistoryDisplay();
-                });
+                document.getElementById('historyDateFilter').value = ''; // 显示全部
+                document.getElementById('historyDateFilter').addEventListener('change', () => { updateHistoryUserFilter(); updateHistoryDisplay(); });
                 document.getElementById('historyUserFilter').addEventListener('change', updateHistoryDisplay);
-                document.getElementById('orderData').addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRecord(); }
-                });
-                document.getElementById('accessPassword').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') checkAccessPassword();
-                });
-                document.getElementById('operationPassword').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') verifyOperationPassword();
-                });
+                document.getElementById('orderData').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRecord(); } });
+                document.getElementById('accessPassword').addEventListener('keypress', e => { if (e.key === 'Enter') checkAccessPassword(); });
+                document.getElementById('operationPassword').addEventListener('keypress', e => { if (e.key === 'Enter') verifyOperationPassword(); });
             }
 
             window.selectCategory = function(btn) {
-                document.querySelectorAll('.category-btn').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 selectedCategory = btn.dataset.category;
             };
@@ -553,7 +480,7 @@
                 const tm = input.match(/订单总额：([\d.]+)/); if (tm) totalAmount = tm[1];
                 const pm = input.match(/盈亏情况：([\d.-]+)/); if (pm) profitLoss = pm[1];
                 const winnings = {};
-                input.split('\n').forEach(function(line) {
+                input.split('\n').forEach(line => {
                     if (line.includes(' 中:')) {
                         const m = line.match(/^([^\n:]+?) 中:/);
                         if (m) {
@@ -561,15 +488,12 @@
                             let as = line.substring(m[0].length).trim();
                             if (as.includes('=')) as = as.split('=').pop();
                             const am = as.match(/[\d.]+/);
-                            if (am) {
-                                winnings[type] = winnings[type] ? (parseFloat(winnings[type]) + parseFloat(am[0])).toString() : am[0];
-                            }
+                            if (am) winnings[type] = winnings[type] ? (parseFloat(winnings[type]) + parseFloat(am[0])).toString() : am[0];
                         }
                     }
                 });
                 return { applicant, totalAmount, winnings, profitLoss };
             }
-
             function extractAmountDetail(input) {
                 const s = input.indexOf("订单金额明细："); if (s === -1) return "";
                 const e = input.indexOf("=", s); return e === -1 ? "" : input.substring(s + 7, e).trim();
@@ -589,11 +513,11 @@
                 if (detailEnd === -1) { showToast('未找到"="', 'error'); btn.classList.remove('loading'); return; }
                 const detail = input.substring(detailStart + 7, detailEnd).trim();
                 const filtered = detail.replace(/[^0-9+]/g, '');
-                const orderData = filtered.split('+').map(function(s) { const n = parseFloat(s.trim()); if (isNaN(n)) throw new Error('无效数字'); return n; });
+                const orderData = filtered.split('+').map(s => { const n = parseFloat(s.trim()); if (isNaN(n)) throw new Error('无效数字'); return n; });
                 const ed = extractOrderData(input, applicant);
-                if (historyRecords.some(function(r) { return r.timestamp === date && r.applicant === applicant && extractAmountDetail(r.originalData) === extractAmountDetail(input); })) {
+                if (historyRecords.some(r => r.timestamp === date && r.applicant === applicant && extractAmountDetail(r.originalData) === extractAmountDetail(input))) {
                     pendingRecord = { date, applicant, orderDataInput: input };
-                    document.getElementById('duplicateMessage').innerHTML = '检测到相同日期、相同申报人的相似订单记录。<br>是否继续保存？';
+                    document.getElementById('duplicateMessage').innerHTML = `检测到相同日期、相同申报人的相似订单记录。<br>是否继续保存？`;
                     document.getElementById('duplicateDialog').classList.add('show');
                     btn.classList.remove('loading');
                     return;
@@ -607,40 +531,49 @@
                 const detailStart = orderDataInput.indexOf("订单金额明细："), detailEnd = orderDataInput.indexOf("=", detailStart);
                 const detail = orderDataInput.substring(detailStart + 7, detailEnd).trim();
                 const filtered = detail.replace(/[^0-9+]/g, '');
-                const orderData = filtered.split('+').map(function(s) { return parseFloat(s.trim()); });
+                const orderData = filtered.split('+').map(s => parseFloat(s.trim()));
                 const ed = extractOrderData(orderDataInput, applicant);
                 await directSave(date, applicant, orderDataInput, orderData, ed);
                 hideDuplicateDialog();
             };
-            window.hideDuplicateDialog = function() { document.getElementById('duplicateDialog').classList.remove('show'); pendingRecord = null; };
+            window.hideDuplicateDialog = () => document.getElementById('duplicateDialog').classList.remove('show');
 
             async function directSave(date, applicant, input, orderData, ed) {
                 const record = {
-                    id: Date.now(),
-                    timestamp: date,
-                    category: selectedCategory,
-                    applicant: applicant,
-                    originalData: input,
-                    tableHTML: createDynamicTableHTML(orderData),
+                    id: Date.now(), timestamp: date, category: selectedCategory, applicant: applicant,
+                    originalData: input, tableHTML: createDynamicTableHTML(orderData),
                     compensationCardHTML: createCompensationCardHTML(input, selectedCategory),
-                    dataCount: orderData.length,
-                    extractedData: ed,
-                    created_at: new Date().toISOString()
+                    dataCount: orderData.length, extractedData: ed, created_at: new Date().toISOString()
                 };
                 historyRecords.unshift(record);
-                await saveToDB(STORE_NAME, record);
+                await saveToDB('records', record);
                 updateAll();
                 document.getElementById('orderData').value = '';
                 document.getElementById('successMsg').style.display = 'block';
                 showToast('保存成功！', 'success');
-                setTimeout(function() { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
+                setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
             }
 
             function createDynamicTableHTML(data) {
-                let html = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr><th>序号</th><th>下单金额</th></tr></thead><tbody>';
-                data.forEach(function(amt, i) {
-                    html += '<tr><td><span class="serial-number">' + (i+1) + '</span></td><td><span class="order-amount">' + amt + '</span></td></tr>';
-                });
+                const count = data.length;
+                let cols = 4;
+                if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6;
+                const rows = Math.ceil(count / cols);
+                let html = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>';
+                for (let i = 0; i < cols; i++) html += '<th>序</th><th>下单</th>';
+                html += '</tr></thead><tbody>';
+                for (let r = 0; r < rows; r++) {
+                    html += '<tr>';
+                    for (let c = 0; c < cols; c++) {
+                        const idx = r + c * rows;
+                        if (idx < count) {
+                            const amt = data[idx], str = amt.toString();
+                            const cls = str.length > 6 ? ' class="small-font"' : '';
+                            html += `<td><span class="serial-number">${idx+1}</span></td><td${cls}><span class="order-amount">${amt}</span></td>`;
+                        } else html += '<td></td><td></td>';
+                    }
+                    html += '</tr>';
+                }
                 html += '</tbody></table></div>';
                 return html;
             }
@@ -649,7 +582,7 @@
                 if (!input) return '';
                 const filtered = input.replace(/订单金额明细：.*?\(共计\d+条\)/s, '').trim().split('\n');
                 let processed = [];
-                filtered.forEach(function(line) {
+                filtered.forEach(line => {
                     if (line.includes('盈亏情况：')) {
                         const m = line.match(/盈亏情况：([\d.-]+)/);
                         if (m) {
@@ -658,21 +591,13 @@
                             const cls = num >= 0 ? 'profit-positive' : 'profit-negative';
                             const sign = num >= 0 ? '+' : '';
                             let tag = '';
-                            if (category.includes('下家')) {
-                                tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : '';
-                            } else {
-                                tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : '';
-                            }
-                            processed.push(line.replace(/(盈亏情况：)([\d.-]+)/, '$1<span class="' + cls + '">' + sign + amt + '</span>' + tag));
+                            if (category.includes('下家')) tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : '';
+                            else tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : '';
+                            processed.push(line.replace(/(盈亏情况：)([\d.-]+)/, `$1<span class="${cls}">${sign}${amt}</span>${tag}`));
                         } else processed.push(line);
                     } else {
-                        let newLine = line.replace(/(赔:)([\d.]+)/g, function(m, p1, p2) {
-                            return p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>';
-                        });
-                        newLine = newLine.replace(/(\d+\.\d+)/g, function(m) {
-                            const num = parseFloat(m);
-                            return isNaN(num) ? m : Math.trunc(num);
-                        });
+                        let newLine = line.replace(/(赔:)([\d.]+)/g, (m, p1, p2) => p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>');
+                        newLine = newLine.replace(/(\d+\.\d+)/g, m => { const num = parseFloat(m); return isNaN(num) ? m : Math.trunc(num); });
                         processed.push(newLine);
                     }
                 });
@@ -680,167 +605,146 @@
             }
 
             function updateAll() {
-                updateHistoryDisplay();
-                updateUserCards();
-                updateSummary();
-                updateMyAccount();
-                updateRecycleBadge();
-                renderRecycleItems();
-                updateBatchOpsVisibility();
-                populateUserFilterOptions();
+                updateHistoryDisplay(); updateUserCards(); updateSummary(); updateMyAccount();
+                updateRecycleBadge(); renderRecycleItems(); updateBatchOpsVisibility(); populateUserFilterOptions();
             }
 
             window.updateHistoryDisplay = function() {
                 const fd = document.getElementById('historyDateFilter').value;
                 const fu = document.getElementById('historyUserFilter').value;
                 let records = historyRecords;
-                if (fd) records = records.filter(function(r) { return r.timestamp === fd; });
-                if (fu) records = records.filter(function(r) { return r.applicant === fu; });
+                if (fd) records = records.filter(r => r.timestamp === fd);
+                if (fu) records = records.filter(r => r.applicant === fu);
                 document.getElementById('recordCounter').textContent = records.length;
                 const c = document.getElementById('historyContainer');
                 if (records.length === 0) { c.innerHTML = '<div class="empty-history">暂无记录</div>'; return; }
-                c.innerHTML = records.map(function(r, i) {
+                c.innerHTML = records.map((r, i) => {
                     const sel = selectedHistoryIds.has(r.id);
-                    return '<div class="history-card" data-id="' + r.id + '">' +
-                        '<div class="history-card-select"><input type="checkbox" class="history-checkbox" ' + (sel?'checked':'') + ' onchange="toggleHistorySelection(' + r.id + ', this.checked)"></div>' +
-                        '<div class="history-header"><div><span class="highlight-applicant">' + r.applicant + '</span> #' + (i+1) + ' <span class="category-tag ' + getCatClass(r.category) + ' highlight-category">' + r.category + '</span></div>' +
-                        '<div><span class="history-time">' + r.timestamp + '</span><button class="delete-btn" onclick="showDeleteConfirm(' + r.id + ')">🗑</button></div></div>' +
-                        '<div class="history-body">' + (r.tableHTML || '') + (r.compensationCardHTML || '') + '</div></div>';
+                    return `<div class="history-card" data-id="${r.id}">
+                        <div class="history-card-select"><input type="checkbox" class="history-checkbox" ${sel?'checked':''} onchange="toggleHistorySelection(${r.id}, this.checked)"></div>
+                        <div class="history-header">
+                            <div><span class="highlight-applicant">${r.applicant}</span> #${i+1} <span class="category-tag ${getCatClass(r.category)} highlight-category">${r.category}</span></div>
+                            <div><span class="history-time">${r.timestamp}</span><button class="delete-btn" onclick="showDeleteConfirm(${r.id})">🗑</button></div>
+                        </div>
+                        <div class="history-body">${r.tableHTML || ''}${r.compensationCardHTML || ''}</div>
+                    </div>`;
                 }).join('');
                 updateHistoryUserFilter();
             };
 
             function updateHistoryUserFilter() {
                 const uf = document.getElementById('historyUserFilter');
-                const users = [...new Set(historyRecords.map(function(r) { return r.applicant; }))];
-                uf.innerHTML = '<option value="">所有用户</option>' + users.map(function(u) { return '<option value="' + u + '">' + u + '</option>'; }).join('');
+                const users = [...new Set(historyRecords.map(r => r.applicant))];
+                uf.innerHTML = '<option value="">所有用户</option>' + users.map(u => `<option value="${u}">${u}</option>`).join('');
             }
 
             function updateUserCards() {
-                const container = document.getElementById('userCardsContainer');
                 const records = getFilteredRecords();
+                const container = document.getElementById('userCardsContainer');
                 if (records.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
                 const users = {};
-                records.forEach(function(r) {
+                records.forEach(r => {
                     if (!users[r.applicant]) users[r.applicant] = [];
                     users[r.applicant].push(r);
                 });
-                container.innerHTML = Object.entries(users).map(function(entry) {
-                    const name = entry[0], recs = entry[1];
+                container.innerHTML = Object.entries(users).map(([name, recs]) => {
                     const allWinnings = {};
                     let totalAmount = 0, totalProfit = 0;
-                    recs.forEach(function(r) {
+                    recs.forEach(r => {
                         const d = r.extractedData;
                         totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
                         totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
-                        Object.entries(d.winnings || {}).forEach(function(w) {
-                            const key = w[0], val = Math.trunc(parseFloat(w[1] || 0));
-                            allWinnings[key] = (allWinnings[key] || 0) + val;
+                        Object.entries(d.winnings || {}).forEach(([k, v]) => {
+                            allWinnings[k] = (allWinnings[k] || 0) + Math.trunc(parseFloat(v || 0));
                         });
                     });
                     const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
-                    let html = '<div class="user-card">' +
-                        '<div class="user-card-header"><div class="user-info-left"><div class="user-name">' + name + '</div></div></div>' +
-                        '<div class="user-info-row"><span class="info-label">订单总额:</span><span class="info-value">' + totalAmount + '</span></div>' +
-                        '<div class="winning-section"><div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>';
+                    let html = `<div class="user-card">
+                        <div class="user-card-header"><div class="user-info-left"><div class="user-name">${name}</div></div></div>
+                        <div class="user-info-row"><span class="info-label">订单总额:</span><span class="info-value">${totalAmount}</span></div>
+                        <div class="winning-section"><div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
                     if (Object.keys(allWinnings).length > 0) {
-                        Object.entries(allWinnings).forEach(function(w) {
-                            html += '<div class="winning-item"><span class="winning-type">' + w[0] + ':</span><span class="winning-amount">' + w[1] + '</span></div>';
+                        Object.entries(allWinnings).forEach(([k, v]) => {
+                            html += `<div class="winning-item"><span class="winning-type">${k}:</span><span class="winning-amount">${v}</span></div>`;
                         });
-                    } else {
-                        html += '<div class="winning-item">无中奖记录</div>';
-                    }
-                    html += '</div><div class="profit-loss ' + profitClass + '">盈亏: ' + totalProfit + '</div></div>';
+                    } else html += '<div class="winning-item">无中奖记录</div>';
+                    html += `</div><div class="profit-loss ${profitClass}">盈亏: ${totalProfit}</div></div>`;
                     return html;
                 }).join('');
             }
 
             function updateSummary() {
-                const container = document.getElementById('summaryContainer');
                 const records = getFilteredRecords();
+                const container = document.getElementById('summaryContainer');
                 if (records.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
                 const cats = ['澳门上家','澳门下家','粤港上家','粤港下家'];
-                container.innerHTML = '<div class="summary-container">' + cats.map(function(cat) {
-                    const recs = records.filter(function(r) { return r.category === cat; });
-                    const totalAmount = recs.reduce(function(s, r) { return s + Math.trunc(parseFloat(r.extractedData?.totalAmount || 0)); }, 0);
-                    const totalProfit = recs.reduce(function(s, r) { return s + Math.trunc(parseFloat(r.extractedData?.profitLoss || 0)); }, 0);
+                container.innerHTML = '<div class="summary-container">' + cats.map(cat => {
+                    const recs = records.filter(r => r.category === cat);
+                    const totalAmount = recs.reduce((s, r) => s + Math.trunc(parseFloat(r.extractedData?.totalAmount || 0)), 0);
+                    const totalProfit = recs.reduce((s, r) => s + Math.trunc(parseFloat(r.extractedData?.profitLoss || 0)), 0);
                     const winnings = {};
-                    recs.forEach(function(r) {
-                        const w = r.extractedData?.winnings || {};
-                        Object.entries(w).forEach(function(e) {
-                            winnings[e[0]] = (winnings[e[0]] || 0) + Math.trunc(parseFloat(e[1] || 0));
+                    recs.forEach(r => {
+                        Object.entries(r.extractedData?.winnings || {}).forEach(([k, v]) => {
+                            winnings[k] = (winnings[k] || 0) + Math.trunc(parseFloat(v || 0));
                         });
                     });
                     const cls = totalProfit >= 0 ? 'summary-profit-positive' : 'summary-profit-negative';
-                    let html = '<div class="summary-card">' +
-                        '<div class="summary-header"><i class="fas fa-arrow-up" style="color:#3498db;"></i><div class="summary-title">' + cat + '</div></div>' +
-                        '<table class="summary-table"><tr><th>订单总额</th><td class="summary-value">' + totalAmount + '</td></tr>' +
-                        '<tr><th>盈亏总额</th><td class="summary-value ' + cls + '">' + (totalProfit>=0?'+':'') + totalProfit + '</td></tr></table>' +
-                        '<div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>';
+                    let html = `<div class="summary-card">
+                        <div class="summary-header"><i class="fas fa-arrow-up" style="color:#3498db;"></i><div class="summary-title">${cat}</div></div>
+                        <table class="summary-table"><tr><th>订单总额</th><td class="summary-value">${totalAmount}</td></tr>
+                        <tr><th>盈亏总额</th><td class="summary-value ${cls}">${totalProfit>=0?'+':''}${totalProfit}</td></tr></table>
+                        <div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
                     if (Object.keys(winnings).length > 0) {
-                        Object.entries(winnings).forEach(function(w) {
-                            const a = w[1];
-                            const aCls = a >= 0 ? 'positive' : 'negative';
-                            html += '<div class="winning-summary-item"><span class="winning-summary-type">' + w[0] + ':</span><span class="winning-summary-amount ' + aCls + '">' + (a>=0?'+':'') + a + '</span></div>';
+                        Object.entries(winnings).forEach(([k, v]) => {
+                            const aCls = v >= 0 ? 'positive' : 'negative';
+                            html += `<div class="winning-summary-item"><span class="winning-summary-type">${k}:</span><span class="winning-summary-amount ${aCls}">${v>=0?'+':''}${v}</span></div>`;
                         });
-                    } else {
-                        html += '<div class="winning-summary-item">无中奖记录</div>';
-                    }
+                    } else html += '<div class="winning-summary-item">无中奖记录</div>';
                     html += '</div></div>';
                     return html;
                 }).join('') + '</div>';
             }
 
             function updateMyAccount() {
-                const container = document.getElementById('myAccountContainer');
                 const records = getFilteredRecords();
+                const container = document.getElementById('myAccountContainer');
                 if (records.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
-                const calc = function(cat) {
-                    const recs = records.filter(function(r) { return r.category === cat; });
-                    const profit = recs.reduce(function(s, r) { return s + Math.trunc(parseFloat(r.extractedData?.profitLoss || 0)); }, 0);
+                const calc = cat => {
+                    const recs = records.filter(r => r.category === cat);
+                    const profit = recs.reduce((s, r) => s + Math.trunc(parseFloat(r.extractedData?.profitLoss || 0)), 0);
                     const winnings = {};
-                    recs.forEach(function(r) {
-                        const w = r.extractedData?.winnings || {};
-                        Object.entries(w).forEach(function(e) {
-                            winnings[e[0]] = (winnings[e[0]] || 0) + Math.trunc(parseFloat(e[1] || 0));
+                    recs.forEach(r => {
+                        Object.entries(r.extractedData?.winnings || {}).forEach(([k, v]) => {
+                            winnings[k] = (winnings[k] || 0) + Math.trunc(parseFloat(v || 0));
                         });
                     });
                     return { profit, winnings };
                 };
-                const macauDown = calc('澳门下家');
-                const macauUp = calc('澳门上家');
-                const gdDown = calc('粤港下家');
-                const gdUp = calc('粤港上家');
-
+                const macauDown = calc('澳门下家'), macauUp = calc('澳门上家');
+                const gdDown = calc('粤港下家'), gdUp = calc('粤港上家');
                 const myMacauProfit = macauDown.profit - macauUp.profit;
                 const myGdProfit = gdDown.profit - gdUp.profit;
+                const myMacauWinnings = {}, myGdWinnings = {};
+                Object.entries(macauDown.winnings).forEach(([k, v]) => myMacauWinnings[k] = (myMacauWinnings[k]||0) + v);
+                Object.entries(macauUp.winnings).forEach(([k, v]) => myMacauWinnings[k] = (myMacauWinnings[k]||0) - v);
+                Object.entries(gdDown.winnings).forEach(([k, v]) => myGdWinnings[k] = (myGdWinnings[k]||0) + v);
+                Object.entries(gdUp.winnings).forEach(([k, v]) => myGdWinnings[k] = (myGdWinnings[k]||0) - v);
 
-                const myMacauWinnings = {};
-                Object.entries(macauDown.winnings).forEach(function(e) { myMacauWinnings[e[0]] = (myMacauWinnings[e[0]]||0) + e[1]; });
-                Object.entries(macauUp.winnings).forEach(function(e) { myMacauWinnings[e[0]] = (myMacauWinnings[e[0]]||0) - e[1]; });
-
-                const myGdWinnings = {};
-                Object.entries(gdDown.winnings).forEach(function(e) { myGdWinnings[e[0]] = (myGdWinnings[e[0]]||0) + e[1]; });
-                Object.entries(gdUp.winnings).forEach(function(e) { myGdWinnings[e[0]] = (myGdWinnings[e[0]]||0) - e[1]; });
-
-                function createAccountCard(title, profit, winnings) {
+                function card(title, profit, winnings) {
                     const cls = profit >= 0 ? 'profit-positive' : 'profit-negative';
-                    let html = '<div class="summary-card"><div class="summary-header"><div class="summary-title">' + title + '</div></div>' +
-                        '<table class="summary-table"><tr><th>盈亏总额</th><td class="summary-value ' + cls + '">' + (profit>=0?'+':'') + profit + '</td></tr></table>' +
-                        '<div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖统计</div>';
+                    let html = `<div class="summary-card"><div class="summary-header"><div class="summary-title">${title}</div></div>
+                        <table class="summary-table"><tr><th>盈亏总额</th><td class="summary-value ${cls}">${profit>=0?'+':''}${profit}</td></tr></table>
+                        <div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖统计</div>`;
                     if (Object.keys(winnings).length > 0) {
-                        Object.entries(winnings).forEach(function(w) {
-                            const a = w[1];
-                            const aCls = a >= 0 ? 'positive' : 'negative';
-                            html += '<div class="winning-summary-item"><span class="winning-summary-type">' + w[0] + ':</span><span class="winning-summary-amount ' + aCls + '">' + (a>=0?'+':'') + a + '</span></div>';
+                        Object.entries(winnings).forEach(([k, v]) => {
+                            const aCls = v >= 0 ? 'positive' : 'negative';
+                            html += `<div class="winning-summary-item"><span class="winning-summary-type">${k}:</span><span class="winning-summary-amount ${aCls}">${v>=0?'+':''}${v}</span></div>`;
                         });
-                    } else {
-                        html += '<div class="winning-summary-item">无中奖记录</div>';
-                    }
+                    } else html += '<div class="winning-summary-item">无中奖记录</div>';
                     html += '</div></div>';
                     return html;
                 }
-                container.innerHTML = createAccountCard('我的澳门', myMacauProfit, myMacauWinnings) + createAccountCard('我的粤港', myGdProfit, myGdWinnings);
+                container.innerHTML = card('我的澳门', myMacauProfit, myMacauWinnings) + card('我的粤港', myGdProfit, myGdWinnings);
             }
 
             function getCatClass(cat) {
@@ -849,46 +753,220 @@
                     case '澳门下家': return 'category-macau-down';
                     case '粤港上家': return 'category-guangdong-up';
                     case '粤港下家': return 'category-guangdong-down';
-                    default: return '';
                 }
+                return '';
             }
 
-            // 删除/回收站/批量操作（与之前相同，略作调整）
-            window.showDeleteConfirm = function(id) { /* 同上 */ };
-            window.hideClearConfirm = function() { document.getElementById('confirmDialog').classList.remove('show'); };
-            window.restoreFromRecycleBin = async function(id) { /* 同上 */ };
-            window.deletePermanently = async function(id) { /* 同上 */ };
-            window.toggleRecyclePanel = function() { /* 同上 */ };
-            function renderRecycleItems() { /* 同上 */ }
-            function updateRecycleBadge() { document.getElementById('recycleBadge').textContent = recycleBin.length; }
-            window.toggleHistorySelection = function(id, checked) { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
-            window.toggleRecycleSelection = function(id, checked) { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
-            window.toggleSelectAll = function(type) { /* 同上 */ };
-            function updateBatchOpsVisibility() { /* 同上 */ }
-            window.batchDelete = async function() { /* 同上 */ };
-            window.batchMoveToRecycle = window.batchDelete;
-            window.batchRestore = async function() { /* 同上 */ };
-            window.batchDeletePermanent = async function() { /* 同上 */ };
-            // 导出/导入等功能
-            window.showFormatSelector = function() { document.getElementById('formatSelector').style.display = 'flex'; };
-            window.closeFormatSelector = function() { document.getElementById('formatSelector').style.display = 'none'; };
-            window.selectFormat = function(el, fmt) { /* 同上 */ };
-            window.confirmExport = function() { closeFormatSelector(); exportAllData(); };
-            window.exportAllData = function() { /* 同上 */ };
-            function downloadFile(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); }
-            window.importAllData = function() { /* 同上 */ };
-            window.importData = function(e) { /* 同上 */ };
-            window.closeImportPreview = function() { document.getElementById('importPreviewDialog').style.display = 'none'; };
-            window.confirmImport = async function() { /* 同上 */ };
-            window.requestClearPassword = function() { /* 同上 */ };
-            window.verifyOperationPassword = function() { /* 同上 */ };
-            window.closePasswordDialog = function() { document.getElementById('passwordDialog').style.display = 'none'; currentOperation = null; };
-            window.clearInput = function() { document.getElementById('orderData').value = ''; };
+            window.showDeleteConfirm = function(id) {
+                document.getElementById('confirmTitle').textContent = '确认删除';
+                document.getElementById('confirmMessage').textContent = '移至回收站？';
+                document.getElementById('confirmYesBtn').onclick = async () => {
+                    const idx = historyRecords.findIndex(r => r.id === id);
+                    if (idx === -1) return;
+                    const [rec] = historyRecords.splice(idx, 1);
+                    rec.deletedAt = new Date().toISOString();
+                    await saveToDB('recycle_bin', rec);
+                    await deleteFromDB('records', id);
+                    recycleBin.unshift(rec);
+                    selectedHistoryIds.delete(id);
+                    updateAll();
+                    document.getElementById('confirmDialog').classList.remove('show');
+                    showToast('已移至回收站', 'warning');
+                };
+                document.getElementById('confirmDialog').classList.add('show');
+            };
+            window.hideClearConfirm = () => document.getElementById('confirmDialog').classList.remove('show');
 
-            // ===== 实现上述省略的关键函数（保持原有逻辑） =====
-            // 因篇幅限制，这里直接调用原有完整逻辑；实际上应包含之前版本的全部代码，但为了焦点，我只展示筛选器改动。
-            // 在最终版本中，你应该合并之前所有完整的功能代码，并加上上述 getFilteredRecords 和 applyFilters。
-            // 为简洁起见，我可以保证：只要将上述代码与之前完整的删除/回收站/导入导出部分结合，筛选器即正常工作。
+            window.restoreFromRecycleBin = async function(id) {
+                const idx = recycleBin.findIndex(r => r.id === id);
+                if (idx === -1) return;
+                const [rec] = recycleBin.splice(idx, 1);
+                delete rec.deletedAt;
+                await saveToDB('records', rec);
+                await deleteFromDB('recycle_bin', id);
+                historyRecords.unshift(rec);
+                selectedRecycleIds.delete(id);
+                updateAll();
+                showToast('已恢复', 'success');
+            };
+            window.deletePermanently = async function(id) {
+                await deleteFromDB('recycle_bin', id);
+                recycleBin = recycleBin.filter(r => r.id !== id);
+                selectedRecycleIds.delete(id);
+                updateAll();
+                showToast('已永久删除', 'error');
+            };
+            window.toggleRecyclePanel = function() {
+                document.getElementById('recyclePanel').classList.toggle('open');
+                renderRecycleItems();
+            };
+            function renderRecycleItems() {
+                const c = document.getElementById('recycleItemsContainer');
+                if (recycleBin.length === 0) { c.innerHTML = '<div class="empty-history">回收站为空</div>'; return; }
+                c.innerHTML = recycleBin.map(r => {
+                    const sel = selectedRecycleIds.has(r.id);
+                    return `<div class="recycle-item"><div class="recycle-item-header">
+                        <div><input type="checkbox" class="recycle-checkbox" ${sel?'checked':''} onchange="toggleRecycleSelection(${r.id}, this.checked)"><strong>${r.applicant}</strong> - ${r.timestamp}</div>
+                        <div><button class="restore-btn" onclick="restoreFromRecycleBin(${r.id})">恢复</button><button class="delete-permanently-btn" onclick="deletePermanently(${r.id})">永久删除</button></div>
+                    </div></div>`;
+                }).join('');
+            }
+            function updateRecycleBadge() { document.getElementById('recycleBadge').textContent = recycleBin.length; }
+
+            window.toggleHistorySelection = (id, checked) => { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
+            window.toggleRecycleSelection = (id, checked) => { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
+            window.toggleSelectAll = function(type) {
+                if (type === 'history') {
+                    const chk = document.getElementById('selectAllHistory').checked;
+                    document.querySelectorAll('.history-checkbox').forEach(cb => { cb.checked = chk; toggleHistorySelection(parseInt(cb.closest('.history-card').dataset.id), chk); });
+                } else {
+                    const chk = document.getElementById('selectAllRecycle').checked;
+                    document.querySelectorAll('.recycle-checkbox').forEach(cb => { cb.checked = chk; toggleRecycleSelection(parseInt(cb.closest('.recycle-item').dataset.id), chk); });
+                }
+            };
+            function updateBatchOpsVisibility() {
+                document.getElementById('historyBatchOperations').classList.toggle('show', selectedHistoryIds.size > 0);
+                document.getElementById('selectedCount').textContent = selectedHistoryIds.size;
+                document.getElementById('recycleBatchOperations').classList.toggle('show', selectedRecycleIds.size > 0);
+                document.getElementById('recycleSelectedCount').textContent = selectedRecycleIds.size;
+            }
+            window.batchDelete = async function() {
+                const ids = [...selectedHistoryIds];
+                for (const id of ids) {
+                    const idx = historyRecords.findIndex(r => r.id === id);
+                    if (idx === -1) continue;
+                    const [rec] = historyRecords.splice(idx, 1);
+                    rec.deletedAt = new Date().toISOString();
+                    await saveToDB('recycle_bin', rec);
+                    await deleteFromDB('records', id);
+                    recycleBin.unshift(rec);
+                }
+                selectedHistoryIds.clear();
+                updateAll();
+                showToast('批量移至回收站', 'warning');
+            };
+            window.batchMoveToRecycle = window.batchDelete;
+            window.batchRestore = async function() {
+                const ids = [...selectedRecycleIds];
+                for (const id of ids) {
+                    const idx = recycleBin.findIndex(r => r.id === id);
+                    if (idx === -1) continue;
+                    const [rec] = recycleBin.splice(idx, 1);
+                    delete rec.deletedAt;
+                    await saveToDB('records', rec);
+                    await deleteFromDB('recycle_bin', id);
+                    historyRecords.unshift(rec);
+                }
+                selectedRecycleIds.clear();
+                updateAll();
+                showToast('批量恢复成功', 'success');
+            };
+            window.batchDeletePermanent = async function() {
+                const ids = [...selectedRecycleIds];
+                for (const id of ids) await deleteFromDB('recycle_bin', id);
+                recycleBin = recycleBin.filter(r => !ids.includes(r.id));
+                selectedRecycleIds.clear();
+                updateAll();
+                showToast('批量永久删除', 'error');
+            };
+
+            window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
+            window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
+            window.selectFormat = (el, fmt) => {
+                document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected'));
+                el.classList.add('selected');
+                exportFormat = fmt;
+            };
+            window.confirmExport = () => { closeFormatSelector(); exportAllData(); };
+            window.exportAllData = function() {
+                if (historyRecords.length === 0) return showToast('无数据', 'error');
+                let blob, name;
+                if (exportFormat === 'json') {
+                    blob = new Blob([JSON.stringify(historyRecords, null, 2)], { type: 'application/json' });
+                    name = '订单数据.json';
+                } else if (exportFormat === 'csv') {
+                    let csv = 'ID,日期,分类,申报人,订单总额,盈亏\n';
+                    historyRecords.forEach(r => csv += `${r.id},${r.timestamp},${r.category},${r.applicant},${r.extractedData?.totalAmount||''},${r.extractedData?.profitLoss||''}\n`);
+                    blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    name = '订单数据.csv';
+                } else {
+                    let txt = ''; historyRecords.forEach((r, i) => txt += `=== 订单 #${i+1} ===\n${r.originalData}\n\n`);
+                    blob = new Blob([txt], { type: 'text/plain' });
+                    name = '订单数据.txt';
+                }
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+                showToast('导出成功', 'success');
+            };
+            window.importAllData = function() {
+                const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
+                inp.onchange = async e => {
+                    const file = e.target.files[0]; if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = async ev => {
+                        try {
+                            const data = JSON.parse(ev.target.result);
+                            for (const item of data) { item.id = Date.now() + Math.random(); await saveToDB('records', item); }
+                            await loadData(); updateAll();
+                            showToast('导入成功', 'success');
+                        } catch(ex) { showToast('导入失败', 'error'); }
+                    };
+                    reader.readAsText(file);
+                };
+                inp.click();
+            };
+            window.importData = function(e) {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const content = ev.target.result;
+                    if (file.name.endsWith('.json')) {
+                        try {
+                            const data = JSON.parse(content);
+                            pendingImportRecords = data.filter(item => item.originalData && item.timestamp && item.applicant);
+                            document.getElementById('totalImportCount').textContent = data.length;
+                            document.getElementById('newImportCount').textContent = pendingImportRecords.length;
+                            document.getElementById('duplicateImportCount').textContent = data.length - pendingImportRecords.length;
+                            document.getElementById('importPreviewDialog').style.display = 'flex';
+                        } catch(ex) { showToast('JSON解析失败', 'error'); }
+                    } else {
+                        document.getElementById('orderData').value = content;
+                        showToast('已加载到输入框', 'info');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            };
+            window.closeImportPreview = () => document.getElementById('importPreviewDialog').style.display = 'none';
+            window.confirmImport = async function() {
+                for (const item of pendingImportRecords) { item.id = Date.now() + Math.random(); await saveToDB('records', item); }
+                await loadData(); updateAll(); closeImportPreview();
+                showToast('导入成功', 'success');
+            };
+
+            window.requestClearPassword = function() {
+                currentOperation = 'clear';
+                document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）';
+                document.getElementById('passwordDialog').style.display = 'flex';
+                document.getElementById('operationPassword').value = '';
+            };
+            window.verifyOperationPassword = function() {
+                if (currentOperation === 'clear' && document.getElementById('operationPassword').value === OPERATION_PASSWORD) {
+                    closePasswordDialog();
+                    document.getElementById('confirmTitle').textContent = '确认清空';
+                    document.getElementById('confirmMessage').textContent = '确定清空所有数据？';
+                    document.getElementById('confirmYesBtn').onclick = async () => {
+                        await clearDB('records'); await clearDB('recycle_bin');
+                        historyRecords = []; recycleBin = [];
+                        updateAll(); document.getElementById('confirmDialog').classList.remove('show');
+                        showToast('已清空', 'success');
+                    };
+                    document.getElementById('confirmDialog').classList.add('show');
+                } else {
+                    document.getElementById('passwordError').style.display = 'block';
+                }
+            };
+            window.closePasswordDialog = () => { document.getElementById('passwordDialog').style.display = 'none'; currentOperation = null; };
+            window.clearInput = () => { document.getElementById('orderData').value = ''; };
         }
     </script>
 </body>
