@@ -108,6 +108,7 @@
         .confirm-btn{padding:8px 16px;border:none;border-radius:4px;cursor:pointer}
         .confirm-yes{background:#2ecc71;color:#fff}
         .confirm-no{background:#e74c3c;color:#fff}
+        .confirm-cancel{background:#95a5a6;color:#fff}
         .import-preview-dialog{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:2000}
         .import-preview-content{background:#fff;padding:25px;border-radius:10px;width:90%;max-width:700px;max-height:80vh;overflow-y:auto}
         .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -282,7 +283,7 @@
         (function() {
             const cdns = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'];
             let i = 0;
-            function load() { if (i >= cdns.length) { alert('SDK加载失败，请检查网络'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
+            function load() { if (i >= cdns.length) { alert('SDK加载失败'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
             load();
         })();
 
@@ -614,7 +615,7 @@
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success');
             };
 
-            // 修复后的导入 JSON 函数，兼容移动端
+            // 修复导入 JSON（兼容移动端）
             window.importAllData = function() {
                 const inp = document.createElement('input');
                 inp.type = 'file';
@@ -630,12 +631,9 @@
                     reader.onload = async function(ev) {
                         try {
                             const data = JSON.parse(ev.target.result);
-                            if (!Array.isArray(data)) {
-                                throw new Error('JSON 格式错误：最外层必须是数组');
-                            }
+                            if (!Array.isArray(data)) throw new Error('JSON 格式错误：需要数组');
                             let count = 0;
                             for (const item of data) {
-                                // 确保每条记录有正确的 ID 和时间戳
                                 item.id = Date.now() + Math.floor(Math.random() * 1000000);
                                 item.created_at = item.created_at || new Date().toISOString();
                                 await saveDB('records', item);
@@ -645,20 +643,19 @@
                             updateAll();
                             toast(`成功导入 ${count} 条记录`, 'success');
                         } catch (err) {
-                            console.error('导入失败:', err);
+                            console.error(err);
                             toast('导入失败: ' + err.message, 'error');
                         } finally {
                             document.body.removeChild(inp);
                         }
                     };
-                    reader.onerror = function() {
-                        toast('文件读取失败，请重试', 'error');
+                    reader.onerror = () => {
+                        toast('文件读取失败', 'error');
                         document.body.removeChild(inp);
                     };
                     reader.readAsText(file);
                 });
 
-                // 触发文件选择窗口
                 inp.click();
             };
 
