@@ -61,7 +61,7 @@
         .error { background: rgba(231,76,60,0.15); color: #c0392b; border: 1px solid #e74c3c; }
         .history-section { background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 18px; margin-top: 20px; }
         .history-controls { display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .history-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(600px, 1fr)); gap: 15px; }
+        .history-container { display: grid; gap: 15px; }
         .history-card { background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; position: relative; }
         .history-header { background: linear-gradient(90deg, #1a3a6c, #2c5aa0); color: white; padding: 10px 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
         .history-time { font-size: 0.75rem; opacity: 0.85; }
@@ -190,7 +190,6 @@
     </style>
 </head>
 <body>
-    <!-- 登录遮罩 -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h2><i class="fas fa-lock"></i> 系统访问受限</h2>
@@ -201,7 +200,6 @@
         </div>
     </div>
 
-    <!-- 操作密码弹窗 -->
     <div class="password-dialog" id="passwordDialog">
         <div class="password-content">
             <h3>操作需要密码验证</h3>
@@ -213,7 +211,6 @@
         </div>
     </div>
 
-    <!-- 格式选择器 -->
     <div class="format-selector" id="formatSelector">
         <div class="format-content">
             <h3>选择导出格式</h3>
@@ -229,7 +226,6 @@
         </div>
     </div>
 
-    <!-- 导入预览弹窗 -->
     <div class="import-preview-dialog" id="importPreviewDialog">
         <div class="import-preview-content">
             <div class="import-preview-header"><h3>导入订单预览</h3><button class="close-preview-btn" onclick="closeImportPreview()">&times;</button></div>
@@ -252,7 +248,6 @@
         <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
     </div>
 
-    <!-- 主界面 -->
     <div class="container" id="mainContainer" style="display:none;">
         <div class="main-content">
             <div class="navbar">
@@ -357,7 +352,6 @@
     </div>
 
     <script>
-        // 动态加载 Supabase SDK（备用 CDN）
         (function() {
             const cdns = [
                 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
@@ -400,7 +394,6 @@
                 setTimeout(function() { t.classList.remove('show'); t.remove(); }, 3000);
             }
 
-            // 数据库操作
             async function saveToDB(store, data) {
                 const table = store === STORE_NAME ? 'records' : 'recycle_bin';
                 const { error } = await supabase.from(table).upsert(data);
@@ -425,7 +418,6 @@
                 recycleBin = await getAllFromDB(RECYCLE_NAME);
             }
 
-            // 登录
             window.checkAccessPassword = async function() {
                 if (document.getElementById('accessPassword').value === ACCESS_PASSWORD) {
                     document.getElementById('loginOverlay').style.display = 'none';
@@ -470,7 +462,6 @@
                 selectedCategory = btn.dataset.category;
             };
 
-            // 数据提取（与原始一致）
             function extractOrderData(input, applicant) {
                 let totalAmount = "0", profitLoss = "0";
                 const tm = input.match(/订单总额：([\d.]+)/); if (tm) totalAmount = tm[1];
@@ -498,7 +489,6 @@
                 const e = input.indexOf("=", s); return e === -1 ? "" : input.substring(s + 7, e).trim();
             }
 
-            // 保存记录
             window.saveRecord = async function() {
                 const btn = document.getElementById('saveBtn'); btn.classList.add('loading');
                 const input = document.getElementById('orderData').value;
@@ -515,7 +505,6 @@
                 const filtered = detail.replace(/[^0-9+]/g, '');
                 const orderData = filtered.split('+').map(function(s) { const n = parseFloat(s.trim()); if (isNaN(n)) throw new Error('无效数字'); return n; });
                 const ed = extractOrderData(input, applicant);
-                // 重复检测
                 if (historyRecords.some(function(r) { return r.timestamp === date && r.applicant === applicant && extractAmountDetail(r.originalData) === extractAmountDetail(input); })) {
                     pendingRecord = { date, applicant, orderDataInput: input };
                     document.getElementById('duplicateMessage').innerHTML = '检测到相同日期、相同申报人的相似订单记录。<br>是否继续保存？';
@@ -546,7 +535,7 @@
                     category: selectedCategory,
                     applicant: applicant,
                     originalData: input,
-                    tableHTML: createDynamicTableHTML(orderData, orderData.length),
+                    tableHTML: createDynamicTableHTML(orderData),
                     compensationCardHTML: createCompensationCardHTML(input, selectedCategory),
                     dataCount: orderData.length,
                     extractedData: ed,
@@ -561,29 +550,18 @@
                 setTimeout(function() { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
             }
 
-            function createDynamicTableHTML(data, count) {
-                let cols = 4;
-                if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6;
-                const rows = Math.ceil(count / cols);
-                let html = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>';
-                for (let i = 0; i < cols; i++) html += '<th>序</th><th>下单</th>';
-                html += '</tr></thead><tbody>';
-                for (let r = 0; r < rows; r++) {
-                    html += '<tr>';
-                    for (let c = 0; c < cols; c++) {
-                        const idx = r + c * rows;
-                        if (idx < count) html += '<td><span class="serial-number">' + (idx+1) + '</span></td><td><span class="order-amount">' + data[idx] + '</span></td>';
-                        else html += '<td></td><td></td>';
-                    }
-                    html += '</tr>';
-                }
+            // 单列纵向表格
+            function createDynamicTableHTML(data) {
+                let html = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr><th>序号</th><th>下单金额</th></tr></thead><tbody>';
+                data.forEach(function(amt, i) {
+                    html += '<tr><td><span class="serial-number">' + (i+1) + '</span></td><td><span class="order-amount">' + amt + '</span></td></tr>';
+                });
                 html += '</tbody></table></div>';
                 return html;
             }
 
             function createCompensationCardHTML(input, category) {
                 if (!input) return '';
-                // 去除订单金额明细那行
                 const filtered = input.replace(/订单金额明细：.*?\(共计\d+条\)/s, '').trim().split('\n');
                 let processed = [];
                 filtered.forEach(function(line) {
@@ -603,11 +581,9 @@
                             processed.push(line.replace(/(盈亏情况：)([\d.-]+)/, '$1<span class="' + cls + '">' + sign + amt + '</span>' + tag));
                         } else processed.push(line);
                     } else {
-                        // 赔: 金额处理
                         let newLine = line.replace(/(赔:)([\d.]+)/g, function(m, p1, p2) {
                             return p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>';
                         });
-                        // 整数化其他小数
                         newLine = newLine.replace(/(\d+\.\d+)/g, function(m) {
                             const num = parseFloat(m);
                             return isNaN(num) ? m : Math.trunc(num);
@@ -618,7 +594,6 @@
                 return '<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">' + processed.join('\n') + '</div></div>';
             }
 
-            // 更新所有界面
             function updateAll() {
                 updateHistoryDisplay();
                 updateUserCards();
@@ -655,11 +630,9 @@
                 uf.innerHTML = '<option value="">所有用户</option>' + users.map(function(u) { return '<option value="' + u + '">' + u + '</option>'; }).join('');
             }
 
-            // 用户卡片（含中奖详情）
             function updateUserCards() {
                 const container = document.getElementById('userCardsContainer');
                 if (historyRecords.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
-                // 可以简单按申请人分组，但原版显示每条记录；这里改为显示每个用户汇总，包含中奖列表
                 const users = {};
                 historyRecords.forEach(function(r) {
                     if (!users[r.applicant]) users[r.applicant] = [];
@@ -667,7 +640,6 @@
                 });
                 container.innerHTML = Object.entries(users).map(function(entry) {
                     const name = entry[0], recs = entry[1];
-                    // 合并中奖数据
                     const allWinnings = {};
                     let totalAmount = 0, totalProfit = 0;
                     recs.forEach(function(r) {
@@ -696,7 +668,6 @@
                 }).join('');
             }
 
-            // 汇总卡片（含中奖统计）
             function updateSummary() {
                 const container = document.getElementById('summaryContainer');
                 if (historyRecords.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
@@ -732,7 +703,6 @@
                 }).join('') + '</div>';
             }
 
-            // 我的账户（含中奖统计）
             function updateMyAccount() {
                 const container = document.getElementById('myAccountContainer');
                 if (historyRecords.length === 0) { container.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
@@ -756,7 +726,6 @@
                 const myMacauProfit = macauDown.profit - macauUp.profit;
                 const myGdProfit = gdDown.profit - gdUp.profit;
 
-                // 合并中奖
                 const myMacauWinnings = {};
                 Object.entries(macauDown.winnings).forEach(function(e) { myMacauWinnings[e[0]] = (myMacauWinnings[e[0]]||0) + e[1]; });
                 Object.entries(macauUp.winnings).forEach(function(e) { myMacauWinnings[e[0]] = (myMacauWinnings[e[0]]||0) - e[1]; });
@@ -795,7 +764,6 @@
                 }
             }
 
-            // 删除/恢复/回收站
             window.showDeleteConfirm = function(id) {
                 document.getElementById('confirmTitle').textContent = '确认删除';
                 document.getElementById('confirmMessage').textContent = '移至回收站？';
@@ -850,7 +818,6 @@
             }
             function updateRecycleBadge() { document.getElementById('recycleBadge').textContent = recycleBin.length; }
 
-            // 批量操作
             window.toggleHistorySelection = function(id, checked) { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
             window.toggleRecycleSelection = function(id, checked) { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
             window.toggleSelectAll = function(type) {
@@ -908,7 +875,6 @@
                 showToast('批量永久删除', 'error');
             };
 
-            // 导入导出
             window.showFormatSelector = function() { document.getElementById('formatSelector').style.display = 'flex'; };
             window.closeFormatSelector = function() { document.getElementById('formatSelector').style.display = 'none'; };
             window.selectFormat = function(el, fmt) {
@@ -982,7 +948,6 @@
                 showToast('导入成功', 'success');
             };
 
-            // 清空密码
             window.requestClearPassword = function() {
                 currentOperation = 'clear';
                 document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）';
