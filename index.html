@@ -74,7 +74,7 @@
         .pay-me{background:rgba(46,204,113,0.2);color:#27ae60}
         .pay-you{background:rgba(231,76,60,0.2);color:#c0392b}
 
-        /* 用户信息卡片：三列 */
+        /* 用户信息卡片 - 三列网格 */
         #userCardsContainer{display:flex;flex-wrap:wrap;gap:12px}
         .user-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;width:calc(33.333% - 8px);box-shadow:0 2px 8px rgba(0,0,0,0.04);min-width:150px}
         .user-card .user-name{font-size:0.95rem;font-weight:700;color:#1a2a6c;margin-bottom:2px}
@@ -87,7 +87,7 @@
         .user-card .winning-amount{font-weight:600;color:#27ae60}
         .user-card .profit-loss{font-size:0.9rem;font-weight:700;padding:4px 8px;border-radius:6px;text-align:center;margin-top:6px}
 
-        /* 全部汇总卡片：三列 */
+        /* 全部汇总卡片 - 三列网格 */
         .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
         .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         .summary-card .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
@@ -98,7 +98,7 @@
         .summary-card .winning-summary-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
         .summary-card .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
 
-        /* 我的账户卡片：两列 */
+        /* 我的账户卡片 - 两列网格 */
         #myAccountContainer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         #myAccountContainer .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0}
         #myAccountContainer .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
@@ -172,6 +172,7 @@
     </style>
 </head>
 <body>
+    <!-- 登录遮罩 -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h2><i class="fas fa-lock"></i> 系统访问受限</h2>
@@ -182,6 +183,7 @@
         </div>
     </div>
 
+    <!-- 操作密码弹窗 -->
     <div class="password-dialog" id="passwordDialog">
         <div class="password-content">
             <h3>操作需要密码验证</h3>
@@ -193,6 +195,7 @@
         </div>
     </div>
 
+    <!-- 格式选择器 -->
     <div class="format-selector" id="formatSelector">
         <div class="format-content">
             <h3>选择导出格式</h3>
@@ -206,6 +209,7 @@
         </div>
     </div>
 
+    <!-- 导入预览弹窗 -->
     <div class="import-preview-dialog" id="importPreviewDialog">
         <div class="import-preview-content">
             <div class="import-preview-header"><h3>导入订单预览</h3><button class="close-preview-btn" onclick="closeImportPreview()">&times;</button></div>
@@ -224,6 +228,7 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- 主界面 -->
     <div class="container" id="mainContainer" style="display:none;">
         <div class="main-content">
             <div class="navbar">
@@ -480,6 +485,7 @@
 
             function getCatClass(cat) { switch (cat) { case '澳门上家': return 'category-macau-up'; case '澳门下家': return 'category-macau-down'; case '粤港上家': return 'category-guangdong-up'; case '粤港下家': return 'category-guangdong-down'; } return ''; }
 
+            // 删除、回收站、批量操作
             window.showDeleteConfirm = id => { document.getElementById('confirmTitle').textContent = '确认删除'; document.getElementById('confirmMessage').textContent = '移至回收站？'; document.getElementById('confirmYesBtn').onclick = async () => { const idx = history.findIndex(x => x.id === id); if (idx === -1) return; const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString(); await saveDB('recycle_bin', rec); await deleteDB('records', id); recycle.unshift(rec); selectedHistoryIds.delete(id); updateAll(); document.getElementById('confirmDialog').classList.remove('show'); toast('已移至回收站', 'warning'); }; document.getElementById('confirmDialog').classList.add('show'); };
             window.hideClearConfirm = () => document.getElementById('confirmDialog').classList.remove('show');
             window.restore = async id => { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) return; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); selectedRecycleIds.delete(id); updateAll(); toast('已恢复', 'success'); };
@@ -495,12 +501,14 @@
             window.batchRestore = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) continue; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); } selectedRecycleIds.clear(); updateAll(); toast('批量恢复', 'success'); };
             window.batchDeletePermanent = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) await deleteDB('recycle_bin', id); recycle = recycle.filter(x => !ids.includes(x.id)); selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error'); };
 
+            // 导出
             window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
             window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
             window.selectFormat = (el, fmt) => { document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); exportFormat = fmt; };
             window.confirmExport = () => { closeFormatSelector(); exportAllData(); };
             window.exportAllData = () => { if (!history.length) return toast('无数据', 'error'); let blob, name; if (exportFormat === 'json') { blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' }); name = '数据.json'; } else if (exportFormat === 'csv') { let csv = 'ID,日期,分类,申报人,总额,盈亏\n'; history.forEach(x => csv += `${x.id},${x.timestamp},${x.category},${x.applicant},${x.extractedData?.totalAmount||''},${x.extractedData?.profitLoss||''}\n`); blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); name = '数据.csv'; } else { let txt = ''; history.forEach((x, i) => txt += `=== 订单 #${i+1} ===\n${x.originalData}\n\n`); blob = new Blob([txt], { type: 'text/plain' }); name = '数据.txt'; } const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success'); };
 
+            // ========== 导入功能（防重复） ==========
             window.importFile = function(event) {
                 const file = event.target.files[0]; if (!file) return;
                 const reader = new FileReader();
