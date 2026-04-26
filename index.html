@@ -73,19 +73,40 @@
         .profit-tag{font-weight:bold;margin-left:15px;padding:2px 6px;border-radius:4px}
         .pay-me{background:rgba(46,204,113,0.2);color:#27ae60}
         .pay-you{background:rgba(231,76,60,0.2);color:#c0392b}
-        .user-card{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid #e1e8f0;width:calc(33.333% - 10px)}
-        .user-card-header{display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee}
-        .user-name{font-weight:600;color:#2c3e50}
-        .user-date{font-size:0.75rem;color:#7f8c8d}
-        .user-info-row{display:flex;justify-content:space-between;margin:4px 0;font-size:0.85rem}
-        .info-label{font-weight:500;color:#555}
-        .info-value{font-weight:600;color:#2980b9}
-        .winning-section{margin-top:8px}
-        .winning-title{font-weight:600;color:#2c3e50;margin-bottom:4px;font-size:0.85rem;display:flex;align-items:center;gap:4px}
-        .winning-item{display:flex;justify-content:space-between;padding:2px 0;font-size:0.8rem}
-        .winning-type{color:#555}
-        .winning-amount{color:#27ae60;font-weight:600}
-        .profit-loss{font-weight:600;padding:2px 5px;border-radius:3px;font-size:0.8rem;margin-top:6px;text-align:right}
+
+        /* 用户信息卡片 */
+        .user-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e1e8f0;width:calc(33.333% - 10px);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .user-card .user-name{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:2px}
+        .user-card .user-date{font-size:0.75rem;color:#7f8c8d;margin-bottom:6px}
+        .user-card .user-category{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:10px;display:inline-block;padding:2px 8px;background:#f0f4ff;border-radius:4px}
+        .user-card .order-total{font-size:0.9rem;color:#2c3e50;margin-bottom:8px}
+        .user-card .winning-section{background:#f8fafd;border-radius:8px;padding:10px;margin-bottom:8px}
+        .user-card .winning-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+        .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        .user-card .winning-amount{font-weight:600;color:#27ae60}
+        .user-card .profit-loss{font-size:1rem;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;margin-top:8px}
+
+        /* 全部汇总卡片 */
+        .summary-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #e1e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .summary-card .summary-title{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:10px}
+        .summary-card .summary-row{display:flex;justify-content:space-between;font-size:0.9rem;color:#2c3e50;padding:4px 0}
+        .summary-card .summary-amount{font-weight:600;color:#2980b9}
+        .summary-card .winning-summary{background:#f8fafd;border-radius:8px;padding:10px;margin-top:10px}
+        .summary-card .winning-summary-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+        .summary-card .winning-summary-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        .summary-card .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
+
+        /* 我的账户卡片 */
+        #myAccountContainer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        #myAccountContainer .summary-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #e1e8f0}
+        #myAccountContainer .summary-title{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:10px}
+        #myAccountContainer .order-total{font-size:0.9rem;color:#2c3e50;margin-bottom:6px}
+        #myAccountContainer .profit-total{font-size:0.9rem;font-weight:bold;margin-bottom:10px}
+        #myAccountContainer .winning-summary{background:#f8fafd;border-radius:8px;padding:10px}
+        #myAccountContainer .winning-summary-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+        #myAccountContainer .winning-summary-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        #myAccountContainer .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
+
         .dynamic-table-container{margin-top:10px;width:100%;overflow:auto}
         .dynamic-table{width:100%;border-collapse:collapse;font-size:0.85rem;border:1px solid #e1e8f0}
         .dynamic-table th,.dynamic-table td{border:1px solid #e1e8f0;padding:8px 4px;text-align:center}
@@ -108,7 +129,6 @@
         .confirm-btn{padding:8px 16px;border:none;border-radius:4px;cursor:pointer}
         .confirm-yes{background:#2ecc71;color:#fff}
         .confirm-no{background:#e74c3c;color:#fff}
-        .confirm-cancel{background:#95a5a6;color:#fff}
         .import-preview-dialog{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:2000}
         .import-preview-content{background:#fff;padding:25px;border-radius:10px;width:90%;max-width:700px;max-height:80vh;overflow-y:auto}
         .import-stats{display:flex;justify-content:space-around;margin-bottom:20px;padding:15px;background:#f8f9fa;border-radius:8px}
@@ -119,15 +139,6 @@
         .status-new{background:rgba(46,204,113,0.2);color:#27ae60}
         .status-duplicate{background:rgba(231,76,60,0.2);color:#c0392b}
         .import-preview-buttons{display:flex;gap:10px;justify-content:center;margin-top:20px}
-        .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-        .summary-card{background:#f8f9fa;border-radius:8px;padding:12px;border:1px solid #e1e8f0}
-        .summary-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-        .summary-table{width:100%;border-collapse:collapse;font-size:0.85rem}
-        .summary-table th,.summary-table td{padding:6px 8px;border-bottom:1px solid #eee}
-        .summary-value{font-weight:600;color:#2980b9}
-        .winning-summary{margin-top:8px}
-        .winning-summary-title{font-weight:600;color:#2c3e50;margin-bottom:4px;font-size:0.85rem;display:flex;align-items:center;gap:4px}
-        .winning-summary-item{display:flex;justify-content:space-between;padding:2px 0;font-size:0.8rem}
         .password-dialog{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:2000}
         .password-content{background:#fff;padding:25px;border-radius:10px;text-align:center;width:350px}
         .password-input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:5px;font-size:1rem}
@@ -143,9 +154,8 @@
         .history-card-select{position:absolute;top:8px;left:8px}
         .highlight-applicant{color:#ffeb3b!important;font-weight:bold}
         .highlight-category{color:#00ff7f!important;font-weight:bold}
-        #myAccountContainer{display:flex;flex-direction:column;gap:12px}
         @media(max-width:1400px){.container{flex-direction:column}.user-sidebar{width:100%}}
-        @media(max-width:768px){.history-container{grid-template-columns:1fr}.input-with-categories{flex-direction:column}#orderData,.category-button-group{width:100%}.user-card{width:100%}.recycle-panel{width:100%;right:-100%}}
+        @media(max-width:768px){.history-container{grid-template-columns:1fr}.input-with-categories{flex-direction:column}#orderData,.category-button-group{width:100%}.user-card{width:100%}.recycle-panel{width:100%;right:-100%}#myAccountContainer{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -281,33 +291,15 @@
         <div id="recycleItemsContainer"></div>
     </div>
 
-    <input type="file" id="fileInput" class="file-input" accept=".txt,.csv,.json" onchange="importData(event)">
-    <div class="confirm-dialog" id="confirmDialog">
-        <div class="confirm-content">
-            <h3 id="confirmTitle"></h3><p id="confirmMessage"></p>
-            <div class="confirm-buttons">
-                <button class="confirm-btn confirm-yes" id="confirmYesBtn">确定</button>
-                <button class="confirm-btn confirm-no" onclick="hideClearConfirm()">取消</button>
-            </div>
-        </div>
-    </div>
-    <div class="confirm-dialog" id="duplicateDialog">
-        <div class="confirm-content">
-            <h3>发现重复录入</h3><p id="duplicateMessage"></p>
-            <div class="confirm-buttons">
-                <button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">强制保存</button>
-                <button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">修改后再存</button>
-                <button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">取消保存</button>
-            </div>
-        </div>
-    </div>
+    <input type="file" id="fileInput" class="file-input" accept=".txt,.csv,.json" onchange="importFile(event)">
+    <div class="confirm-dialog" id="confirmDialog"><div class="confirm-content"><h3 id="confirmTitle"></h3><p id="confirmMessage"></p><div class="confirm-buttons"><button class="confirm-btn confirm-yes" id="confirmYesBtn">确定</button><button class="confirm-btn confirm-no" onclick="hideClearConfirm()">取消</button></div></div></div>
+    <div class="confirm-dialog" id="duplicateDialog"><div class="confirm-content"><h3>发现重复录入</h3><p id="duplicateMessage"></p><div class="confirm-buttons"><button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">强制保存</button><button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">修改后再存</button><button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">取消保存</button></div></div></div>
 
     <script>
-        // 动态加载 Supabase SDK
         (function() {
             const cdns = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'];
             let i = 0;
-            function load() { if (i >= cdns.length) { alert('SDK加载失败'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
+            function load() { if (i >= cdns.length) { alert('SDK加载失败，请检查网络'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
             load();
         })();
 
@@ -317,16 +309,11 @@
             const OPERATION_PASSWORD = '891105';
             let history = [], recycle = [];
             let selectedCategory = '澳门下家', exportFormat = 'json', currentOperation = null;
-            let pendingRecord = null, pendingImportRecords = [];
+            let pendingRecord = null, pendingNewRecords = [];
             let selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
             let filter = { search: '', date: '', category: '', user: '' };
 
-            function toast(msg, type) {
-                const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
-                document.getElementById('toastContainer').appendChild(t);
-                setTimeout(() => t.classList.add('show'), 10);
-                setTimeout(() => { t.classList.remove('show'); t.remove(); }, 3000);
-            }
+            function toast(msg, type) { const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.classList.add('show'), 10); setTimeout(() => { t.classList.remove('show'); t.remove(); }, 3000); }
 
             async function saveDB(store, data) { const t = store === 'records' ? 'records' : 'recycle_bin'; const { error } = await supabase.from(t).upsert(data); if (error) throw error; }
             async function getAllDB(store) { const t = store === 'records' ? 'records' : 'recycle_bin'; const { data, error } = await supabase.from(t).select('*').order('created_at', { ascending: false }); if (error) throw error; return data || []; }
@@ -334,40 +321,16 @@
             async function clearDB(store) { const t = store === 'records' ? 'records' : 'recycle_bin'; await supabase.from(t).delete().neq('id', 0); }
             async function loadData() { history = await getAllDB('records'); recycle = await getAllDB('recycle_bin'); }
 
-            function getFiltered() {
-                let r = history;
-                const s = filter.search.toLowerCase();
-                if (s) r = r.filter(x => x.applicant.toLowerCase().includes(s) || x.timestamp.includes(s) || x.category.toLowerCase().includes(s));
-                if (filter.date) r = r.filter(x => x.timestamp === filter.date);
-                if (filter.category) r = r.filter(x => x.category === filter.category);
-                if (filter.user) r = r.filter(x => x.applicant === filter.user);
-                return r;
-            }
+            function getFiltered() { let r = history; const s = filter.search.toLowerCase(); if (s) r = r.filter(x => x.applicant.toLowerCase().includes(s) || x.timestamp.includes(s) || x.category.toLowerCase().includes(s)); if (filter.date) r = r.filter(x => x.timestamp === filter.date); if (filter.category) r = r.filter(x => x.category === filter.category); if (filter.user) r = r.filter(x => x.applicant === filter.user); return r; }
 
-            window.applyFilters = () => {
-                filter.search = document.getElementById('searchInput').value.trim();
-                filter.date = document.getElementById('dateFilter').value;
-                filter.category = document.getElementById('categoryFilter').value;
-                filter.user = document.getElementById('userFilter').value;
-                updateUserCards(); updateSummary(); updateMyAccount();
-                const uf = document.getElementById('userFilter');
-                const users = [...new Set(history.map(x => x.applicant))];
-                uf.innerHTML = '<option value="">全部</option>' + users.map(u => `<option>${u}</option>`).join('');
-                if (filter.user) uf.value = filter.user;
-            };
+            window.applyFilters = () => { filter.search = document.getElementById('searchInput').value.trim(); filter.date = document.getElementById('dateFilter').value; filter.category = document.getElementById('categoryFilter').value; filter.user = document.getElementById('userFilter').value; updateUserCards(); updateSummary(); updateMyAccount(); const uf = document.getElementById('userFilter'); uf.innerHTML = '<option value="">全部</option>' + [...new Set(history.map(x => x.applicant))].map(u => `<option>${u}</option>`).join(''); if (filter.user) uf.value = filter.user; };
 
-            window.checkAccessPassword = async () => {
-                if (document.getElementById('accessPassword').value === ACCESS_PASSWORD) {
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('mainContainer').style.display = 'flex';
-                    await loadData();
-                    initSystem();
-                } else { document.getElementById('loginError').style.display = 'block'; }
-            };
+            window.checkAccessPassword = async () => { if (document.getElementById('accessPassword').value === ACCESS_PASSWORD) { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainContainer').style.display = 'flex'; await loadData(); initSystem(); } else { document.getElementById('loginError').style.display = 'block'; } };
 
             function initSystem() {
-                document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
-                document.getElementById('historyDateFilter').value = '';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('reportDate').value = today;
+                document.getElementById('historyDateFilter').value = today;
                 document.getElementById('historyDateFilter').addEventListener('change', updateHistoryDisplay);
                 document.getElementById('historyUserFilter').addEventListener('change', updateHistoryDisplay);
                 document.getElementById('orderData').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRecord(); } });
@@ -398,6 +361,7 @@
                 return { applicant, totalAmount, winnings, profitLoss };
             }
             function extractAmountDetail(input) { const s = input.indexOf('订单金额明细：'); if (s === -1) return ''; const e = input.indexOf('=', s); return e === -1 ? '' : input.substring(s + 7, e).trim(); }
+            function checkDuplicateRecord(item) { return history.some(r => r.timestamp === item.timestamp && r.applicant === item.applicant && extractAmountDetail(r.originalData) === extractAmountDetail(item.originalData)); }
 
             window.saveRecord = async () => {
                 const btn = document.getElementById('saveBtn'); btn.classList.add('loading');
@@ -410,117 +374,59 @@
                 const detail = input.substring(ds + 7, de).trim().replace(/[^0-9+]/g, '');
                 const orderData = detail.split('+').map(s => { const n = parseFloat(s); if (isNaN(n)) throw new Error('数字错误'); return n; });
                 const ed = extractOrderData(input, applicant);
-                if (history.some(r => r.timestamp === date && r.applicant === applicant && extractAmountDetail(r.originalData) === extractAmountDetail(input))) {
+                if (checkDuplicateRecord({timestamp:date, applicant, originalData:input})) {
                     pendingRecord = { date, applicant, orderDataInput: input };
-                    document.getElementById('duplicateMessage').innerHTML = '检测到相同日期、相同申报人的相似订单记录。<br>是否继续保存？';
+                    document.getElementById('duplicateMessage').innerHTML = `检测到相同日期(${date})、相同申报人(${applicant})的相似订单记录。<br>是否继续保存？`;
                     document.getElementById('duplicateDialog').classList.add('show');
                     btn.classList.remove('loading'); return;
                 }
                 await directSave(date, applicant, input, orderData, ed);
             };
-            window.forceSaveRecord = async () => {
-                if (!pendingRecord) return;
-                const { date, applicant, orderDataInput } = pendingRecord;
-                const ds = orderDataInput.indexOf('订单金额明细：'), de = orderDataInput.indexOf('=', ds);
-                const detail = orderDataInput.substring(ds + 7, de).trim().replace(/[^0-9+]/g, '');
-                const orderData = detail.split('+').map(s => parseFloat(s));
-                const ed = extractOrderData(orderDataInput, applicant);
-                await directSave(date, applicant, orderDataInput, orderData, ed);
-                hideDuplicateDialog();
-            };
+            window.forceSaveRecord = async () => { if (!pendingRecord) return; const { date, applicant, orderDataInput } = pendingRecord; const ds = orderDataInput.indexOf('订单金额明细：'), de = orderDataInput.indexOf('=', ds); const detail = orderDataInput.substring(ds + 7, de).trim().replace(/[^0-9+]/g, ''); const orderData = detail.split('+').map(s => parseFloat(s)); const ed = extractOrderData(orderDataInput, applicant); await directSave(date, applicant, orderDataInput, orderData, ed); hideDuplicateDialog(); };
             window.hideDuplicateDialog = () => document.getElementById('duplicateDialog').classList.remove('show');
 
-            async function directSave(date, applicant, input, orderData, ed) {
-                const record = { id: Date.now(), timestamp: date, category: selectedCategory, applicant, originalData: input, tableHTML: createTable(orderData), compensationCardHTML: createCard(input, selectedCategory), dataCount: orderData.length, extractedData: ed, created_at: new Date().toISOString() };
-                history.unshift(record);
-                await saveDB('records', record);
-                updateAll();
-                document.getElementById('orderData').value = '';
-                document.getElementById('successMsg').style.display = 'block';
-                toast('保存成功', 'success');
-                setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
-            }
+            async function directSave(date, applicant, input, orderData, ed) { const record = { id: Date.now(), timestamp: date, category: selectedCategory, applicant, originalData: input, tableHTML: createTable(orderData), compensationCardHTML: createCard(input, selectedCategory), dataCount: orderData.length, extractedData: ed, created_at: new Date().toISOString() }; history.unshift(record); await saveDB('records', record); updateAll(); document.getElementById('orderData').value = ''; document.getElementById('successMsg').style.display = 'block'; toast('保存成功', 'success'); setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000); }
 
-            function createTable(data) {
-                const count = data.length; let cols = 4;
-                if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6;
-                const rows = Math.ceil(count / cols);
-                let h = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>';
-                for (let i = 0; i < cols; i++) h += '<th>序</th><th>下单</th>';
-                h += '</tr></thead><tbody>';
-                for (let r = 0; r < rows; r++) {
-                    h += '<tr>';
-                    for (let c = 0; c < cols; c++) {
-                        const idx = r + c * rows;
-                        if (idx < count) {
-                            const amt = data[idx], str = amt.toString(), cls = str.length > 6 ? ' class="small-font"' : '';
-                            h += `<td><span class="serial-number">${idx+1}</span></td><td${cls}><span class="order-amount">${amt}</span></td>`;
-                        } else h += '<td></td><td></td>';
-                    }
-                    h += '</tr>';
-                }
-                h += '</tbody></table></div>'; return h;
-            }
+            function createTable(data) { const count = data.length; let cols = 4; if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6; const rows = Math.ceil(count / cols); let h = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>'; for (let i = 0; i < cols; i++) h += '<th>序</th><th>下单</th>'; h += '</tr></thead><tbody>'; for (let r = 0; r < rows; r++) { h += '<tr>'; for (let c = 0; c < cols; c++) { const idx = r + c * rows; if (idx < count) { const amt = data[idx], str = amt.toString(), cls = str.length > 6 ? ' class="small-font"' : ''; h += `<td><span class="serial-number">${idx+1}</span></td><td${cls}><span class="order-amount">${amt}</span></td>`; } else h += '<td></td><td></td>'; } h += '</tr>'; } h += '</tbody></table></div>'; return h; }
 
-            function createCard(input, category) {
-                if (!input) return '';
-                const filtered = input.replace(/订单金额明细：.*?\(共计\d+条\)/s, '').trim().split('\n');
-                let p = [];
-                filtered.forEach(line => {
-                    if (line.includes('盈亏情况：')) {
-                        const m = line.match(/盈亏情况：([\d.-]+)/);
-                        if (m) {
-                            let amt = m[1], num = parseFloat(amt); if (!isNaN(num)) amt = Math.trunc(num).toString();
-                            const cls = num >= 0 ? 'profit-positive' : 'profit-negative', sign = num >= 0 ? '+' : '';
-                            let tag = '';
-                            if (category.includes('下家')) tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : '';
-                            else tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : '';
-                            p.push(line.replace(/(盈亏情况：)([\d.-]+)/, `$1<span class="${cls}">${sign}${amt}</span>${tag}`));
-                        } else p.push(line);
-                    } else {
-                        let nl = line.replace(/(赔:)([\d.]+)/g, (m, p1, p2) => p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>');
-                        p.push(nl);
-                    }
-                });
-                return '<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">' + p.join('\n') + '</div></div>';
-            }
+            function createCard(input, category) { if (!input) return ''; const filtered = input.replace(/订单金额明细：.*?\(共计\d+条\)/s, '').trim().split('\n'); let p = []; filtered.forEach(line => { if (line.includes('盈亏情况：')) { const m = line.match(/盈亏情况：([\d.-]+)/); if (m) { let amt = m[1], num = parseFloat(amt); if (!isNaN(num)) amt = Math.trunc(num).toString(); const cls = num >= 0 ? 'profit-positive' : 'profit-negative', sign = num >= 0 ? '+' : ''; let tag = ''; if (category.includes('下家')) tag = num > 0 ? '<span class="profit-tag pay-me">付我</span>' : num < 0 ? '<span class="profit-tag pay-you">付你</span>' : ''; else tag = num > 0 ? '<span class="profit-tag pay-you">付你</span>' : num < 0 ? '<span class="profit-tag pay-me">付我</span>' : ''; p.push(line.replace(/(盈亏情况：)([\d.-]+)/, `$1<span class="${cls}">${sign}${amt}</span>${tag}`)); } else p.push(line); } else { let nl = line.replace(/(赔:)([\d.]+)/g, (m, p1, p2) => p1 + '<span class="compensation-amount">' + Math.trunc(parseFloat(p2)) + '</span>'); p.push(nl); } }); return '<div class="compensation-card"><div class="compensation-header">赔付明细</div><div class="compensation-content">' + p.join('\n') + '</div></div>'; }
 
             function updateAll() { updateHistoryDisplay(); updateUserCards(); updateSummary(); updateMyAccount(); document.getElementById('recycleBadge').textContent = recycle.length; renderRecycle(); updateBatchOpsVisibility(); fillUserFilter(); }
+            function fillUserFilter() { const uf = document.getElementById('historyUserFilter'), users = [...new Set(history.map(x => x.applicant))]; uf.innerHTML = '<option value="">全部</option>' + users.map(u => `<option>${u}</option>`).join(''); }
 
-            function fillUserFilter() {
-                const uf = document.getElementById('historyUserFilter'), users = [...new Set(history.map(x => x.applicant))];
-                uf.innerHTML = '<option value="">全部</option>' + users.map(u => `<option>${u}</option>`).join('');
-            }
-
-            window.updateHistoryDisplay = function() {
-                const fd = document.getElementById('historyDateFilter').value, fu = document.getElementById('historyUserFilter').value;
-                let r = history; if (fd) r = r.filter(x => x.timestamp === fd); if (fu) r = r.filter(x => x.applicant === fu);
-                document.getElementById('recordCounter').textContent = r.length;
-                const c = document.getElementById('historyContainer');
-                if (!r.length) { c.innerHTML = '<div class="empty-history">暂无记录</div>'; return; }
-                c.innerHTML = r.map((x, i) => {
-                    const sel = selectedHistoryIds.has(x.id);
-                    return `<div class="history-card" data-id="${x.id}">
-                        <div class="history-card-select"><input type="checkbox" class="history-checkbox" ${sel?'checked':''} onchange="toggleHistorySelection(${x.id}, this.checked)"></div>
-                        <div class="history-header"><div><span class="highlight-applicant">${x.applicant}</span> #${i+1} <span class="category-tag ${getCatClass(x.category)} highlight-category">${x.category}</span></div>
-                        <div><span class="history-time">${x.timestamp}</span><button class="delete-btn" onclick="showDeleteConfirm(${x.id})">🗑</button></div></div>
-                        <div class="history-body">${x.tableHTML||''}${x.compensationCardHTML||''}</div></div>`;
-                }).join('');
-                fillUserFilter();
-            };
+            window.updateHistoryDisplay = function() { const fd = document.getElementById('historyDateFilter').value, fu = document.getElementById('historyUserFilter').value; let r = history; if (fd) r = r.filter(x => x.timestamp === fd); if (fu) r = r.filter(x => x.applicant === fu); document.getElementById('recordCounter').textContent = r.length; const c = document.getElementById('historyContainer'); if (!r.length) { c.innerHTML = '<div class="empty-history">暂无记录</div>'; return; } c.innerHTML = r.map((x, i) => { const sel = selectedHistoryIds.has(x.id); return `<div class="history-card" data-id="${x.id}"><div class="history-card-select"><input type="checkbox" class="history-checkbox" ${sel?'checked':''} onchange="toggleHistorySelection(${x.id}, this.checked)"></div><div class="history-header"><div><span class="highlight-applicant">${x.applicant}</span> #${i+1} <span class="category-tag ${getCatClass(x.category)} highlight-category">${x.category}</span></div><div><span class="history-time">${x.timestamp}</span><button class="delete-btn" onclick="showDeleteConfirm(${x.id})">🗑</button></div></div><div class="history-body">${x.tableHTML||''}${x.compensationCardHTML||''}</div></div>`; }).join(''); fillUserFilter(); };
 
             function updateUserCards() {
                 const r = getFiltered(), c = document.getElementById('userCardsContainer');
                 if (!r.length) { c.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
-                const users = {}; r.forEach(x => { if (!users[x.applicant]) users[x.applicant] = []; users[x.applicant].push(x); });
+                const users = {};
+                r.forEach(x => { if (!users[x.applicant]) users[x.applicant] = []; users[x.applicant].push(x); });
                 c.innerHTML = Object.entries(users).map(([name, recs]) => {
                     let totalAmount = 0, totalProfit = 0, wins = {};
-                    recs.forEach(x => { const d = x.extractedData; totalAmount += Math.trunc(parseFloat(d.totalAmount || 0)); totalProfit += Math.trunc(parseFloat(d.profitLoss || 0)); Object.entries(d.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); }); });
-                    const cls = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
-                    let h = `<div class="user-card"><div class="user-card-header"><div class="user-name">${name}</div></div><div>总额:${totalAmount}</div><div class="winning-section"><div class="winning-title"><i class="fas fa-trophy"></i>中奖</div>`;
-                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item">${k}:${v}</div>`);
-                    else h += '<div>无</div>';
-                    h += `</div><div class="profit-loss ${cls}">盈亏:${totalProfit}</div></div>`;
+                    let latestTimestamp = '';
+                    let latestCategory = '';
+                    recs.forEach(x => {
+                        const d = x.extractedData;
+                        totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
+                        totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
+                        Object.entries(d.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); });
+                        if (!latestTimestamp || x.timestamp > latestTimestamp) {
+                            latestTimestamp = x.timestamp;
+                            latestCategory = x.category;
+                        }
+                    });
+                    const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
+                    let h = `<div class="user-card">
+                        <div class="user-name">${name}</div>
+                        <div class="user-date">${latestTimestamp}</div>
+                        <span class="user-category">${latestCategory}</span>
+                        <div class="order-total">订单总额：${totalAmount}</div>
+                        <div class="winning-section">
+                            <div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
+                    if (Object.keys(wins).length) {
+                        Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}：</span><span class="winning-amount">${v}</span></div>`);
+                    } else h += '<div class="winning-item">无中奖记录</div>';
+                    h += `</div><div class="profit-loss ${profitClass}">盈亏：${totalProfit}</div></div>`;
                     return h;
                 }).join('');
             }
@@ -534,217 +440,131 @@
                     const total = recs.reduce((s, x) => s + Math.trunc(parseFloat(x.extractedData?.totalAmount || 0)), 0);
                     const profit = recs.reduce((s, x) => s + Math.trunc(parseFloat(x.extractedData?.profitLoss || 0)), 0);
                     const wins = {}; recs.forEach(x => Object.entries(x.extractedData?.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); }));
-                    return `<div class="summary-card"><div class="summary-header"><div class="summary-title">${cat}</div></div><div>总额:${total}</div><div class="${profit>=0?'profit-positive':'profit-negative'}">盈亏:${profit>=0?'+':''}${profit}</div><div class="winning-summary"><div class="winning-summary-title">中奖统计</div>${Object.keys(wins).length?Object.entries(wins).map(([k,v])=>`<div class="winning-summary-item">${k}:${v>=0?'+':''}${v}</div>`).join(''):'无'}</div></div>`;
+                    const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+                    let h = `<div class="summary-card"><div class="summary-title">${cat}</div><div class="summary-row"><span>订单总额</span><span class="summary-amount">${total}</span></div><div class="summary-row"><span>盈亏总额</span><span class="${profitClass}">${profit >= 0 ? '+' : ''}${profit}</span></div><div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
+                    if (Object.keys(wins).length) { Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`); } else h += '<div class="winning-summary-item">无中奖记录</div>';
+                    h += '</div></div>';
+                    return h;
                 }).join('') + '</div>';
             }
 
             function updateMyAccount() {
                 const r = getFiltered(), c = document.getElementById('myAccountContainer');
                 if (!r.length) { c.innerHTML = '<div class="empty-history">暂无数据</div>'; return; }
-                const calc = cat => { const recs = r.filter(x => x.category === cat); const profit = recs.reduce((s, x) => s + Math.trunc(parseFloat(x.extractedData?.profitLoss || 0)), 0); const w = {}; recs.forEach(x => Object.entries(x.extractedData?.winnings || {}).forEach(([k, v]) => { w[k] = (w[k] || 0) + Math.trunc(parseFloat(v || 0)); })); return { profit, w }; };
+                const calc = cat => { const recs = r.filter(x => x.category === cat); const totalAmount = recs.reduce((s, x) => s + Math.trunc(parseFloat(x.extractedData?.totalAmount || 0)), 0); const profit = recs.reduce((s, x) => s + Math.trunc(parseFloat(x.extractedData?.profitLoss || 0)), 0); const w = {}; recs.forEach(x => Object.entries(x.extractedData?.winnings || {}).forEach(([k, v]) => { w[k] = (w[k] || 0) + Math.trunc(parseFloat(v || 0)); })); return { totalAmount, profit, w }; };
                 const md = calc('澳门下家'), mu = calc('澳门上家'), gd = calc('粤港下家'), gu = calc('粤港上家');
-                const mp = md.profit - mu.profit, gp = gd.profit - gu.profit;
+                const myMacauTotal = md.totalAmount - mu.totalAmount, myGdTotal = gd.totalAmount - gu.totalAmount;
+                const myMacauProfit = md.profit - mu.profit, myGdProfit = gd.profit - gu.profit;
                 const mw = {}, gw = {};
                 Object.entries(md.w).forEach(([k, v]) => mw[k] = (mw[k] || 0) + v); Object.entries(mu.w).forEach(([k, v]) => mw[k] = (mw[k] || 0) - v);
                 Object.entries(gd.w).forEach(([k, v]) => gw[k] = (gw[k] || 0) + v); Object.entries(gu.w).forEach(([k, v]) => gw[k] = (gw[k] || 0) - v);
-                c.innerHTML = `<div class="summary-card" style="margin-bottom:12px"><div class="summary-title">我的澳门</div><div class="${mp>=0?'profit-positive':'profit-negative'}">${mp>=0?'+':''}${mp}</div><div class="winning-summary">${Object.keys(mw).length?Object.entries(mw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div><div class="summary-card"><div class="summary-title">我的粤港</div><div class="${gp>=0?'profit-positive':'profit-negative'}">${gp>=0?'+':''}${gp}</div><div class="winning-summary">${Object.keys(gw).length?Object.entries(gw).map(([k,v])=>`${k}:${v>=0?'+':''}${v}`).join(' '):'无'}</div></div>`;
+                const createAccountCard = (title, totalAmount, profit, wins) => {
+                    const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+                    let h = `<div class="summary-card"><div class="summary-title">${title}</div><div class="order-total">订单总额：${totalAmount}</div><div class="profit-total ${profitClass}">盈亏总额：${profit >= 0 ? '+' : ''}${profit}</div><div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
+                    if (Object.keys(wins).length) { Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`); } else h += '<div class="winning-summary-item">无中奖记录</div>';
+                    h += '</div></div>';
+                    return h;
+                };
+                c.innerHTML = createAccountCard('我的澳门', myMacauTotal, myMacauProfit, mw) + createAccountCard('我的粤港', myGdTotal, myGdProfit, gw);
             }
 
             function getCatClass(cat) { switch (cat) { case '澳门上家': return 'category-macau-up'; case '澳门下家': return 'category-macau-down'; case '粤港上家': return 'category-guangdong-up'; case '粤港下家': return 'category-guangdong-down'; } return ''; }
 
-            // 删除/恢复/回收站/批量操作（保持一致）
-            window.showDeleteConfirm = id => {
-                document.getElementById('confirmTitle').textContent = '确认删除';
-                document.getElementById('confirmMessage').textContent = '移至回收站？';
-                document.getElementById('confirmYesBtn').onclick = async () => {
-                    const idx = history.findIndex(x => x.id === id); if (idx === -1) return;
-                    const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString();
-                    await saveDB('recycle_bin', rec); await deleteDB('records', id);
-                    recycle.unshift(rec); selectedHistoryIds.delete(id);
-                    updateAll(); document.getElementById('confirmDialog').classList.remove('show');
-                    toast('已移至回收站', 'warning');
-                };
-                document.getElementById('confirmDialog').classList.add('show');
-            };
+            window.showDeleteConfirm = id => { document.getElementById('confirmTitle').textContent = '确认删除'; document.getElementById('confirmMessage').textContent = '移至回收站？'; document.getElementById('confirmYesBtn').onclick = async () => { const idx = history.findIndex(x => x.id === id); if (idx === -1) return; const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString(); await saveDB('recycle_bin', rec); await deleteDB('records', id); recycle.unshift(rec); selectedHistoryIds.delete(id); updateAll(); document.getElementById('confirmDialog').classList.remove('show'); toast('已移至回收站', 'warning'); }; document.getElementById('confirmDialog').classList.add('show'); };
             window.hideClearConfirm = () => document.getElementById('confirmDialog').classList.remove('show');
-            window.restore = async id => {
-                const idx = recycle.findIndex(x => x.id === id); if (idx === -1) return;
-                const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt;
-                await saveDB('records', rec); await deleteDB('recycle_bin', id);
-                history.unshift(rec); selectedRecycleIds.delete(id);
-                updateAll(); toast('已恢复', 'success');
-            };
+            window.restore = async id => { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) return; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); selectedRecycleIds.delete(id); updateAll(); toast('已恢复', 'success'); };
             window.deletePerm = async id => { await deleteDB('recycle_bin', id); recycle = recycle.filter(x => x.id !== id); selectedRecycleIds.delete(id); updateAll(); toast('已永久删除', 'error'); };
             window.toggleRecyclePanel = () => { document.getElementById('recyclePanel').classList.toggle('open'); renderRecycle(); };
-            function renderRecycle() {
-                const c = document.getElementById('recycleItemsContainer');
-                if (!recycle.length) { c.innerHTML = '<div class="empty-history">回收站为空</div>'; return; }
-                c.innerHTML = recycle.map(x => {
-                    const sel = selectedRecycleIds.has(x.id);
-                    return `<div class="recycle-item"><div><input type="checkbox" class="recycle-checkbox" ${sel?'checked':''} onchange="toggleRecycleSelection(${x.id}, this.checked)"><strong>${x.applicant}</strong> ${x.timestamp}</div><div><button class="restore-btn" onclick="restore(${x.id})">恢复</button><button class="delete-permanently-btn" onclick="deletePerm(${x.id})">删除</button></div></div>`;
-                }).join('');
-            }
-
+            function renderRecycle() { const c = document.getElementById('recycleItemsContainer'); if (!recycle.length) { c.innerHTML = '<div class="empty-history">回收站为空</div>'; return; } c.innerHTML = recycle.map(x => { const sel = selectedRecycleIds.has(x.id); return `<div class="recycle-item"><div><input type="checkbox" class="recycle-checkbox" ${sel?'checked':''} onchange="toggleRecycleSelection(${x.id}, this.checked)"><strong>${x.applicant}</strong> ${x.timestamp}</div><div><button class="restore-btn" onclick="restore(${x.id})">恢复</button><button class="delete-permanently-btn" onclick="deletePerm(${x.id})">删除</button></div></div>`; }).join(''); }
             window.toggleHistorySelection = (id, checked) => { checked ? selectedHistoryIds.add(id) : selectedHistoryIds.delete(id); updateBatchOpsVisibility(); };
             window.toggleRecycleSelection = (id, checked) => { checked ? selectedRecycleIds.add(id) : selectedRecycleIds.delete(id); updateBatchOpsVisibility(); };
-            window.toggleSelectAll = type => {
-                if (type === 'history') {
-                    const chk = document.getElementById('selectAllHistory').checked;
-                    document.querySelectorAll('.history-checkbox').forEach(cb => { cb.checked = chk; toggleHistorySelection(parseInt(cb.closest('.history-card').dataset.id), chk); });
-                } else {
-                    const chk = document.getElementById('selectAllRecycle').checked;
-                    document.querySelectorAll('.recycle-checkbox').forEach(cb => { cb.checked = chk; toggleRecycleSelection(parseInt(cb.closest('.recycle-item').dataset.id), chk); });
-                }
-            };
-            function updateBatchOpsVisibility() {
-                document.getElementById('historyBatchOperations').classList.toggle('show', selectedHistoryIds.size > 0);
-                document.getElementById('selectedCount').textContent = selectedHistoryIds.size;
-                document.getElementById('recycleBatchOperations').classList.toggle('show', selectedRecycleIds.size > 0);
-                document.getElementById('recycleSelectedCount').textContent = selectedRecycleIds.size;
-            }
-            window.batchDelete = async () => {
-                const ids = [...selectedHistoryIds];
-                for (const id of ids) {
-                    const idx = history.findIndex(x => x.id === id); if (idx === -1) continue;
-                    const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString();
-                    await saveDB('recycle_bin', rec); await deleteDB('records', id);
-                    recycle.unshift(rec);
-                }
-                selectedHistoryIds.clear(); updateAll(); toast('批量移至回收站', 'warning');
-            };
+            window.toggleSelectAll = type => { if (type === 'history') { const chk = document.getElementById('selectAllHistory').checked; document.querySelectorAll('.history-checkbox').forEach(cb => { cb.checked = chk; toggleHistorySelection(parseInt(cb.closest('.history-card').dataset.id), chk); }); } else { const chk = document.getElementById('selectAllRecycle').checked; document.querySelectorAll('.recycle-checkbox').forEach(cb => { cb.checked = chk; toggleRecycleSelection(parseInt(cb.closest('.recycle-item').dataset.id), chk); }); } };
+            function updateBatchOpsVisibility() { document.getElementById('historyBatchOperations').classList.toggle('show', selectedHistoryIds.size > 0); document.getElementById('selectedCount').textContent = selectedHistoryIds.size; document.getElementById('recycleBatchOperations').classList.toggle('show', selectedRecycleIds.size > 0); document.getElementById('recycleSelectedCount').textContent = selectedRecycleIds.size; }
+            window.batchDelete = async () => { const ids = [...selectedHistoryIds]; for (const id of ids) { const idx = history.findIndex(x => x.id === id); if (idx === -1) continue; const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString(); await saveDB('recycle_bin', rec); await deleteDB('records', id); recycle.unshift(rec); } selectedHistoryIds.clear(); updateAll(); toast('批量移至回收站', 'warning'); };
             window.batchMoveToRecycle = window.batchDelete;
-            window.batchRestore = async () => {
-                const ids = [...selectedRecycleIds];
-                for (const id of ids) {
-                    const idx = recycle.findIndex(x => x.id === id); if (idx === -1) continue;
-                    const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt;
-                    await saveDB('records', rec); await deleteDB('recycle_bin', id);
-                    history.unshift(rec);
-                }
-                selectedRecycleIds.clear(); updateAll(); toast('批量恢复', 'success');
-            };
-            window.batchDeletePermanent = async () => {
-                const ids = [...selectedRecycleIds];
-                for (const id of ids) await deleteDB('recycle_bin', id);
-                recycle = recycle.filter(x => !ids.includes(x.id));
-                selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error');
-            };
+            window.batchRestore = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) continue; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); } selectedRecycleIds.clear(); updateAll(); toast('批量恢复', 'success'); };
+            window.batchDeletePermanent = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) await deleteDB('recycle_bin', id); recycle = recycle.filter(x => !ids.includes(x.id)); selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error'); };
 
-            // 导出
             window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
             window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
             window.selectFormat = (el, fmt) => { document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); exportFormat = fmt; };
             window.confirmExport = () => { closeFormatSelector(); exportAllData(); };
-            window.exportAllData = () => {
-                if (!history.length) return toast('无数据', 'error');
-                let blob, name;
-                if (exportFormat === 'json') { blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' }); name = '数据.json'; }
-                else if (exportFormat === 'csv') { let csv = 'ID,日期,分类,申报人,总额,盈亏\n'; history.forEach(x => csv += `${x.id},${x.timestamp},${x.category},${x.applicant},${x.extractedData?.totalAmount||''},${x.extractedData?.profitLoss||''}\n`); blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); name = '数据.csv'; }
-                else { let txt = ''; history.forEach((x, i) => txt += `=== 订单 #${i+1} ===\n${x.originalData}\n\n`); blob = new Blob([txt], { type: 'text/plain' }); name = '数据.txt'; }
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success');
-            };
+            window.exportAllData = () => { if (!history.length) return toast('无数据', 'error'); let blob, name; if (exportFormat === 'json') { blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' }); name = '数据.json'; } else if (exportFormat === 'csv') { let csv = 'ID,日期,分类,申报人,总额,盈亏\n'; history.forEach(x => csv += `${x.id},${x.timestamp},${x.category},${x.applicant},${x.extractedData?.totalAmount||''},${x.extractedData?.profitLoss||''}\n`); blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); name = '数据.csv'; } else { let txt = ''; history.forEach((x, i) => txt += `=== 订单 #${i+1} ===\n${x.originalData}\n\n`); blob = new Blob([txt], { type: 'text/plain' }); name = '数据.txt'; } const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success'); };
 
-            // 导入预览判断重复
-            function checkDuplicateRecord(item) {
-                return history.some(r => r.timestamp === item.timestamp && r.applicant === item.applicant && extractAmountDetail(r.originalData) === extractAmountDetail(item.originalData));
-            }
-
-            window.importData = function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+            window.importFile = function(event) {
+                const file = event.target.files[0]; if (!file) return;
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     const content = ev.target.result;
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    if (ext === 'json') {
+                    if (file.name.endsWith('.json')) {
                         try {
                             const data = JSON.parse(content);
                             if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
-                            const newRecs = [], dups = [];
-                            data.forEach(item => {
-                                if (item.originalData && item.timestamp && item.applicant) {
-                                    checkDuplicateRecord(item) ? dups.push(item) : newRecs.push(item);
-                                }
-                            });
-                            pendingImportRecords = newRecs;
-                            showImportPreview(newRecs.length, dups.length, data);
+                            const validItems = data.filter(item => item.originalData && item.timestamp && item.applicant);
+                            if (validItems.length === 0) { toast('没有有效记录', 'error'); return; }
+                            const newRecs = [], dupRecs = [];
+                            validItems.forEach(item => { checkDuplicateRecord(item) ? dupRecs.push(item) : newRecs.push(item); });
+                            pendingNewRecords = newRecs;
+                            showImportPreview(newRecs.length, dupRecs.length, validItems);
                         } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
                     } else {
                         document.getElementById('orderData').value = content;
                         toast('数据已导入到输入框，请手动保存', 'info');
                     }
                 };
+                reader.onerror = () => toast('文件读取失败', 'error');
                 reader.readAsText(file);
                 event.target.value = '';
             };
 
-            function showImportPreview(newCnt, dupCnt, all) {
+            function showImportPreview(newCnt, dupCnt, validItems) {
                 document.getElementById('totalImportCount').textContent = newCnt + dupCnt;
                 document.getElementById('newImportCount').textContent = newCnt;
                 document.getElementById('duplicateImportCount').textContent = dupCnt;
-                const list = document.getElementById('importList');
-                list.innerHTML = '';
-                all.slice(0, 10).forEach(r => {
-                    const dup = checkDuplicateRecord(r);
-                    const div = document.createElement('div');
-                    div.className = 'import-item';
-                    div.innerHTML = `<div><strong>${r.applicant}</strong> - ${r.timestamp} <span class="category-tag">${r.category||'未知'}</span></div><div class="import-item-status ${dup?'status-duplicate':'status-new'}">${dup?'重复':'新记录'}</div>`;
+                const list = document.getElementById('importList'); list.innerHTML = '';
+                validItems.slice(0, 10).forEach(item => {
+                    const dup = checkDuplicateRecord(item);
+                    const div = document.createElement('div'); div.className = 'import-item';
+                    div.innerHTML = `<div><strong>${item.applicant}</strong> - ${item.timestamp} <span class="category-tag">${item.category||'未知'}</span></div><div class="import-item-status ${dup?'status-duplicate':'status-new'}">${dup?'重复':'新记录'}</div>`;
                     list.appendChild(div);
                 });
+                if (validItems.length > 10) { const more = document.createElement('div'); more.className = 'import-item'; more.textContent = `...还有 ${validItems.length - 10} 条记录未显示`; list.appendChild(more); }
                 document.getElementById('importPreviewDialog').style.display = 'flex';
             }
 
-            window.closeImportPreview = function() {
-                document.getElementById('importPreviewDialog').style.display = 'none';
-                pendingImportRecords = [];
-            };
+            window.closeImportPreview = function() { document.getElementById('importPreviewDialog').style.display = 'none'; pendingNewRecords = []; };
 
             window.confirmImport = async function() {
-                if (!pendingImportRecords.length) { toast('没有新记录可导入', 'warning'); closeImportPreview(); return; }
-                for (const item of pendingImportRecords) {
-                    const rec = {
-                        id: Date.now() + Math.random(),
-                        timestamp: item.timestamp,
-                        category: item.category || '未知分类',
-                        applicant: item.applicant,
-                        originalData: item.originalData,
-                        tableHTML: item.tableHTML || '',
-                        compensationCardHTML: item.compensationCardHTML || '',
-                        dataCount: item.dataCount || 0,
-                        extractedData: item.extractedData || {},
-                        created_at: new Date().toISOString()
-                    };
-                    history.unshift(rec);
-                    await saveDB('records', rec);
-                }
-                await loadData();
-                updateAll();
-                closeImportPreview();
-                toast(`成功导入 ${pendingImportRecords.length} 条记录`, 'success');
+                if (pendingNewRecords.length === 0) { toast('没有新记录可导入', 'warning'); closeImportPreview(); return; }
+                try {
+                    let count = 0;
+                    for (const item of pendingNewRecords) {
+                        const rec = { id: Math.floor(Date.now() + Math.random() * 1000000), timestamp: item.timestamp, category: item.category || '未知分类', applicant: item.applicant, originalData: item.originalData, tableHTML: item.tableHTML || '', compensationCardHTML: item.compensationCardHTML || '', dataCount: item.dataCount || 0, extractedData: item.extractedData || {}, created_at: new Date().toISOString() };
+                        await saveDB('records', rec); history.unshift(rec); count++;
+                    }
+                    await loadData(); updateAll(); closeImportPreview();
+                    toast(`成功导入 ${count} 条新记录`, 'success');
+                } catch (err) { toast('导入失败: ' + err.message, 'error'); }
             };
 
             window.importAllData = function() {
-                const inp = document.createElement('input');
-                inp.type = 'file';
-                inp.accept = '.json';
-                inp.onchange = async function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
+                const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
+                inp.onchange = function(e) {
+                    const file = e.target.files[0]; if (!file) return;
                     const reader = new FileReader();
                     reader.onload = function(ev) {
                         try {
                             const data = JSON.parse(ev.target.result);
                             if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
-                            const newRecs = [], dups = [];
-                            data.forEach(item => {
-                                if (item.originalData && item.timestamp && item.applicant) {
-                                    checkDuplicateRecord(item) ? dups.push(item) : newRecs.push(item);
-                                }
-                            });
-                            pendingImportRecords = newRecs;
-                            showImportPreview(newRecs.length, dups.length, data);
+                            const validItems = data.filter(item => item.originalData && item.timestamp && item.applicant);
+                            if (validItems.length === 0) { toast('没有有效记录', 'error'); return; }
+                            const newRecs = [], dupRecs = [];
+                            validItems.forEach(item => { checkDuplicateRecord(item) ? dupRecs.push(item) : newRecs.push(item); });
+                            pendingNewRecords = newRecs;
+                            showImportPreview(newRecs.length, dupRecs.length, validItems);
                         } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
                     };
+                    reader.onerror = () => toast('文件读取失败', 'error');
                     reader.readAsText(file);
                 };
                 inp.click();
