@@ -74,37 +74,39 @@
         .pay-me{background:rgba(46,204,113,0.2);color:#27ae60}
         .pay-you{background:rgba(231,76,60,0.2);color:#c0392b}
 
-        /* 用户信息卡片 */
-        .user-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e1e8f0;width:calc(33.333% - 10px);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-        .user-card .user-name{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:2px}
-        .user-card .user-date{font-size:0.75rem;color:#7f8c8d;margin-bottom:6px}
-        .user-card .user-category{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:10px;display:inline-block;padding:2px 8px;background:#f0f4ff;border-radius:4px}
-        .user-card .order-total{font-size:0.9rem;color:#2c3e50;margin-bottom:8px}
-        .user-card .winning-section{background:#f8fafd;border-radius:8px;padding:10px;margin-bottom:8px}
-        .user-card .winning-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
-        .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        /* 用户信息卡片：三列 */
+        #userCardsContainer{display:flex;flex-wrap:wrap;gap:12px}
+        .user-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;width:calc(33.333% - 8px);box-shadow:0 2px 8px rgba(0,0,0,0.04);min-width:150px}
+        .user-card .user-name{font-size:0.95rem;font-weight:700;color:#1a2a6c;margin-bottom:2px}
+        .user-card .user-date{font-size:0.7rem;color:#7f8c8d;margin-bottom:4px}
+        .user-card .user-category{font-size:0.75rem;font-weight:600;color:#2c3e50;margin-bottom:8px;display:inline-block;padding:2px 8px;background:#f0f4ff;border-radius:4px}
+        .user-card .order-total{font-size:0.85rem;color:#2c3e50;margin-bottom:6px}
+        .user-card .winning-section{background:#f8fafd;border-radius:8px;padding:10px;margin-bottom:6px}
+        .user-card .winning-title{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+        .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
         .user-card .winning-amount{font-weight:600;color:#27ae60}
-        .user-card .profit-loss{font-size:1rem;font-weight:700;padding:6px 10px;border-radius:6px;text-align:center;margin-top:8px}
+        .user-card .profit-loss{font-size:0.9rem;font-weight:700;padding:4px 8px;border-radius:6px;text-align:center;margin-top:6px}
 
-        /* 全部汇总卡片 */
-        .summary-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #e1e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-        .summary-card .summary-title{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:10px}
-        .summary-card .summary-row{display:flex;justify-content:space-between;font-size:0.9rem;color:#2c3e50;padding:4px 0}
+        /* 全部汇总卡片：三列 */
+        .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+        .summary-card .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
+        .summary-card .summary-row{display:flex;justify-content:space-between;font-size:0.8rem;color:#2c3e50;padding:3px 0}
         .summary-card .summary-amount{font-weight:600;color:#2980b9}
-        .summary-card .winning-summary{background:#f8fafd;border-radius:8px;padding:10px;margin-top:10px}
-        .summary-card .winning-summary-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
-        .summary-card .winning-summary-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        .summary-card .winning-summary{background:#f8fafd;border-radius:8px;padding:10px;margin-top:8px}
+        .summary-card .winning-summary-title{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+        .summary-card .winning-summary-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
         .summary-card .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
 
-        /* 我的账户卡片 */
+        /* 我的账户卡片：两列 */
         #myAccountContainer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-        #myAccountContainer .summary-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #e1e8f0}
-        #myAccountContainer .summary-title{font-size:1rem;font-weight:700;color:#1a2a6c;margin-bottom:10px}
-        #myAccountContainer .order-total{font-size:0.9rem;color:#2c3e50;margin-bottom:6px}
-        #myAccountContainer .profit-total{font-size:0.9rem;font-weight:bold;margin-bottom:10px}
+        #myAccountContainer .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0}
+        #myAccountContainer .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
+        #myAccountContainer .order-total{font-size:0.85rem;color:#2c3e50;margin-bottom:4px}
+        #myAccountContainer .profit-total{font-size:0.85rem;font-weight:bold;margin-bottom:8px}
         #myAccountContainer .winning-summary{background:#f8fafd;border-radius:8px;padding:10px}
-        #myAccountContainer .winning-summary-title{font-size:0.85rem;font-weight:600;color:#2c3e50;margin-bottom:6px;display:flex;align-items:center;gap:4px}
-        #myAccountContainer .winning-summary-item{display:flex;justify-content:space-between;font-size:0.85rem;color:#555;padding:2px 0}
+        #myAccountContainer .winning-summary-title{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+        #myAccountContainer .winning-summary-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
         #myAccountContainer .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
 
         .dynamic-table-container{margin-top:10px;width:100%;overflow:auto}
@@ -155,7 +157,18 @@
         .highlight-applicant{color:#ffeb3b!important;font-weight:bold}
         .highlight-category{color:#00ff7f!important;font-weight:bold}
         @media(max-width:1400px){.container{flex-direction:column}.user-sidebar{width:100%}}
-        @media(max-width:768px){.history-container{grid-template-columns:1fr}.input-with-categories{flex-direction:column}#orderData,.category-button-group{width:100%}.user-card{width:100%}.recycle-panel{width:100%;right:-100%}#myAccountContainer{grid-template-columns:1fr}}
+        @media(max-width:992px){
+            #userCardsContainer .user-card{width:calc(50% - 6px)}
+            .summary-container{grid-template-columns:repeat(2,1fr)}
+            #myAccountContainer{grid-template-columns:1fr}
+        }
+        @media(max-width:768px){
+            .history-container{grid-template-columns:1fr}
+            .input-with-categories{flex-direction:column}#orderData,.category-button-group{width:100%}
+            #userCardsContainer .user-card{width:100%}
+            .summary-container{grid-template-columns:1fr}
+            .recycle-panel{width:100%;right:-100%}
+        }
     </style>
 </head>
 <body>
@@ -296,6 +309,7 @@
     <div class="confirm-dialog" id="duplicateDialog"><div class="confirm-content"><h3>发现重复录入</h3><p id="duplicateMessage"></p><div class="confirm-buttons"><button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">强制保存</button><button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">修改后再存</button><button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">取消保存</button></div></div></div>
 
     <script>
+        // 动态加载 Supabase SDK
         (function() {
             const cdns = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'];
             let i = 0;
@@ -403,17 +417,13 @@
                 r.forEach(x => { if (!users[x.applicant]) users[x.applicant] = []; users[x.applicant].push(x); });
                 c.innerHTML = Object.entries(users).map(([name, recs]) => {
                     let totalAmount = 0, totalProfit = 0, wins = {};
-                    let latestTimestamp = '';
-                    let latestCategory = '';
+                    let latestTimestamp = '', latestCategory = '';
                     recs.forEach(x => {
                         const d = x.extractedData;
                         totalAmount += Math.trunc(parseFloat(d.totalAmount || 0));
                         totalProfit += Math.trunc(parseFloat(d.profitLoss || 0));
                         Object.entries(d.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); });
-                        if (!latestTimestamp || x.timestamp > latestTimestamp) {
-                            latestTimestamp = x.timestamp;
-                            latestCategory = x.category;
-                        }
+                        if (!latestTimestamp || x.timestamp > latestTimestamp) { latestTimestamp = x.timestamp; latestCategory = x.category; }
                     });
                     const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
                     let h = `<div class="user-card">
@@ -421,11 +431,9 @@
                         <div class="user-date">${latestTimestamp}</div>
                         <span class="user-category">${latestCategory}</span>
                         <div class="order-total">订单总额：${totalAmount}</div>
-                        <div class="winning-section">
-                            <div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
-                    if (Object.keys(wins).length) {
-                        Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}：</span><span class="winning-amount">${v}</span></div>`);
-                    } else h += '<div class="winning-item">无中奖记录</div>';
+                        <div class="winning-section"><div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
+                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}：</span><span class="winning-amount">${v}</span></div>`);
+                    else h += '<div class="winning-item">无中奖记录</div>';
                     h += `</div><div class="profit-loss ${profitClass}">盈亏：${totalProfit}</div></div>`;
                     return h;
                 }).join('');
@@ -442,7 +450,8 @@
                     const wins = {}; recs.forEach(x => Object.entries(x.extractedData?.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); }));
                     const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
                     let h = `<div class="summary-card"><div class="summary-title">${cat}</div><div class="summary-row"><span>订单总额</span><span class="summary-amount">${total}</span></div><div class="summary-row"><span>盈亏总额</span><span class="${profitClass}">${profit >= 0 ? '+' : ''}${profit}</span></div><div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
-                    if (Object.keys(wins).length) { Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`); } else h += '<div class="winning-summary-item">无中奖记录</div>';
+                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`);
+                    else h += '<div class="winning-summary-item">无中奖记录</div>';
                     h += '</div></div>';
                     return h;
                 }).join('') + '</div>';
@@ -461,7 +470,8 @@
                 const createAccountCard = (title, totalAmount, profit, wins) => {
                     const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
                     let h = `<div class="summary-card"><div class="summary-title">${title}</div><div class="order-total">订单总额：${totalAmount}</div><div class="profit-total ${profitClass}">盈亏总额：${profit >= 0 ? '+' : ''}${profit}</div><div class="winning-summary"><div class="winning-summary-title"><i class="fas fa-trophy"></i> 中奖情况统计</div>`;
-                    if (Object.keys(wins).length) { Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`); } else h += '<div class="winning-summary-item">无中奖记录</div>';
+                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-summary-item"><span>${k}：</span><span>${v >= 0 ? '+' : ''}${v}</span></div>`);
+                    else h += '<div class="winning-summary-item">无中奖记录</div>';
                     h += '</div></div>';
                     return h;
                 };
