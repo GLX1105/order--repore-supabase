@@ -74,7 +74,7 @@
         .pay-me{background:rgba(46,204,113,0.2);color:#27ae60}
         .pay-you{background:rgba(231,76,60,0.2);color:#c0392b}
 
-        /* ===== 用户卡片 - 强制三列（缩小版） ===== */
+        /* 用户信息卡片 */
         #userCardsContainer{display:flex;flex-wrap:wrap;gap:6px}
         .user-card{background:#fff;border-radius:10px;padding:8px;border:1px solid #e1e8f0;width:calc(33.333% - 4px);box-shadow:0 1px 3px rgba(0,0,0,0.04)}
         .user-card .user-name{font-size:0.85rem;font-weight:700;color:#1a2a6c;margin-bottom:1px}
@@ -86,7 +86,7 @@
         .cat-guangdong-down{background:#fef9e7;color:#f39c12}
         .user-card .order-total{font-size:0.78rem;color:#2c3e50;margin-bottom:3px;font-weight:600}
         .user-card .winning-section{margin-bottom:4px}
-        .user-card .winning-title{font-size:0.75rem;font-weight:600;color:#2c3e50;margin-bottom:3px}
+        .user-card .winning-title{font-size:0.75rem;font-weight:bold;color:#2c3e50;margin-bottom:3px}
         .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.73rem;color:#555;padding:1px 0}
         .user-card .winning-amount{font-weight:600;color:#27ae60}
         .user-card .profit-loss{font-size:0.8rem;font-weight:700;padding:3px 6px;border-radius:5px;text-align:center}
@@ -158,7 +158,6 @@
         .history-card-select{position:absolute;top:8px;left:8px}
         .highlight-applicant{color:#ffeb3b!important;font-weight:bold}
         .highlight-category{color:#00ff7f!important;font-weight:bold}
-
         @media(max-width:1400px){.container{flex-direction:column}.user-sidebar{width:100%}}
         @media(max-width:500px){
             #userCardsContainer .user-card{width:calc(50% - 3px)}
@@ -181,7 +180,7 @@
             <p>请输入访问密码</p>
             <input type="password" id="accessPassword" class="login-input" placeholder="输入访问密码">
             <div class="login-error" id="loginError">密码错误</div>
-            <button class="login-btn" onclick="checkAccessPassword()">进入系统</button>
+            <button class="login-btn" id="loginBtn" onclick="checkAccessPassword()">进入系统</button>
         </div>
     </div>
 
@@ -329,6 +328,15 @@
             let selectedHistoryIds = new Set(), selectedRecycleIds = new Set();
             let filter = { search: '', date: '', category: '', user: '' };
 
+            // 获取中国时区当天日期 (YYYY-MM-DD)
+            function getChinaToday() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
             function toast(msg, type) { const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.classList.add('show'), 10); setTimeout(() => { t.classList.remove('show'); t.remove(); }, 3000); }
 
             async function saveDB(store, data) { const t = store === 'records' ? 'records' : 'recycle_bin'; const { error } = await supabase.from(t).upsert(data); if (error) throw error; }
@@ -341,12 +349,26 @@
 
             window.applyFilters = () => { filter.search = document.getElementById('searchInput').value.trim(); filter.date = document.getElementById('dateFilter').value; filter.category = document.getElementById('categoryFilter').value; filter.user = document.getElementById('userFilter').value; updateUserCards(); updateSummary(); updateMyAccount(); const uf = document.getElementById('userFilter'); uf.innerHTML = '<option value="">全部</option>' + [...new Set(history.map(x => x.applicant))].map(u => `<option>${u}</option>`).join(''); if (filter.user) uf.value = filter.user; };
 
-            window.checkAccessPassword = async () => { if (document.getElementById('accessPassword').value === ACCESS_PASSWORD) { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainContainer').style.display = 'flex'; await loadData(); initSystem(); } else { document.getElementById('loginError').style.display = 'block'; } };
+            window.checkAccessPassword = async function() {
+                const pwd = document.getElementById('accessPassword').value;
+                if (pwd === ACCESS_PASSWORD) {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'flex';
+                    await loadData();
+                    initSystem();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('accessPassword').value = '';
+                    document.getElementById('accessPassword').focus();
+                }
+            };
 
             function initSystem() {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getChinaToday();
+                // 直接设置日期值
                 document.getElementById('reportDate').value = today;
                 document.getElementById('historyDateFilter').value = today;
+                // 绑定事件
                 document.getElementById('historyDateFilter').addEventListener('change', updateHistoryDisplay);
                 document.getElementById('historyUserFilter').addEventListener('change', updateHistoryDisplay);
                 document.getElementById('orderData').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveRecord(); } });
@@ -355,6 +377,14 @@
                 updateAll();
                 supabase.channel('realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, () => { loadData().then(updateAll); }).subscribe();
             }
+
+            // 自动聚焦密码框
+            window.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    var pwdInput = document.getElementById('accessPassword');
+                    if (pwdInput) pwdInput.focus();
+                }, 300);
+            });
 
             window.selectCategory = function(btn) { document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCategory = btn.dataset.category; };
 
@@ -382,7 +412,7 @@
             window.saveRecord = async () => {
                 const btn = document.getElementById('saveBtn'); btn.classList.add('loading');
                 const input = document.getElementById('orderData').value;
-                const date = document.getElementById('reportDate').value || new Date().toISOString().split('T')[0];
+                const date = document.getElementById('reportDate').value || getChinaToday();
                 if (!input.trim()) { toast('请输入数据', 'error'); btn.classList.remove('loading'); return; }
                 let applicant = '未知'; const am = input.match(/申报人：([^\n]+)/); if (am) applicant = am[1].trim();
                 const ds = input.indexOf('订单金额明细：'), de = input.indexOf('=', ds);
@@ -401,7 +431,16 @@
             window.forceSaveRecord = async () => { if (!pendingRecord) return; const { date, applicant, orderDataInput } = pendingRecord; const ds = orderDataInput.indexOf('订单金额明细：'), de = orderDataInput.indexOf('=', ds); const detail = orderDataInput.substring(ds + 7, de).trim().replace(/[^0-9+]/g, ''); const orderData = detail.split('+').map(s => parseFloat(s)); const ed = extractOrderData(orderDataInput, applicant); await directSave(date, applicant, orderDataInput, orderData, ed); hideDuplicateDialog(); };
             window.hideDuplicateDialog = () => document.getElementById('duplicateDialog').classList.remove('show');
 
-            async function directSave(date, applicant, input, orderData, ed) { const record = { id: Date.now(), timestamp: date, category: selectedCategory, applicant, originalData: input, tableHTML: createTable(orderData), compensationCardHTML: createCard(input, selectedCategory), dataCount: orderData.length, extractedData: ed, created_at: new Date().toISOString() }; history.unshift(record); await saveDB('records', record); updateAll(); document.getElementById('orderData').value = ''; document.getElementById('successMsg').style.display = 'block'; toast('保存成功', 'success'); setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000); }
+            async function directSave(date, applicant, input, orderData, ed) {
+                const record = { id: Date.now(), timestamp: date, category: selectedCategory, applicant, originalData: input, tableHTML: createTable(orderData), compensationCardHTML: createCard(input, selectedCategory), dataCount: orderData.length, extractedData: ed, created_at: new Date().toISOString() };
+                history.unshift(record);
+                await saveDB('records', record);
+                updateAll();
+                document.getElementById('orderData').value = '';
+                document.getElementById('successMsg').style.display = 'block';
+                toast('保存成功', 'success');
+                setTimeout(() => { document.getElementById('successMsg').style.display = 'none'; document.getElementById('saveBtn').classList.remove('loading'); }, 3000);
+            }
 
             function createTable(data) { const count = data.length; let cols = 4; if (count <= 5) cols = 1; else if (count <= 12) cols = 2; else if (count <= 24) cols = 3; else if (count <= 40) cols = 4; else if (count <= 60) cols = 5; else cols = 6; const rows = Math.ceil(count / cols); let h = '<div class="dynamic-table-container"><table class="dynamic-table"><thead><tr>'; for (let i = 0; i < cols; i++) h += '<th>序</th><th>下单</th>'; h += '</tr></thead><tbody>'; for (let r = 0; r < rows; r++) { h += '<tr>'; for (let c = 0; c < cols; c++) { const idx = r + c * rows; if (idx < count) { const amt = data[idx], str = amt.toString(), cls = str.length > 6 ? ' class="small-font"' : ''; h += `<td><span class="serial-number">${idx+1}</span></td><td${cls}><span class="order-amount">${amt}</span></td>`; } else h += '<td></td><td></td>'; } h += '</tr>'; } h += '</tbody></table></div>'; return h; }
 
@@ -435,7 +474,8 @@
                         <div class="user-date">${latestTimestamp}</div>
                         <span class="user-category ${catLabelClass}">${latestCategory}</span>
                         <div class="order-total">订单总额：${totalAmount}</div>
-                        <div class="winning-section"><div class="winning-title">中奖情况</div>`;
+                        <div class="winning-section">
+                            <div class="winning-title" style="font-weight:bold;">🏆 中奖情况</div>`;
                     if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}</span><span class="winning-amount">${v}</span></div>`);
                     else h += '<div class="winning-item">无中奖记录</div>';
                     h += `</div><div class="profit-loss ${profitClass}">盈亏：${totalProfit}</div></div>`;
@@ -505,6 +545,7 @@
             window.confirmExport = () => { closeFormatSelector(); exportAllData(); };
             window.exportAllData = () => { if (!history.length) return toast('无数据', 'error'); let blob, name; if (exportFormat === 'json') { blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' }); name = '数据.json'; } else if (exportFormat === 'csv') { let csv = 'ID,日期,分类,申报人,总额,盈亏\n'; history.forEach(x => csv += `${x.id},${x.timestamp},${x.category},${x.applicant},${x.extractedData?.totalAmount||''},${x.extractedData?.profitLoss||''}\n`); blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); name = '数据.csv'; } else { let txt = ''; history.forEach((x, i) => txt += `=== 订单 #${i+1} ===\n${x.originalData}\n\n`); blob = new Blob([txt], { type: 'text/plain' }); name = '数据.txt'; } const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success'); };
 
+            // 导入功能
             window.importFile = function(event) {
                 const file = event.target.files[0]; if (!file) return;
                 const reader = new FileReader();
@@ -584,7 +625,7 @@
                 inp.click();
             };
 
-            window.requestClearPassword = () => { currentOperation = 'clear'; document.getElementById('passwordPromptText').innerHTML = '请输入操作密码（891105）'; document.getElementById('passwordDialog').style.display = 'flex'; };
+            window.requestClearPassword = () => { currentOperation = 'clear'; document.getElementById('passwordPromptText').innerHTML = '请输入操作密码'; document.getElementById('passwordDialog').style.display = 'flex'; };
             window.verifyOperationPassword = () => { if (currentOperation === 'clear' && document.getElementById('operationPassword').value === OPERATION_PASSWORD) { closePasswordDialog(); if (confirm('确定清空所有数据？')) { clearDB('records'); clearDB('recycle_bin'); history = []; recycle = []; updateAll(); toast('已清空', 'success'); } } else { document.getElementById('passwordError').style.display = 'block'; } };
             window.closePasswordDialog = () => { document.getElementById('passwordDialog').style.display = 'none'; currentOperation = null; };
             window.clearInput = () => document.getElementById('orderData').value = '';
