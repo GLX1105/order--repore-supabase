@@ -74,20 +74,25 @@
         .pay-me{background:rgba(46,204,113,0.2);color:#27ae60}
         .pay-you{background:rgba(231,76,60,0.2);color:#c0392b}
 
-        /* 用户信息卡片 - 三列网格 */
-        #userCardsContainer{display:flex;flex-wrap:wrap;gap:12px}
-        .user-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;width:calc(33.333% - 8px);box-shadow:0 2px 8px rgba(0,0,0,0.04);min-width:150px}
+        /* ===== 用户信息卡片 ===== */
+        #userCardsContainer{display:flex;flex-wrap:wrap;gap:10px}
+        .user-card{background:#fff;border-radius:12px;padding:14px 12px;border:1px solid #e1e8f0;width:calc(33.333% - 7px);box-shadow:0 1px 4px rgba(0,0,0,0.04);min-width:155px}
         .user-card .user-name{font-size:0.95rem;font-weight:700;color:#1a2a6c;margin-bottom:2px}
-        .user-card .user-date{font-size:0.7rem;color:#7f8c8d;margin-bottom:4px}
-        .user-card .user-category{font-size:0.75rem;font-weight:600;color:#2c3e50;margin-bottom:8px;display:inline-block;padding:2px 8px;background:#f0f4ff;border-radius:4px}
-        .user-card .order-total{font-size:0.85rem;color:#2c3e50;margin-bottom:6px}
-        .user-card .winning-section{background:#f8fafd;border-radius:8px;padding:10px;margin-bottom:6px}
-        .user-card .winning-title{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:4px;display:flex;align-items:center;gap:4px}
-        .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
+        .user-card .user-date{font-size:0.7rem;color:#7f8c8d;margin-bottom:6px}
+        .user-card .user-category{display:inline-block;font-size:0.75rem;font-weight:600;padding:2px 10px;border-radius:10px;margin-bottom:8px}
+        /* 分类颜色 */
+        .user-card .user-category.cat-macau-up{background:#eaf2fb;color:#2980b9}
+        .user-card .user-category.cat-macau-down{background:#e8f8ef;color:#27ae60}
+        .user-card .user-category.cat-guangdong-up{background:#f3eafa;color:#8e44ad}
+        .user-card .user-category.cat-guangdong-down{background:#fef9e7;color:#f39c12}
+        .user-card .order-total{font-size:0.85rem;color:#2c3e50;margin-bottom:4px;font-weight:600}
+        .user-card .winning-section{margin-bottom:6px}
+        .user-card .winning-title{font-size:0.8rem;font-weight:600;color:#2c3e50;margin-bottom:4px}
+        .user-card .winning-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:1px 0}
         .user-card .winning-amount{font-weight:600;color:#27ae60}
-        .user-card .profit-loss{font-size:0.9rem;font-weight:700;padding:4px 8px;border-radius:6px;text-align:center;margin-top:6px}
+        .user-card .profit-loss{font-size:0.9rem;font-weight:700;padding:4px 8px;border-radius:6px;text-align:center}
 
-        /* 全部汇总卡片 - 三列网格 */
+        /* 全部汇总卡片 */
         .summary-container{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
         .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         .summary-card .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
@@ -98,7 +103,7 @@
         .summary-card .winning-summary-item{display:flex;justify-content:space-between;font-size:0.8rem;color:#555;padding:2px 0}
         .summary-card .winning-summary-item span:last-child{font-weight:600;color:#27ae60}
 
-        /* 我的账户卡片 - 两列网格 */
+        /* 我的账户卡片 */
         #myAccountContainer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         #myAccountContainer .summary-card{background:#fff;border-radius:12px;padding:14px;border:1px solid #e1e8f0}
         #myAccountContainer .summary-title{font-size:0.9rem;font-weight:700;color:#1a2a6c;margin-bottom:8px}
@@ -157,8 +162,8 @@
         .highlight-applicant{color:#ffeb3b!important;font-weight:bold}
         .highlight-category{color:#00ff7f!important;font-weight:bold}
         @media(max-width:1400px){.container{flex-direction:column}.user-sidebar{width:100%}}
-        @media(max-width:992px){
-            #userCardsContainer .user-card{width:calc(50% - 6px)}
+        @media(max-width:900px){
+            #userCardsContainer .user-card{width:calc(50% - 5px)}
             .summary-container{grid-template-columns:repeat(2,1fr)}
             #myAccountContainer{grid-template-columns:1fr}
         }
@@ -172,7 +177,6 @@
     </style>
 </head>
 <body>
-    <!-- 登录遮罩 -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h2><i class="fas fa-lock"></i> 系统访问受限</h2>
@@ -183,7 +187,6 @@
         </div>
     </div>
 
-    <!-- 操作密码弹窗 -->
     <div class="password-dialog" id="passwordDialog">
         <div class="password-content">
             <h3>操作需要密码验证</h3>
@@ -195,7 +198,6 @@
         </div>
     </div>
 
-    <!-- 格式选择器 -->
     <div class="format-selector" id="formatSelector">
         <div class="format-content">
             <h3>选择导出格式</h3>
@@ -209,7 +211,6 @@
         </div>
     </div>
 
-    <!-- 导入预览弹窗 -->
     <div class="import-preview-dialog" id="importPreviewDialog">
         <div class="import-preview-content">
             <div class="import-preview-header"><h3>导入订单预览</h3><button class="close-preview-btn" onclick="closeImportPreview()">&times;</button></div>
@@ -228,7 +229,6 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- 主界面 -->
     <div class="container" id="mainContainer" style="display:none;">
         <div class="main-content">
             <div class="navbar">
@@ -314,11 +314,10 @@
     <div class="confirm-dialog" id="duplicateDialog"><div class="confirm-content"><h3>发现重复录入</h3><p id="duplicateMessage"></p><div class="confirm-buttons"><button class="confirm-btn confirm-yes" onclick="forceSaveRecord()">强制保存</button><button class="confirm-btn confirm-cancel" onclick="hideDuplicateDialog()">修改后再存</button><button class="confirm-btn confirm-no" onclick="hideDuplicateDialog()">取消保存</button></div></div></div>
 
     <script>
-        // 动态加载 Supabase SDK
         (function() {
             const cdns = ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js'];
             let i = 0;
-            function load() { if (i >= cdns.length) { alert('SDK加载失败，请检查网络'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
+            function load() { if (i >= cdns.length) { alert('SDK加载失败'); return; } const s = document.createElement('script'); s.src = cdns[i]; s.onload = initApp; s.onerror = () => { i++; load(); }; document.head.appendChild(s); }
             load();
         })();
 
@@ -430,14 +429,16 @@
                         Object.entries(d.winnings || {}).forEach(([k, v]) => { wins[k] = (wins[k] || 0) + Math.trunc(parseFloat(v || 0)); });
                         if (!latestTimestamp || x.timestamp > latestTimestamp) { latestTimestamp = x.timestamp; latestCategory = x.category; }
                     });
+                    const catClass = getCatClass(latestCategory);
+                    const catLabelClass = catClass.replace('category-', 'cat-');
                     const profitClass = totalProfit >= 0 ? 'profit-positive' : 'profit-negative';
                     let h = `<div class="user-card">
                         <div class="user-name">${name}</div>
                         <div class="user-date">${latestTimestamp}</div>
-                        <span class="user-category">${latestCategory}</span>
+                        <span class="user-category ${catLabelClass}">${latestCategory}</span>
                         <div class="order-total">订单总额：${totalAmount}</div>
-                        <div class="winning-section"><div class="winning-title"><i class="fas fa-trophy"></i> 中奖情况</div>`;
-                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}：</span><span class="winning-amount">${v}</span></div>`);
+                        <div class="winning-section"><div class="winning-title">中奖情况</div>`;
+                    if (Object.keys(wins).length) Object.entries(wins).forEach(([k, v]) => h += `<div class="winning-item"><span>${k}</span><span class="winning-amount">${v}</span></div>`);
                     else h += '<div class="winning-item">无中奖记录</div>';
                     h += `</div><div class="profit-loss ${profitClass}">盈亏：${totalProfit}</div></div>`;
                     return h;
@@ -485,7 +486,6 @@
 
             function getCatClass(cat) { switch (cat) { case '澳门上家': return 'category-macau-up'; case '澳门下家': return 'category-macau-down'; case '粤港上家': return 'category-guangdong-up'; case '粤港下家': return 'category-guangdong-down'; } return ''; }
 
-            // 删除、回收站、批量操作
             window.showDeleteConfirm = id => { document.getElementById('confirmTitle').textContent = '确认删除'; document.getElementById('confirmMessage').textContent = '移至回收站？'; document.getElementById('confirmYesBtn').onclick = async () => { const idx = history.findIndex(x => x.id === id); if (idx === -1) return; const rec = history.splice(idx, 1)[0]; rec.deletedAt = new Date().toISOString(); await saveDB('recycle_bin', rec); await deleteDB('records', id); recycle.unshift(rec); selectedHistoryIds.delete(id); updateAll(); document.getElementById('confirmDialog').classList.remove('show'); toast('已移至回收站', 'warning'); }; document.getElementById('confirmDialog').classList.add('show'); };
             window.hideClearConfirm = () => document.getElementById('confirmDialog').classList.remove('show');
             window.restore = async id => { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) return; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); selectedRecycleIds.delete(id); updateAll(); toast('已恢复', 'success'); };
@@ -501,14 +501,12 @@
             window.batchRestore = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) { const idx = recycle.findIndex(x => x.id === id); if (idx === -1) continue; const rec = recycle.splice(idx, 1)[0]; delete rec.deletedAt; await saveDB('records', rec); await deleteDB('recycle_bin', id); history.unshift(rec); } selectedRecycleIds.clear(); updateAll(); toast('批量恢复', 'success'); };
             window.batchDeletePermanent = async () => { const ids = [...selectedRecycleIds]; for (const id of ids) await deleteDB('recycle_bin', id); recycle = recycle.filter(x => !ids.includes(x.id)); selectedRecycleIds.clear(); updateAll(); toast('批量永久删除', 'error'); };
 
-            // 导出
             window.showFormatSelector = () => document.getElementById('formatSelector').style.display = 'flex';
             window.closeFormatSelector = () => document.getElementById('formatSelector').style.display = 'none';
             window.selectFormat = (el, fmt) => { document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); exportFormat = fmt; };
             window.confirmExport = () => { closeFormatSelector(); exportAllData(); };
             window.exportAllData = () => { if (!history.length) return toast('无数据', 'error'); let blob, name; if (exportFormat === 'json') { blob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' }); name = '数据.json'; } else if (exportFormat === 'csv') { let csv = 'ID,日期,分类,申报人,总额,盈亏\n'; history.forEach(x => csv += `${x.id},${x.timestamp},${x.category},${x.applicant},${x.extractedData?.totalAmount||''},${x.extractedData?.profitLoss||''}\n`); blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); name = '数据.csv'; } else { let txt = ''; history.forEach((x, i) => txt += `=== 订单 #${i+1} ===\n${x.originalData}\n\n`); blob = new Blob([txt], { type: 'text/plain' }); name = '数据.txt'; } const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); toast('导出成功', 'success'); };
 
-            // ========== 导入功能（防重复） ==========
             window.importFile = function(event) {
                 const file = event.target.files[0]; if (!file) return;
                 const reader = new FileReader();
@@ -517,17 +515,17 @@
                     if (file.name.endsWith('.json')) {
                         try {
                             const data = JSON.parse(content);
-                            if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
+                            if (!Array.isArray(data)) { toast('JSON 格式错误', 'error'); return; }
                             const validItems = data.filter(item => item.originalData && item.timestamp && item.applicant);
                             if (validItems.length === 0) { toast('没有有效记录', 'error'); return; }
                             const newRecs = [], dupRecs = [];
                             validItems.forEach(item => { checkDuplicateRecord(item) ? dupRecs.push(item) : newRecs.push(item); });
                             pendingNewRecords = newRecs;
                             showImportPreview(newRecs.length, dupRecs.length, validItems);
-                        } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
+                        } catch (e) { toast('JSON 解析失败', 'error'); }
                     } else {
                         document.getElementById('orderData').value = content;
-                        toast('数据已导入到输入框，请手动保存', 'info');
+                        toast('已导入到输入框', 'info');
                     }
                 };
                 reader.onerror = () => toast('文件读取失败', 'error');
@@ -546,7 +544,7 @@
                     div.innerHTML = `<div><strong>${item.applicant}</strong> - ${item.timestamp} <span class="category-tag">${item.category||'未知'}</span></div><div class="import-item-status ${dup?'status-duplicate':'status-new'}">${dup?'重复':'新记录'}</div>`;
                     list.appendChild(div);
                 });
-                if (validItems.length > 10) { const more = document.createElement('div'); more.className = 'import-item'; more.textContent = `...还有 ${validItems.length - 10} 条记录未显示`; list.appendChild(more); }
+                if (validItems.length > 10) { const more = document.createElement('div'); more.className = 'import-item'; more.textContent = `...还有 ${validItems.length - 10} 条记录`; list.appendChild(more); }
                 document.getElementById('importPreviewDialog').style.display = 'flex';
             }
 
@@ -573,14 +571,14 @@
                     reader.onload = function(ev) {
                         try {
                             const data = JSON.parse(ev.target.result);
-                            if (!Array.isArray(data)) { toast('JSON 格式错误：需要数组', 'error'); return; }
+                            if (!Array.isArray(data)) { toast('JSON 格式错误', 'error'); return; }
                             const validItems = data.filter(item => item.originalData && item.timestamp && item.applicant);
                             if (validItems.length === 0) { toast('没有有效记录', 'error'); return; }
                             const newRecs = [], dupRecs = [];
                             validItems.forEach(item => { checkDuplicateRecord(item) ? dupRecs.push(item) : newRecs.push(item); });
                             pendingNewRecords = newRecs;
                             showImportPreview(newRecs.length, dupRecs.length, validItems);
-                        } catch (e) { toast('JSON 解析失败: ' + e.message, 'error'); }
+                        } catch (e) { toast('JSON 解析失败', 'error'); }
                     };
                     reader.onerror = () => toast('文件读取失败', 'error');
                     reader.readAsText(file);
