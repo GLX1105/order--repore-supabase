@@ -517,7 +517,8 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         </div>
       </div>
     </div>
-    <!-- 风险值卡片 - 确保位于右侧 -->
+
+    <!-- 右侧风险值卡片 -->
     <div class="card risk-card">
       <div class="card-title">风险值</div>
       <div class="summary-row">
@@ -556,7 +557,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
       <button class="close-database-btn" onclick="hideDatabase()">×</button>
     </div>
     <div class="database-modal-body">
-      <!-- 分类数据配置内容将在这里显示 -->
+      <!-- 分类数据配置内容 -->
       <div class="card data-config-card">
         <div class="card-title">
           分类数据配置
@@ -966,13 +967,13 @@ async function calculateStorageUsage() {
   }
 }
 
-// 显示/隐藏数据库模态框（加入密码验证）
+// 显示/隐藏数据库模态框（需要密码）
 function showDatabase() {
-  const pwd = prompt("请输入数据库访问密码：", "");
-  if (pwd === PASSWORD) {
+  const inputPwd = prompt("请输入数据库密码：", "");
+  if (inputPwd === PASSWORD) {
     document.getElementById('databaseModal').style.display = 'flex';
-  } else if (pwd !== null) {
-    alert("密码错误！");
+  } else {
+    alert("密码错误！无法访问数据库。");
   }
 }
 
