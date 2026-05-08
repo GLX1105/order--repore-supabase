@@ -639,64 +639,256 @@ function convertOrderText() {
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;  
   // 金额前缀：支持多种变体
   const AMOUNT_PREFIX = '(?:各|各号|各数|每数|每号|个号|每个号|各码|各号码)';  
-  // 金额后缀：支持多种变体（将被忽略）
-  const AMOUNT_SUFFIX = '[元井#米咪块斤]?';
+  // 金额后缀：支持多种变体（新增“米、元、块、咪、斤、#、，、。、空格”）
+  const AMOUNT_SUFFIX = '[元块咪斤#，。\\s]*';  // 修改为*表示0次或多次
+
+  // 需要忽略的前缀列表
+  const IGNORE_PREFIXES = ['奥特', '特码', '澳门特码', '特', '澳门', '澳門', '澳門特碼', '澳门特码', '澳門特码', '特碼'];
 
   lines.forEach(line => {
     line = line.trim();
     if (!line) return;
 
-    // 统一的解析逻辑：先提取金额，再解析内容
-    const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)${AMOUNT_SUFFIX}$`);
-    const match = line.match(pattern);
-    
-    if (match) {
-      let content = match[1].trim();
-      const amount = match[2];
-      
-      // 判断内容是数字还是中文
-      const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
-      
-      if (isNumber) {
-        // 数字内容：按分隔符切割
-        const numbers = content.split(SEPARATORS).filter(item => item);
-        const processedNumbers = numbers.map(n => {
-          n = n.trim();
-          return n.length === 1 ? `0${n}` : n;
-        }).join('-');
-        
-        resultLines.push(`澳门·特码${processedNumbers} 各数 ${amount}`);
-      } else {
-        // 中文内容：可能是单个分类名称或多个生肖
-        // 尝试按分隔符分割
-        const items = content.split(SEPARATORS).filter(item => item);
-        
-        if (items.length > 1) {
-          // 多个项目：可能是多个生肖
-          const processedItems = items.join('');
-          resultLines.push(`澳门·特码${processedItems} 各数 ${amount}`);
-        } else {
-          // 单个项目：可能是分类名称（如"家禽"）或单个生肖
-          resultLines.push(`澳门·特码${content} 各数 ${amount}`);
-        }
+    // 忽略指定的前缀
+    let cleanedLine = line;
+    for (const prefix of IGNORE_PREFIXES) {
+      if (cleanedLine.startsWith(prefix)) {
+        cleanedLine = cleanedLine.substring(prefix.length).trim();
       }
-      return;
     }
 
-    // 兼容旧格式：单个号码
-    const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)${AMOUNT_SUFFIX}`);
-    const singleMatch = line.match(singlePattern);
-    if (singleMatch) {
-      let number = singleMatch[1].trim();
-      const num = singleMatch[2];
-      number = number.length === 1 ? `0${number}` : number;
-      resultLines.push(`澳门·特码${number} 各数 ${num}`);
+    // 关键修复：先找出所有的“金额前缀+数字+金额后缀”组合
+    const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g');
+    const orderMatches = cleanedLine.match(orderPattern);
+    
+    if (orderMatches && orderMatches.length > 0) {
+      // 找到了订单组合，现在拆分
+      let remainingLine = cleanedLine;
+      
+      orderMatches.forEach(orderMatch => {
+        // 从剩余字符串中移除这个订单组合
+        const orderIndex = remainingLine.indexOf(orderMatch);
+        if (orderIndex !== -1) {
+          // 提取订单组合前面的内容作为号码/内容
+          const content = remainingLine.substring(0, orderIndex).trim();
+          // 提取订单组合本身
+          const orderPart = orderMatch;
+          
+          // 从订单组合中提取金额
+          const amountMatch = orderPart.match(/(\d+)/);
+          if (amountMatch) {
+            const amount = amountMatch[1];
+            
+            // 处理内容部分
+            if (content) {
+              // 判断内容是数字还是中文
+              const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
+              
+              if (isNumber) {
+                // 数字内容：按分隔符切割
+                const numbers = content.split(SEPARATORS).filter(item => item);
+                const processedNumbers = numbers.map(n => {
+                  n = n.trim();
+                  // 验证数字是否在1-49范围内
+                  const num = parseInt(n);
+                  if (num >= 1 && num <= 49) {
+                    return n.length === 1 ? `0${n}` : n;
+                  }
+                  return null; // 无效数字
+                }).filter(n => n !== null);
+                
+                if (processedNumbers.length > 0) {
+                  // 去除"澳门·特码"前缀，只显示内容
+                  resultLines.push(`${processedNumbers.join('-')} 各数 ${amount}`);
+                }
+              } else {
+                // 中文内容：可能是单个分类名称或多个生肖
+                const items = content.split(SEPARATORS).filter(item => item);
+                
+                // 验证每个项目是否在有效分类中
+                const configData = getAllConfigData();
+                const validCategories = getAllValidCategories(configData);
+                const validItems = items.filter(item => {
+                  // 检查是否是单个有效分类
+                  if (validCategories.has(item)) return true;
+                  
+                  // 检查是否是多个生肖连在一起
+                  if (item.length > 1 && /^[\u4e00-\u9fa5]+$/.test(item)) {
+                    const zodiacs = item.match(/[\u4e00-\u9fa5]/g) || [];
+                    return zodiacs.every(z => validCategories.has(z));
+                  }
+                  return false;
+                });
+                
+                if (validItems.length > 0) {
+                  const processedItems = validItems.join('');
+                  // 去除"澳门·特码"前缀，只显示内容
+                  resultLines.push(`${processedItems} 各数 ${amount}`);
+                }
+              }
+            }
+            
+            // 更新剩余字符串，移除已处理的部分
+            remainingLine = remainingLine.substring(orderIndex + orderMatch.length);
+          }
+        }
+      });
+      
+      // 如果剩余字符串还有内容，可能是没有金额前缀的部分
+      if (remainingLine.trim()) {
+        // 尝试作为纯内容处理
+        const remaining = remainingLine.trim();
+        if (remaining) {
+          // 验证剩余内容
+          const configData = getAllConfigData();
+          const validCategories = getAllValidCategories(configData);
+          const items = remaining.split(SEPARATORS).filter(item => item);
+          const validItems = items.filter(item => validCategories.has(item));
+          if (validItems.length > 0) {
+            // 去除"澳门·特码"前缀，只显示内容
+            resultLines.push(`${validItems.join('')} 各数 0`);
+          }
+        }
+      }
+    } else {
+      // 没有找到订单组合，按原来的逻辑处理
+      const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`);
+      const match = cleanedLine.match(pattern);
+      
+      if (match) {
+        let content = match[1].trim();
+        const amount = match[2];
+        
+        // 判断内容是数字还是中文
+        const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
+        
+        if (isNumber) {
+          // 数字内容：按分隔符切割
+          const numbers = content.split(SEPARATORS).filter(item => item);
+          const processedNumbers = numbers.map(n => {
+            n = n.trim();
+            const num = parseInt(n);
+            if (num >= 1 && num <= 49) {
+              return n.length === 1 ? `0${n}` : n;
+            }
+            return null;
+          }).filter(n => n !== null);
+          
+          if (processedNumbers.length > 0) {
+            // 去除"澳门·特码"前缀，只显示内容
+            resultLines.push(`${processedNumbers.join('-')} 各数 ${amount}`);
+          }
+        } else {
+          // 中文内容：可能是单个分类名称或多个生肖
+          const items = content.split(SEPARATORS).filter(item => item);
+          
+          // 验证每个项目是否在有效分类中
+          const configData = getAllConfigData();
+          const validCategories = getAllValidCategories(configData);
+          const validItems = items.filter(item => {
+            if (validCategories.has(item)) return true;
+            if (item.length > 1 && /^[\u4e00-\u9fa5]+$/.test(item)) {
+              const zodiacs = item.match(/[\u4e00-\u9fa5]/g) || [];
+              return zodiacs.every(z => validCategories.has(z));
+            }
+            return false;
+          });
+          
+          if (validItems.length > 0) {
+            const processedItems = validItems.join('');
+            // 去除"澳门·特码"前缀，只显示内容
+            resultLines.push(`${processedItems} 各数 ${amount}`);
+          }
+        }
+      } else {
+        // 兼容旧格式：单个号码
+        const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`);
+        const singleMatch = cleanedLine.match(singlePattern);
+        if (singleMatch) {
+          let number = singleMatch[1].trim();
+          const num = singleMatch[2];
+          const numInt = parseInt(number);
+          if (numInt >= 1 && numInt <= 49) {
+            number = number.length === 1 ? `0${number}` : number;
+            // 去除"澳门·特码"前缀，只显示内容
+            resultLines.push(`${number} 各数 ${num}`);
+          }
+        } else {
+          // 纯内容，没有金额，验证是否为有效分类
+          const configData = getAllConfigData();
+          const validCategories = getAllValidCategories(configData);
+          const items = cleanedLine.split(SEPARATORS).filter(item => item);
+          const validItems = items.filter(item => validCategories.has(item));
+          if (validItems.length > 0) {
+            // 去除"澳门·特码"前缀，只显示内容
+            resultLines.push(`${validItems.join('')} 各数 0`);
+          }
+        }
+      }
     }
   });
 
   // 去重并输出结果
   const uniqueResult = [...new Set(resultLines)];
   document.getElementById('orderResult').value = uniqueResult.join('\n');
+}
+
+// 获取所有有效分类（用于验证）
+function getAllValidCategories(configData) {
+  const validCategories = new Set();
+  
+  // 十二生肖
+  Object.keys(configData.zodiac).forEach(key => validCategories.add(key));
+  
+  // 生肖属性
+  Object.keys(configData.shengxiaoAttr).forEach(key => validCategories.add(key));
+  
+  // 五行
+  Object.keys(configData.wuxing).forEach(key => validCategories.add(key));
+  
+  // 波色
+  Object.keys(configData.bose).forEach(key => validCategories.add(key));
+  
+  // 半波
+  Object.keys(configData.banbo).forEach(key => validCategories.add(key));
+  
+  // 单双属性
+  Object.keys(configData.danshuang).forEach(key => validCategories.add(key));
+  
+  // 尾数属性
+  Object.keys(configData.weishu).forEach(key => validCategories.add(key));
+  
+  // 大小单双
+  Object.keys(configData.daxiaodanshuang).forEach(key => validCategories.add(key));
+  
+  // 大小配置
+  Object.keys(configData.daxiao).forEach(key => validCategories.add(key));
+  
+  // 合数配置
+  Object.keys(configData.heshu).forEach(key => validCategories.add(key));
+  
+  // 头数配置
+  Object.keys(configData.toushu).forEach(key => validCategories.add(key));
+  
+  // 门数配置
+  Object.keys(configData.menshu).forEach(key => validCategories.add(key));
+  
+  // 段位配置
+  Object.keys(configData.duanwei).forEach(key => validCategories.add(key));
+  
+  // 合大合小
+  Object.keys(configData.hedahexiao).forEach(key => validCategories.add(key));
+  
+  // 尾大尾小
+  Object.keys(configData.weidaweixiao).forEach(key => validCategories.add(key));
+  
+  // 合尾配置
+  Object.keys(configData.hewei).forEach(key => validCategories.add(key));
+  
+  // 合数单双
+  Object.keys(configData.heshudanshuang).forEach(key => validCategories.add(key));
+  
+  return validCategories;
 }
 
 // ========== 修复后的保存下单函数 ==========
@@ -706,13 +898,24 @@ function saveOrder(){
     input = document.querySelector('.source-order-input').value.trim();
   }
   
-  if(!input){alert('请先输入订单内容！');return;}
+  if(!input){return;} // 没有内容就不保存
   
+  // 直接保存订单记录，不需要确认
   saveOrderRecord(input);
   
-  const lines = input.split('\n').filter(line => line.trim());
+  // 直接处理当前订单，叠加到下注数据中
+  processCurrentOrder(input);
   
-  // 获取所有配置数据
+  // 清空订单输入框和识别结果框
+  document.querySelector('.source-order-input').value = '';
+  document.getElementById('orderResult').value = '';
+  
+  // 不弹出提示框
+}
+
+// 处理当前订单，叠加到下注数据中
+function processCurrentOrder(input) {
+  const lines = input.split('\n').filter(line => line.trim());
   const configData = getAllConfigData();
   
   // 收集所有分类键（用于判断是否是分类名称）
@@ -739,7 +942,8 @@ function saveOrder(){
     line = line.trim();
     if (!line) return;
     
-    const pattern = /澳门·特码([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
+    // 匹配订单内容（不带前缀）
+    const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
     const match = line.match(pattern);
     
     if (match) {
@@ -846,12 +1050,155 @@ function saveOrder(){
   });
   
   generateTable();
+}
+
+// 根据订单记录重新计算表格数据（用于删除订单时）
+function updateTableFromRecords() {
+  // 清空当前下注数据
+  tableBetData = {};
   
-  // 清空订单输入框和识别结果框
-  document.querySelector('.source-order-input').value = '';
-  document.getElementById('orderResult').value = '';
+  // 获取所有订单记录
+  const records = getOrderRecords();
   
-  alert('已保存到表格和订单记录！');
+  // 获取配置数据
+  const configData = getAllConfigData();
+  
+  // 收集所有分类键（用于判断是否是分类名称）
+  const categoryKeys = new Set([
+    ...Object.keys(configData.shengxiaoAttr), // 家禽、野兽
+    ...Object.keys(configData.wuxing), // 金、木、水、火、土
+    ...Object.keys(configData.bose), // 红波、蓝波、绿波
+    ...Object.keys(configData.banbo), // 红双、红单、蓝双、蓝单、绿双、绿单
+    ...Object.keys(configData.danshuang), // 单数、双数
+    ...Object.keys(configData.weishu), // 0尾-9尾
+    ...Object.keys(configData.daxiaodanshuang), // 大单、大双、小单、小双
+    ...Object.keys(configData.daxiao), // 小、大
+    ...Object.keys(configData.heshu), // 01合-13合
+    ...Object.keys(configData.toushu), // 0头-4头
+    ...Object.keys(configData.menshu), // 1门-5门
+    ...Object.keys(configData.duanwei), // 1段-7段
+    ...Object.keys(configData.hedahexiao), // 合小、合大
+    ...Object.keys(configData.weidaweixiao), // 尾小、尾大
+    ...Object.keys(configData.hewei), // 0合尾-9合尾
+    ...Object.keys(configData.heshudanshuang) // 合数单、合数双
+  ]);
+  
+  // 处理每个订单记录
+  records.forEach(record => {
+    const lines = record.content.split('\n').filter(line => line.trim());
+    
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line) return;
+      
+      const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
+      const match = line.match(pattern);
+      
+      if (match) {
+        let content = match[1];
+        let amount = parseInt(match[2]) || 0;
+        
+        // 判断是数字组合还是中文内容
+        const isNumberCombination = /^[\d\-]+$/.test(content);
+        
+        let items = [];
+        if (isNumberCombination) {
+          // 数字组合：按 "-" 拆分
+          items = content.split('-').map(item => item.trim()).filter(item => item);
+        } else {
+          // 中文内容：判断是分类名称还是多个生肖连在一起
+          if (categoryKeys.has(content)) {
+            // 是分类名称（比如"家禽""红波""金"）
+            items = [content];
+          } else {
+            // 是多个生肖连在一起（比如"鼠牛虎"），拆成单个汉字
+            items = content.match(/[\u4e00-\u9fa5]/g) || [];
+          }
+        }
+        
+        items.forEach(item => {
+          // 1. 检查是否是生肖属性配置（家禽/野兽）
+          if (item === '家禽' || item === '野兽') {
+            processShengxiaoAttribute(item, amount, configData);
+          }
+          // 2. 检查是否是十二生肖配置
+          else if (configData.zodiac[item]) {
+            processZodiac(item, amount, configData);
+          }
+          // 3. 检查是否是五行配置
+          else if (configData.wuxing[item]) {
+            processWuxing(item, amount, configData);
+          }
+          // 4. 检查是否是波色配置
+          else if (configData.bose[item]) {
+            processBose(item, amount, configData);
+          }
+          // 5. 检查是否是半波配置
+          else if (configData.banbo[item]) {
+            processBanbo(item, amount, configData);
+          }
+          // 6. 检查是否是单双属性配置
+          else if (configData.danshuang[item]) {
+            processDanshuang(item, amount, configData);
+          }
+          // 7. 检查是否是尾数属性配置
+          else if (configData.weishu[item]) {
+            processWeishu(item, amount, configData);
+          }
+          // 8. 检查是否是大小单双配置
+          else if (configData.daxiaodanshuang[item]) {
+            processDaxiaodanshuang(item, amount, configData);
+          }
+          // 9. 检查是否是大小配置
+          else if (configData.daxiao[item]) {
+            processDaxiao(item, amount, configData);
+          }
+          // 10. 检查是否是合数配置
+          else if (configData.heshu[item]) {
+            processHeshu(item, amount, configData);
+          }
+          // 11. 检查是否是头数配置
+          else if (configData.toushu[item]) {
+            processToushu(item, amount, configData);
+          }
+          // 12. 检查是否是门数配置
+          else if (configData.menshu[item]) {
+            processMenshu(item, amount, configData);
+          }
+          // 13. 检查是否是段位配置
+          else if (configData.duanwei[item]) {
+            processDuanwei(item, amount, configData);
+          }
+          // 14. 检查是否是合大合小配置
+          else if (configData.hedahexiao[item]) {
+            processHedaHexiao(item, amount, configData);
+          }
+          // 15. 检查是否是尾大尾小配置
+          else if (configData.weidaweixiao[item]) {
+            processWeidaWeixiao(item, amount, configData);
+          }
+          // 16. 检查是否是合尾配置
+          else if (configData.hewei[item]) {
+            processHewei(item, amount, configData);
+          }
+          // 17. 检查是否是合数单双配置
+          else if (configData.heshudanshuang[item]) {
+            processHeshuDanshuang(item, amount, configData);
+          }
+          // 18. 检查是否是数字号码
+          else if (/^\d+$/.test(item)) {
+            const num = item.padStart(2, '0');
+            if (tableBetData[num] === undefined) {
+              tableBetData[num] = 0;
+            }
+            tableBetData[num] += amount;
+          }
+        });
+      }
+    });
+  });
+  
+  generateTable();
 }
 
 // 获取所有配置数据
@@ -1236,8 +1583,28 @@ function processHeshuDanshuang(hsds, amount, configData) {
 // 订单记录相关函数
 function getOrderRecords(){return JSON.parse(localStorage.getItem('orderRecords')||'[]');}
 function saveOrderRecord(content){const list=getOrderRecords();list.push({id:Date.now(),content});localStorage.setItem('orderRecords',JSON.stringify(list));}
-function deleteOrderRecord(id){let list=getOrderRecords();list=list.filter(i=>i.id!=id);localStorage.setItem('orderRecords',JSON.stringify(list));showOrderRecord();}
-function batchDeleteOrderRecord(ids){let list=getOrderRecords();list=list.filter(i=>!ids.includes(i.id));localStorage.setItem('orderRecords',JSON.stringify(list));showOrderRecord();}
+function deleteOrderRecord(id){
+  // 删除订单记录时需要确认
+  if(!confirm('确定要删除这条订单记录吗？')) return;
+  
+  let list=getOrderRecords();
+  list=list.filter(i=>i.id!=id);
+  localStorage.setItem('orderRecords',JSON.stringify(list));
+  
+  // 更新表格
+  updateTableFromRecords();
+}
+function batchDeleteOrderRecord(ids){
+  // 批量删除订单记录时需要确认
+  if(!confirm('确定要删除选中的订单记录吗？')) return;
+  
+  let list=getOrderRecords();
+  list=list.filter(i=>!ids.includes(i.id));
+  localStorage.setItem('orderRecords',JSON.stringify(list));
+  
+  // 更新表格
+  updateTableFromRecords();
+}
 
 function showOrderRecord(){
   const records=getOrderRecords();
@@ -1255,7 +1622,7 @@ function uncheckAll(){document.querySelectorAll('.order-check').forEach(cb=>cb.c
 function deleteChecked(){
   const ids=[];document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
   if(ids.length===0){alert('请先选择要删除的订单');return;}
-  if(!confirm('确定删除选中的订单？'))return;batchDeleteOrderRecord(ids);
+  batchDeleteOrderRecord(ids);
 }
 
 // 清空所有输入
