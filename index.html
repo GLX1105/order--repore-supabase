@@ -3,275 +3,287 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>港澳识别系统</title>
+<title>港澳识别系统 - 手机版</title>
 <style>
-* {
-  margin:0; padding:0;
-  box-sizing:border-box;
-  font-family:"Microsoft YaHei", sans-serif;
+* {margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
+body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;}
+
+/* ================= 手机端适配 START ================= */
+@media screen and (max-width: 768px) {
+    /* 1. 整体容器调整 - 关键修复：移除sticky定位造成的遮挡 */
+    .container {
+        flex-direction: column !important; /* 上下排列 */
+        padding:10px !important;
+        gap:10px !important;
+    }
+    
+    /* 2. 左侧识别区 */
+    .recognize-wrap {
+        width:100% !important;
+        order: 1; /* 确保它在前面 */
+    }
+    
+    /* 3. 右侧风险值卡片 - 关键修复：移除sticky定位 */
+    .risk-card {
+        width:100% !important;
+        position: relative !important; /* 改为相对定位，不再固定 */
+        top: auto !important; /* 清除top值 */
+        flex: none !important; /* 不伸缩 */
+        order: 2; /* 放在识别区后面 */
+        margin-top: 0 !important; /* 清除可能的上边距 */
+    }
+    
+    /* 4. 顶部信息卡片布局 */
+    .summary-row {
+        display: flex !important;
+        flex-wrap: wrap !important; /* 允许换行 */
+        justify-content: space-between !important;
+        gap:5px !important;
+    }
+    .summary-item {
+        width: 48% !important; /* 每行放两个 */
+        margin-bottom:0 !important;
+        font-size: 12px !important;
+        padding:6px 8px !important;
+    }
+    .summary-item label {
+        display: block !important;
+        text-align: left !important;
+        margin-bottom: 2px !important;
+    }
+    
+    /* 5. 输入区域调整 */
+    .order-input-container {
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 300px !important;
+    }
+    .input-column, .result-column {
+        width:100% !important;
+    }
+    .result-column {
+        border-top:1px solid #ddd !important;
+    }
+    .source-order-input {
+        height:150px !important;
+    }
+    .result-content {
+        height:150px !important;
+    }
+    
+    /* 6. 按钮组 */
+    .btn-group {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
+        gap:4px !important;
+    }
+    .category-btn {
+        padding:4px 2px !important;
+        font-size:11px !important;
+        min-height:30px !important;
+    }
+    
+    /* 7. 【核心修复】表格横向滚动 */
+    .table-container {
+        overflow-x: auto !important; /* 开启横向滚动 */
+        -webkit-overflow-scrolling: touch !important; /* 滑动更顺滑 */
+        margin-left: -10px !important; /* 补偿边距 */
+        margin-right: -10px !important;
+        padding:0 10px !important;
+    }
+    
+    #dataTable {
+        min-width: 500px !important; /* 设定表格最小宽度，防止被压扁 */
+        width:100% !important;
+    }
+    
+    /* 8. 锁定表头列宽 */
+    #dataTable th, #dataTable td {
+        padding:8px 4px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important; /* 禁止文字换行 */
+    }
+    
+    /* 具体列宽分配 */
+    #dataTable th:nth-child(1), #dataTable td:nth-child(1) { width: 70px !important; } /* 号码列 */
+    #dataTable th:nth-child(2), #dataTable td:nth-child(2) { width: 80px !important; text-align: right !important; } /* 下注列 */
+    #dataTable th:nth-child(3), #dataTable td:nth-child(3) { width: 80px !important; text-align: right !important; } /* 风险列 */
+    #dataTable th:nth-child(4), #dataTable td:nth-child(4) { width: 60px !important; text-align: center !important; } /* ID列 */
+    
+    /* 9. 配置区调整 */
+    .data-config-card {
+        padding:8px !important;
+        order: 3; /* 放在风险值卡片后面 */
+    }
+    .config-section-title {
+        font-size:12px !important;
+    }
+    .config-label {
+        width:40px !important;
+        font-size:11px !important;
+    }
+    .config-input {
+        height:20px !important;
+        font-size:11px !important;
+    }
+    
+    /* 10. 额外输入组 */
+    .extra-input-group {
+        flex-direction:column !important;
+        gap:6px !important;
+    }
+    .extra-long-input, .extra-short-input {
+        width:100% !important;
+    }
+    
+    /* 11. 导航栏 */
+    .navbar {
+        padding:8px 10px !important;
+    }
+    .navbar-title {
+        font-size:16px !important;
+    }
+    .btn {
+        padding:6px 8px !important;
+        font-size:12px !important;
+        min-height:32px !important;
+    }
+    
+    /* 12. 模态框 */
+    .modal-box {
+        width:95% !important;
+        max-height:85vh !important;
+    }
+    .modal-header {
+        padding:8px 10px !important;
+    }
+    .modal-body {
+        padding:8px !important;
+    }
+    .order-item {
+        padding:6px !important;
+        flex-wrap:wrap !important;
+    }
+    .order-content {
+        font-size:12px !important;
+    }
 }
-body {
-  background:#f5f7fa;
-  font-size:16px;
-  line-height:1.4;
+/* ================= 手机端适配 END ================= */
+
+.navbar {background:#1a1a2e;padding:10px 15px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.navbar-title {color:white;font-size:20px;font-weight:bold;}
+.navbar-actions {display:flex;gap:8px;}
+.container {width:100%;max-width:1400px;margin:0 auto;padding:10px;display:flex;flex-direction:row;gap:15px;align-items:flex-start;}
+.recognize-wrap {flex:1;min-width:0;display:flex;flex-direction:column;gap:15px;}
+.risk-card {flex:0 0 420px;position:sticky;top:10px;}
+
+.card {background:#fff;border:1px solid #ddd;border-radius:6px;padding:15px;box-shadow:0 1px 5px rgba(0,0,0,0.08);}
+.card-title {font-size:16px;font-weight:bold;color:#333;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+.summary-row {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;font-weight:bold;color:#222;gap:6px;flex-wrap:wrap;}
+.summary-item {padding:5px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #eee,display:flex;align-items:center;gap:5px;}
+#rebateRate,#multipleVal {width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;text-align:center;font-size:12px;}
+.btn {padding:8px 12px;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:bold;min-height:36px;transition:all 0.25s ease;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.btn:hover {transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
+.btn:active {transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,0.1);}
+.btn-recognize {background:#3498db;color:white;}
+.btn-recognize:hover {background:#2980b9;}
+.btn-save-order {background:#f39c12;color:white;}
+.btn-save-order:hover {background:#e67e22;}
+.btn-clear,.btn-cancel {background:#95a5a6;color:white;}
+.btn-clear:hover,.btn-cancel:hover {background:#7f8c8d;}
+.btn-reset {background:#e74c3c;color:white;}
+.btn-reset:hover {background:#c0392b;}
+
+.recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;}
+.recognize-card .btn-group .btn {flex:1;}
+.btn-group {margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+@media (min-width:500px) {.btn-group {flex-direction:row;flex-wrap:wrap;gap:6px;}}
+
+.category-card .btn-group {margin-top:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px;}
+.category-btn {padding:6px 4px;border:none;border-radius:4px;cursor:pointer;font-size:12px;min-height:34px;transition:all 0.25s ease;text-align:center;background:#e9ecef;color:#333;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.category-btn:hover {background:#dee2e6;transform:translateY(-2px);box-shadow:0 3px 6px rgba(0,0,0,0.12);}
+.category-btn:active {transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+.category-btn.active {background:#e74c3c!important;color:#fff!important;}
+
+.data-config-card {padding:10px!important;}
+.config-section {margin-bottom:8px;}
+.config-section-title {font-size:13px;margin-bottom:5px;padding-left:4px;}
+.config-item {display:flex;align-items:center;margin-bottom:2px;padding:2px 0;border:none;}
+.config-label {width:50px;font-size:12px;font-weight:bold;text-align:right;padding-right:4px;}
+.config-label.long-label {width:70px;}
+.config-colon {width:6px;font-size:12px;}
+.config-input {flex:1;height:22px;padding:2px 5px;font-size:12px;border:1px solid #ccc;border-radius:3px;}
+.data-config-actions {margin-top:8px;display:flex;justify-content:flex-end;gap:5px;}
+.config-btn {padding:5px 10px;font-size:12px;border-radius:3px;cursor:pointer;transition:all 0.25s ease;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.config-btn:hover {transform:translateY(-2px);box-shadow:0 3px 6px rgba(0,0,0,0.12);}
+.config-btn:active {transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
 }
 
-.navbar {
-  background:#1a1a2e;
-  padding:12px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.2);
-}
-.navbar-title {
-  color:white;
-  font-size:clamp(18px, 4vw, 22px);
-  font-weight:bold;
-}
-.navbar-actions {
-  display:flex;
-  gap:10px;
-}
+table {width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+th,td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
+th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
+.red-text {color:#ff0000!important;font-weight:bold;}
+.blue-text {color:#0000ff!important;font-weight:bold;}
+.green-text {color:#008000!important;font-weight:bold;}
 
-.container {
-  width:100%;
-  max-width:1400px;
-  margin:0 auto;
-  padding:15px;
+.modal-overlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;}
+.modal-box {background:#fff;width:90%;max-width:700px;border-radius:8px;overflow:hidden;max-height:80vh;display:flex;flex-direction:column;}
+.modal-header {padding:10px 12px;background:#1a1a2e;color:#fff;display:flex;justify-content:space-between;align-items:center;}
+.modal-body {padding:12px;overflow-y:auto;}
+.modal-footer {padding:8px 12px;background:#f5f7fa;display:flex;gap:8px;justify-content:flex-end;}
+.order-item {padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.order-item input {width:16px;height:16px;}
+.order-content {flex:1;font-size:13px;white-space:pre-wrap;}
+.order-del {padding:5px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;cursor:pointer;}
+
+.extra-input-group {margin-top:12px;display:flex;gap:8px;align-items:center;}
+.extra-long-input {flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;}
+.extra-short-input {width:70px;padding:6px 6px;border:1px solid #ddd;border-radius:4px;font-size:13px;text-align:center;}
+
+/* 订单输入框样式 */
+.order-input-container {
+  display: flex;
+  width: 100%;
+  height: 280px;
+  border: 1px solid #ddd;
 }
-.row {
+.input-column, .result-column {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
-@media (min-width:1024px) {
-  .row {
-    flex-direction: row;
-    align-items:flex-start;
-  }
-  .recognize-wrap {
-    flex: 0 0 55%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  .risk-card {
-    flex: 0 0 42%;
-  }
-}
-
-.card {
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:clamp(16px, 3vw, 22px);
-  margin-bottom:0;
-  box-shadow:0 1px 5px rgba(0,0,0,0.08);
-}
-.card-title {
-  font-size:clamp(16px, 3.5vw, 18px);
-  font-weight:bold;
-  color:#333;
-  margin-bottom:15px;
-  padding-bottom:8px;
-  border-bottom:2px solid #f0f0f0;
-  display: flex;
-  justify-content: space-between;
-  align-items:center;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: clamp(14px, 3vw, 16px);
-  font-weight: bold;
-  color: #222;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.summary-item {
-  padding: 6px 10px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #eee;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-#rebateRate, #multipleVal {
-  width: 60px;
-  padding: 4px 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 14px;
-}
-
-#recognizeInput {
-  width:100%;
-  padding:10px 12px;
-  border:1px solid #ddd;
-  border-radius:6px;
-  font-size:clamp(14px, 3vw, 16px);
-  min-height:140px;
-  resize:vertical;
-}
-.result-area {
-  margin-top:15px;
-}
-.result-title {
-  font-size:clamp(14px, 3.2vw, 16px);
-  font-weight:bold;
-  color:#333;
-  margin-bottom:10px;
-}
-#recognizeResult {
-  width:100%;
-  padding:10px;
-  border:1px solid #ddd;
-  border-radius:6px;
-  font-size:clamp(13px, 2.8vw, 14px);
-  min-height:120px;
-  background:#f9f9f9;
-  white-space:pre-wrap;
-}
-
-.btn-group {
-  margin-top:15px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-@media (min-width:500px) {
-  .btn-group {
-    flex-direction:row;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-}
-
-.category-card .btn-group {
-  margin-top: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 8px;
-}
-.category-btn {
-  padding: 8px 6px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:clamp(12px, 2.5vw, 14px);
-  font-weight:normal;
-  min-height: 38px;
-  transition:all 0.2s;
-  text-align:center;
-  background: #e9ecef;
-  color: #333;
-}
-.category-btn:hover {
-  background: #dee2e6;
-  transform: translateY(-1px);
-}
-
-.data-config-card {
-  padding: 12px !important;
-}
-.data-config-card .config-section {
-  margin-bottom: 10px;
-}
-.data-config-card .config-section-title {
-  font-size: 14px;
-  margin-bottom: 6px;
-  padding-left: 4px;
-}
-.data-config-card .config-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 2px;
-  padding: 2px 0;
-  border: none;
-}
-.data-config-card .config-label {
-  width: 60px;
-  font-size: 13px;
-  font-weight:bold;
-  text-align:right;
-  padding-right:4px;
-}
-.data-config-card .config-label.long-label {
-  width: 80px;
-}
-.data-config-card .config-colon {
-  width: 8px;
-  font-size: 13px;
-}
-.data-config-card .config-input {
-  flex: 1;
-  height: 24px;
-  padding: 2px 6px;
+.box-label {
   font-size: 12px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+  color: #666;
+  padding: 3px 8px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
 }
-.data-config-actions {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-}
-.config-btn {
-  padding: 6px 12px;
+.source-order-input {
+  flex: 1;
+  border: none;
+  border-right: 1px solid #ddd;
+  padding: 8px;
+  resize: none;
   font-size: 13px;
-  border-radius:4px;
-  cursor:pointer;
+  outline: none;
 }
-
-.btn {
-  padding:10px 14px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:clamp(14px, 3vw, 15px);
-  font-weight:bold;
-  min-height:44px;
-  transition:background 0.3s;
-  text-align:center;
+.result-area-new {
+  flex: 1;
 }
-.btn-recognize { background:#3498db; color:white; }
-.btn-recognize:hover { background:#2980b9; }
-.btn-save-order { background:#f39c12; color:white; }
-.btn-save-order:hover { background:#e67e22; }
-.btn-clear, .btn-cancel { background:#95a5a6; color:white; }
-.btn-clear:hover, .btn-cancel:hover { background:#7f8c8d; }
-.btn-reset { background:#e74c3c; color:white; }
-.btn-reset:hover { background:#c0392b; }
-
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-  font-size:clamp(12px, 2.5vw, 14px);
+.result-content {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 8px;
+  resize: none;
+  font-size: 13px;
+  outline: none;
 }
-th, td {
-  border:1px solid #ddd;
-  padding:6px 8px;
-  text-align:center;
-  white-space:nowrap;
-}
-th {
-  background:#f0f0f0;
-  font-weight:bold;
-  color:#1a1a2e;
-}
-.red-text { color:#ff0000 !important; font-weight:bold; }
-.blue-text { color:#0000ff !important; font-weight:bold; }
-.green-text { color:#008000 !important; font-weight:bold; }
-
-.table-actions { display:none; }
 </style>
 </head>
 <body>
@@ -279,115 +291,90 @@ th {
 <div class="navbar">
   <div class="navbar-title">港澳识别系统</div>
   <div class="navbar-actions">
-    <button class="btn btn-reset" onclick="resetTable()">清空数据</button>
+    <button class="btn btn-reset" onclick="resetTable()">清空</button>
+    <button class="btn btn-save-order" onclick="showOrderRecord()">记录</button>
   </div>
 </div>
 
 <div class="container">
-  <div class="row">
-    <div class="recognize-wrap">
+  <div class="recognize-wrap">
+      <!-- 订单输入卡片 -->
       <div class="card recognize-card">
-        <div class="card-title">识别</div>
-        <textarea id="recognizeInput" placeholder="输入示例：
-02.08.12.24.40.46.04.10.14.20.26.42.06.16.22.32.44.27各31，13.19.23.29.35.45.18.30各20
-07 09 19 29 31 41 45 03各10
-鼠各5，牛各8"></textarea>
-
-        <div class="result-area">
-          <div class="result-title">识别的结果：</div>
-          <div id="recognizeResult"></div>
+        <div class="card-title">订单输入</div>
+        <div class="order-input-container">
+          <!-- 左侧：订单输入框 -->
+          <div class="input-column">
+            <div class="box-label">订单输入框</div>
+            <textarea class="source-order-input" placeholder="输入订单，如：鼠+牛+虎各号15" oninput="convertOrderText()"></textarea>
+          </div>
+          <!-- 右侧：识别结果框 -->
+          <div class="result-column">
+            <div class="box-label">识别结果</div>
+            <div class="result-area-new">
+              <textarea class="result-content" id="orderResult" readonly></textarea>
+            </div>
+          </div>
         </div>
-
-        <div class="btn-group">
-          <button class="btn btn-recognize" onclick="pasteAndRecognize()">粘贴并识别</button>
+        
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-save-order" onclick="saveOrder()">保存下单</button>
-          <button class="btn btn-recognize" onclick="reRecognize()">重新识别</button>
-          <button class="btn btn-clear" onclick="clearRecognize()">清空</button>
-          <button class="btn btn-cancel" onclick="cancelRecognize()">撤销</button>
+          <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
+          <button class="btn btn-cancel" onclick="cancelLastInput()">撤销</button>
         </div>
       </div>
 
       <div class="card category-card">
         <div class="card-title">分类快捷选择</div>
         <div class="btn-group">
-          <button class="category-btn">头0</button>
-          <button class="category-btn">头1</button>
-          <button class="category-btn">头2</button>
-          <button class="category-btn">头3</button>
-          <button class="category-btn">头4</button>
-          <button class="category-btn">尾1</button>
-          <button class="category-btn">尾2</button>
-          <button class="category-btn">尾3</button>
-          <button class="category-btn">尾4</button>
-          <button class="category-btn">尾5</button>
-          <button class="category-btn">尾6</button>
-          <button class="category-btn">尾7</button>
-          <button class="category-btn">尾8</button>
-          <button class="category-btn">尾9</button>
-          <button class="category-btn">尾0</button>
-          <button class="category-btn">马F1</button>
-          <button class="category-btn">蛇F2</button>
-          <button class="category-btn">龙F3</button>
-          <button class="category-btn">兔F4</button>
-          <button class="category-btn">虎F5</button>
-          <button class="category-btn">牛F6</button>
-          <button class="category-btn">鼠F7</button>
-          <button class="category-btn">猪F8</button>
-          <button class="category-btn">狗F9</button>
-          <button class="category-btn">鸡F10</button>
-          <button class="category-btn">猴F11</button>
-          <button class="category-btn">羊F12</button>
-          <button class="category-btn">红</button>
-          <button class="category-btn">红大</button>
-          <button class="category-btn">红小</button>
-          <button class="category-btn">红单</button>
-          <button class="category-btn">红双</button>
-          <button class="category-btn">家禽</button>
-          <button class="category-btn">蓝</button>
-          <button class="category-btn">蓝大</button>
-          <button class="category-btn">蓝小</button>
-          <button class="category-btn">蓝单</button>
-          <button class="category-btn">蓝双</button>
-          <button class="category-btn">野兽</button>
-          <button class="category-btn">绿</button>
-          <button class="category-btn">绿大</button>
-          <button class="category-btn">绿小</button>
-          <button class="category-btn">绿单</button>
-          <button class="category-btn">绿双</button>
-          <button class="category-btn">复式</button>
-          <button class="category-btn">大</button>
-          <button class="category-btn">单</button>
-          <button class="category-btn">大单</button>
-          <button class="category-btn">小单</button>
-          <button class="category-btn">合单</button>
-          <button class="category-btn">合大</button>
-          <button class="category-btn">小</button>
-          <button class="category-btn">双</button>
-          <button class="category-btn">大双</button>
-          <button class="category-btn">小双</button>
-          <button class="category-btn">合双</button>
-          <button class="category-btn">合小</button>
-          <button class="category-btn">金</button>
-          <button class="category-btn">木</button>
-          <button class="category-btn">水</button>
-          <button class="category-btn">火</button>
-          <button class="category-btn">土</button>
+          <button class="category-btn" onclick="quickAddWithAmount('家禽')">家禽</button>
+          <button class="category-btn" onclick="quickAddWithAmount('野兽')">野兽</button>
+          <button class="category-btn" onclick="quickAddWithAmount('红波')">红波</button>
+          <button class="category-btn" onclick="quickAddWithAmount('蓝波')">蓝波</button>
+          <button class="category-btn" onclick="quickAddWithAmount('绿波')">绿波</button>
+          <button class="category-btn" onclick="quickAddWithAmount('红双')">红双</button>
+          <button class="category-btn" onclick="quickAddWithAmount('红单')">红单</button>
+          <button class="category-btn" onclick="quickAddWithAmount('蓝双')">蓝双</button>
+          <button class="category-btn" onclick="quickAddWithAmount('蓝单')">蓝单</button>
+          <button class="category-btn" onclick="quickAddWithAmount('绿双')">绿双</button>
+          <button class="category-btn" onclick="quickAddWithAmount('绿单')">绿单</button>
+          <button class="category-btn" onclick="quickAddWithAmount('单数')">单数</button>
+          <button class="category-btn" onclick="quickAddWithAmount('双数')">双数</button>
+          <button class="category-btn" onclick="quickAddWithAmount('鼠')">鼠</button>
+          <button class="category-btn" onclick="quickAddWithAmount('牛')">牛</button>
+          <button class="category-btn" onclick="quickAddWithAmount('虎')">虎</button>
+          <button class="category-btn" onclick="quickAddWithAmount('兔')">兔</button>
+          <button class="category-btn" onclick="quickAddWithAmount('龙')">龙</button>
+          <button class="category-btn" onclick="quickAddWithAmount('蛇')">蛇</button>
+          <button class="category-btn" onclick="quickAddWithAmount('马')">马</button>
+          <button class="category-btn" onclick="quickAddWithAmount('羊')">羊</button>
+          <button class="category-btn" onclick="quickAddWithAmount('猴')">猴</button>
+          <button class="category-btn" onclick="quickAddWithAmount('鸡')">鸡</button>
+          <button class="category-btn" onclick="quickAddWithAmount('狗')">狗</button>
+          <button class="category-btn" onclick="quickAddWithAmount('猪')">猪</button>
+          <button class="category-btn" onclick="quickAddWithAmount('金')">金</button>
+          <button class="category-btn" onclick="quickAddWithAmount('木')">木</button>
+          <button class="category-btn" onclick="quickAddWithAmount('水')">水</button>
+          <button class="category-btn" onclick="quickAddWithAmount('火')">火</button>
+          <button class="category-btn" onclick="quickAddWithAmount('土')">土</button>
+        </div>
+        <div style="margin-top:10px;text-align:right;">
+          <button class="btn btn-save-order" onclick="saveExtraOrder()">保存备注</button>
+        </div>
+        <div class="extra-input-group" style="margin-top:8px;">
+          <input type="text" class="extra-long-input" placeholder="备注信息">
+          <input type="text" class="extra-short-input" placeholder="金额" value="10">
         </div>
       </div>
 
       <div class="card data-config-card">
         <div class="card-title">
           分类数据配置
-          <span style="font-size: 12px; font-weight: normal; color: #666;">（冒号前固定，后可自定义）</span>
+          <span style="font-size:12px;font-weight:normal;color:#666;">（可自定义）</span>
         </div>
-        <div class="config-section"><div class="config-section-title">五行配置</div>
-          <div class="config-item"><div class="config-label">金</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_jin" value="04 05 12 13 26 27 34 35 42 43"></div>
-          <div class="config-item"><div class="config-label">木</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_mu" value="08 09 16 17 24 25 38 39 46 47"></div>
-          <div class="config-item"><div class="config-label">水</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_shui" value="01 14 15 22 23 30 31 44 45"></div>
-          <div class="config-item"><div class="config-label">火</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_huo" value="02 03 10 11 18 19 32 33 40 41 48 49"></div>
-          <div class="config-item"><div class="config-label">土</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_tu" value="06 07 20 21 28 29 36 37"></div>
-        </div>
-        <div class="config-section"><div class="config-section-title">十二生肖配置</div>
+        
+        <!-- 十二生肖配置 -->
+        <div class="config-section">
+          <div class="config-section-title">十二生肖</div>
           <div class="config-item"><div class="config-label">鼠</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_shu" value="07 19 31 43"></div>
           <div class="config-item"><div class="config-label">牛</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_niu" value="06 18 30 42"></div>
           <div class="config-item"><div class="config-label">虎</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hu" value="05 17 29 41"></div>
@@ -401,11 +388,52 @@ th {
           <div class="config-item"><div class="config-label">狗</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_gou" value="09 21 33 45"></div>
           <div class="config-item"><div class="config-label">猪</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_zhu" value="08 20 32 44"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">生肖属性配置</div>
+        
+        <!-- 生肖属性配置 -->
+        <div class="config-section">
+          <div class="config-section-title">生肖属性</div>
           <div class="config-item"><div class="config-label">家禽</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_sx_jiaqin" value="牛 马 羊 鸡 狗 猪"></div>
           <div class="config-item"><div class="config-label">野兽</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_sx_yeshou" value="鼠 虎 兔 龙 蛇 猴"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">尾数属性配置</div>
+        
+        <!-- 五行配置 -->
+        <div class="config-section">
+          <div class="config-section-title">五行配置</div>
+          <div class="config-item"><div class="config-label">金</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_jin" value="04 05 12 13 26 27 34 35 42 43"></div>
+          <div class="config-item"><div class="config-label">木</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_mu" value="08 09 16 17 24 25 38 39 46 47"></div>
+          <div class="config-item"><div class="config-label">水</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_shui" value="01 14 15 22 23 30 31 44 45"></div>
+          <div class="config-item"><div class="config-label">火</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_huo" value="02 03 10 11 18 19 32 33 40 41 48 49"></div>
+          <div class="config-item"><div class="config-label">土</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_tu" value="06 07 20 21 28 29 36 37"></div>
+        </div>
+        
+        <!-- 波色配置 -->
+        <div class="config-section">
+          <div class="config-section-title">波色配置</div>
+          <div class="config-item"><div class="config-label">红波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hongbo" value="01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46"></div>
+          <div class="config-item"><div class="config-label">蓝波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lanbo" value="03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48"></div>
+          <div class="config-item"><div class="config-label">绿波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lvbo" value="05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49"></div>
+        </div>
+        
+        <!-- 半波配置 -->
+        <div class="config-section">
+          <div class="config-section-title">半波配置</div>
+          <div class="config-item"><div class="config-label">红双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hongshuang" value="02 08 12 18 24 30 34 40 46"></div>
+          <div class="config-item"><div class="config-label">红单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hongdan" value="01 07 13 19 23 29 35 45"></div>
+          <div class="config-item"><div class="config-label">蓝双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lanshuang" value="04 10 14 26 36 42 48"></div>
+          <div class="config-item"><div class="config-label">蓝单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_landan" value="03 09 15 25 31 37 47"></div>
+          <div class="config-item"><div class="config-label">绿双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lvshuang" value="06 16 22 28 32 38 44"></div>
+          <div class="config-item"><div class="config-label">绿单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lvdan" value="05 11 17 21 27 33 39 49"></div>
+        </div>
+        
+        <!-- 单双属性配置 -->
+        <div class="config-section">
+          <div class="config-section-title">单双属性</div>
+          <div class="config-item"><div class="config-label">单数</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_danshu" value="01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label">双数</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_shuangshu" value="02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48"></div>
+        </div>
+        
+        <!-- 尾数属性配置 -->
+        <div class="config-section"><div class="config-section-title">尾数属性</div>
           <div class="config-item"><div class="config-label long-label">0尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ws_0" value="10 20 30 40"></div>
           <div class="config-item"><div class="config-label long-label">1尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ws_1" value="01 11 21 31 41"></div>
           <div class="config-item"><div class="config-label long-label">2尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ws_2" value="02 12 22 32 42"></div>
@@ -417,21 +445,22 @@ th {
           <div class="config-item"><div class="config-label long-label">8尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ws_8" value="08 18 28 38 48"></div>
           <div class="config-item"><div class="config-label long-label">9尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ws_9" value="09 19 29 39 49"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">波色配置</div>
-          <div class="config-item"><div class="config-label">红波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hongbo" value="01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46"></div>
-          <div class="config-item"><div class="config-label">蓝波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lanbo" value="03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48"></div>
-          <div class="config-item"><div class="config-label">绿波</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_lvbo" value="05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49"></div>
-        </div>
-        <div class="config-section"><div class="config-section-title">大小单双配置</div>
+        
+        <!-- 大小单双配置 -->
+        <div class="config-section"><div class="config-section-title">大小单双</div>
           <div class="config-item"><div class="config-label">大单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dadan" value="25 27 29 31 33 35 37 39 41 43 45 47 49"></div>
           <div class="config-item"><div class="config-label">大双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dashuang" value="26 28 30 32 34 36 38 40 42 44 46 48"></div>
           <div class="config-item"><div class="config-label">小单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_xiaodan" value="01 03 05 07 09 11 13 15 17 19 21 23"></div>
           <div class="config-item"><div class="config-label">小双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_xiaoshuang" value="02 04 06 08 10 12 14 16 18 20 22 24"></div>
         </div>
+        
+        <!-- 大小配置 -->
         <div class="config-section"><div class="config-section-title">大小配置</div>
           <div class="config-item"><div class="config-label">小</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dx_xiao" value="01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24"></div>
           <div class="config-item"><div class="config-label">大</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dx_da" value="25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49"></div>
         </div>
+        
+        <!-- 合数配置 -->
         <div class="config-section"><div class="config-section-title">合数配置</div>
           <div class="config-item"><div class="config-label long-label">01合</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hs_01" value="01-10"></div>
           <div class="config-item"><div class="config-label long-label">02合</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hs_02" value="02-11-20"></div>
@@ -447,6 +476,8 @@ th {
           <div class="config-item"><div class="config-label long-label">12合</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hs_12" value="39-48"></div>
           <div class="config-item"><div class="config-label long-label">13合</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hs_13" value="49"></div>
         </div>
+        
+        <!-- 头数配置 -->
         <div class="config-section"><div class="config-section-title">头数配置</div>
           <div class="config-item"><div class="config-label long-label">0头</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ts_0" value="01 02 03 04 05 06 07 08 09"></div>
           <div class="config-item"><div class="config-label long-label">1头</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ts_1" value="10 11 12 13 14 15 16 17 18 19"></div>
@@ -454,6 +485,8 @@ th {
           <div class="config-item"><div class="config-label long-label">3头</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ts_3" value="30 31 32 33 34 35 36 37 38 39"></div>
           <div class="config-item"><div class="config-label long-label">4头</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ts_4" value="40 41 42 43 44 45 46 47 48 49"></div>
         </div>
+        
+        <!-- 门数配置 -->
         <div class="config-section"><div class="config-section-title">门数配置</div>
           <div class="config-item"><div class="config-label long-label">1门</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ms_1" value="01-02-03-04-05-06-07-08-09"></div>
           <div class="config-item"><div class="config-label long-label">2门</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ms_2" value="10-11-12-13-14-15-16-17-18"></div>
@@ -461,6 +494,8 @@ th {
           <div class="config-item"><div class="config-label long-label">4门</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ms_4" value="28-29-30-31-32-33-34-35-36-37"></div>
           <div class="config-item"><div class="config-label long-label">5门</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_ms_5" value="38-39-40-41-42-43-44-45-46-47-48-49"></div>
         </div>
+        
+        <!-- 段位配置 -->
         <div class="config-section"><div class="config-section-title">段位配置</div>
           <div class="config-item"><div class="config-label long-label">1段</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dw_1" value="01-02-03-04-05-06-07"></div>
           <div class="config-item"><div class="config-label long-label">2段</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dw_2" value="08-09-10-11-12-13-14"></div>
@@ -470,20 +505,28 @@ th {
           <div class="config-item"><div class="config-label long-label">6段</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dw_6" value="36-37-38-39-40-41-42"></div>
           <div class="config-item"><div class="config-label long-label">7段</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_dw_7" value="43-44-45-46-47-48-49"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">合大&合小配置</div>
+        
+        <!-- 合大&合小配置 -->
+        <div class="config-section"><div class="config-section-title">合大&合小</div>
           <div class="config-item"><div class="config-label">合小</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hdx_hexiao" value="01-02-03-04-05-06-10-11-12-13-14-15-20-21-22-23-24-30-31-32-33-40-41-42"></div>
           <div class="config-item"><div class="config-label">合大</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hdx_heda" value="07-08-09-16-17-18-19-25-26-27-28-29-34-35-36-37-38-39-43-44-45-46-47-48-49"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">尾大&尾小配置</div>
+        
+        <!-- 尾大&尾小配置 -->
+        <div class="config-section"><div class="config-section-title">尾大&尾小</div>
           <div class="config-item"><div class="config-label">尾小</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_wdx_weixiao" value="01-02-03-04-10-11-12-13-14-20-21-22-23-24-30-31-32-33-34-40-41-42-43-44"></div>
           <div class="config-item"><div class="config-label">尾大</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_wdx_weida" value="05-06-07-08-09-15-16-17-18-19-25-26-27-28-29-35-36-37-38-39-45-46-47-48-49"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">半单双配置</div>
+        
+        <!-- 半单双配置 -->
+        <div class="config-section"><div class="config-section-title">半单双</div>
           <div class="config-item"><div class="config-label">小单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_bds_xiaodan" value="01-03-05-07-09-11-13-15-17-19-21-23"></div>
           <div class="config-item"><div class="config-label">小双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_bds_xiaoshuang" value="02-04-06-08-10-12-14-16-18-20-22-24"></div>
           <div class="config-item"><div class="config-label">大单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_bds_dadan" value="25-27-29-31-33-35-37-39-41-43-45-47-49"></div>
           <div class="config-item"><div class="config-label">大双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_bds_dashuang" value="26-28-30-32-34-36-38-40-42-44-46-48"></div>
         </div>
+        
+        <!-- 合尾配置 -->
         <div class="config-section"><div class="config-section-title">合尾配置</div>
           <div class="config-item"><div class="config-label long-label">0合尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hw_0" value="19-28-37-46"></div>
           <div class="config-item"><div class="config-label long-label">1合尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hw_1" value="01-10-29-38-47"></div>
@@ -496,34 +539,35 @@ th {
           <div class="config-item"><div class="config-label long-label">8合尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hw_8" value="08-17-26-35-44"></div>
           <div class="config-item"><div class="config-label long-label">9合尾</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hw_9" value="09-18-27-36-45"></div>
         </div>
-        <div class="config-section"><div class="config-section-title">合数单&合数双配置</div>
+        
+        <!-- 合数单&合数双配置 -->
+        <div class="config-section"><div class="config-section-title">合数单&双</div>
           <div class="config-item"><div class="config-label">合数单</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hsd_hsd" value="01-03-05-07-09-10-12-14-16-18-21-23-25-27-29-30-32-34-36-38-41-43-45-47-49"></div>
           <div class="config-item"><div class="config-label">合数双</div><div class="config-colon">：</div><input type="text" class="config-input" id="config_hsd_hss" value="02-04-06-08-11-13-15-17-19-20-22-24-26-28-31-33-35-37-39-40-42-44-46-48"></div>
         </div>
+        
         <div class="data-config-actions">
-          <button class="config-btn" style="background:#007bff;color:white" onclick="enableEditConfig()">修改数据</button>
-          <button class="config-btn" style="background:#6c757d;color:white" onclick="resetDataConfig()">恢复默认</button>
-          <button class="config-btn" style="background:#28a745;color:white" onclick="saveDataConfig()">保存修改</button>
+          <button class="config-btn" style="background:#007bff;color:white" onclick="enableEditConfig()">修改</button>
+          <button class="config-btn" style="background:#6c757d;color:white" onclick="resetDataConfig()">默认</button>
+          <button class="config-btn" style="background:#28a745;color:white" onclick="saveDataConfig()">保存</button>
         </div>
       </div>
     </div>
 
     <div class="card risk-card">
       <div class="card-title">风险值</div>
-      
       <div class="summary-row">
         <div class="summary-item">总下注：<span id="totalBet">0</span></div>
-        <div class="summary-item">返水比例：<input type="number" id="rebateRate" value="4" min="0" max="100" step="0.1"> %</div>
-        <div class="summary-item">返水金额：<span id="totalRebate">0</span></div>
+        <div class="summary-item">返水%：<input type="number" id="rebateRate" value="4" min="0" max="100" step="0.1"></div>
+        <div class="summary-item">返水：<span id="totalRebate">0</span></div>
         <div class="summary-item">倍数：<input type="number" id="multipleVal" value="47" min="0.1" step="0.1"></div>
       </div>
-
-      <table id="dataTable">
-        <thead>
-          <tr><th>号码</th><th>下注数</th><th>风险数</th><th>ID</th></tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
+      <div class="table-container">
+        <table id="dataTable">
+          <thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -533,238 +577,803 @@ let allBetData = [];
 let tableBetData = {};
 const PASSWORD = "891105";
 
-const zodiacMap = {
-  '01':'马','02':'蛇','03':'龙','04':'兔','05':'虎','06':'牛','07':'鼠','08':'猪','09':'狗','10':'鸡',
-  '11':'猴','12':'羊','13':'马','14':'蛇','15':'龙','16':'兔','17':'虎','18':'牛','19':'鼠','20':'猪',
-  '21':'狗','22':'鸡','23':'猴','24':'羊','25':'马','26':'蛇','27':'龙','28':'兔','29':'虎','30':'牛',
-  '31':'鼠','32':'猪','33':'狗','34':'鸡','35':'猴','36':'羊','37':'马','38':'蛇','39':'龙','40':'兔',
-  '41':'虎','42':'牛','43':'鼠','44':'猪','45':'狗','46':'鸡','47':'猴','48':'羊','49':'马'
-};
+document.querySelectorAll('.category-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('active'));
+});
+
+const zodiacMap = {'01':'马','02':'蛇','03':'龙','04':'兔','05':'虎','06':'牛','07':'鼠','08':'猪','09':'狗','10':'鸡','11':'猴','12':'羊','13':'马','14':'蛇','15':'龙','16':'兔','17':'虎','18':'牛','19':'鼠','20':'猪','21':'狗','22':'鸡','23':'猴','24':'羊','25':'马','26':'蛇','27':'龙','28':'兔','29':'虎','30':'牛','31':'鼠','32':'猪','33':'狗','34':'鸡','35':'猴','36':'羊','37':'马','38':'蛇','39':'龙','40':'兔','41':'虎','42':'牛','43':'鼠','44':'猪','45':'狗','46':'鸡','47':'猴','48':'羊','49':'马'};
 const redNumbers = ['01','02','07','08','12','13','18','19','23','24','29','30','34','35','40','45','46'];
 const blueNumbers = ['03','04','09','10','14','15','20','25','26','31','36','37','41','42','47','48'];
 const greenNumbers = ['05','06','11','16','17','21','22','27','28','32','33','38','39','43','44','49'];
 
 const DEFAULT_CONFIG = {
-  jin: '04 05 12 13 26 27 34 35 42 43', mu: '08 09 16 17 24 25 38 39 46 47', shui: '01 14 15 22 23 30 31 44 45',
-  huo: '02 03 10 11 18 19 32 33 40 41 48 49', tu: '06 07 20 21 28 29 36 37',
-  shu: '07 19 31 43', niu: '06 18 30 42', hu: '05 17 29 41', tu2: '04 16 28 40', long: '03 15 27 39', she: '02 14 26 38',
-  ma: '01 13 25 37 49', yang: '12 24 36 48', hou: '11 23 35 47', ji: '10 22 34 46', gou: '09 21 33 45', zhu: '08 20 32 44',
-  hongbo: '01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46', lanbo: '03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48',
-  lvbo: '05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49', dadan: '25 27 29 31 33 35 37 39 41 43 45 47 49',
-  dashuang: '26 28 30 32 34 36 38 40 42 44 46 48', xiaodan: '01 03 05 07 09 11 13 15 17 19 21 23', xiaoshuang: '02 04 06 08 10 12 14 16 18 20 22 24',
-  sx_jiaqin: '牛 马 羊 鸡 狗 猪', sx_yeshou: '鼠 虎 兔 龙 蛇 猴',
-  ws_0: '10 20 30 40', ws_1: '01 11 21 31 41', ws_2: '02 12 22 32 42', ws_3: '03 13 23 33 43', ws_4: '04 14 24 34 44',
-  ws_5: '05 15 25 35 45', ws_6: '06 16 26 36 46', ws_7: '07 17 27 37 47', ws_8: '08 18 28 38 48', ws_9: '09 19 29 39 49',
-  dx_xiao: '01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24',
-  dx_da: '25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49',
-  hs_01: '01-10', hs_02: '02-11-20', hs_03: '03-12-21-30', hs_04: '04-13-22-31-40',
-  hs_05: '05-14-23-32-41', hs_06: '06-15-24-33-42', hs_07: '07-16-25-34-43',
-  hs_08: '08-17-26-35-44', hs_09: '09-18-27-36-45', hs_10: '19-28-37-46',
-  hs_11: '29-38-47', hs_12: '39-48', hs_13: '49',
-  ts_0: '01 02 03 04 05 06 07 08 09', ts_1: '10 11 12 13 14 15 16 17 18 19',
-  ts_2: '20 21 22 23 24 25 26 27 28 29', ts_3: '30 31 32 33 34 35 36 37 38 39',
-  ts_4: '40 41 42 43 44 45 46 47 48 49',
-  ms_1: '01-02-03-04-05-06-07-08-09', ms_2: '10-11-12-13-14-15-16-17-18',
-  ms_3: '19-20-21-22-23-24-25-26-27', ms_4: '28-29-30-31-32-33-34-35-36-37',
-  ms_5: '38-39-40-41-42-43-44-45-46-47-48-49',
-  dw_1: '01-02-03-04-05-06-07', dw_2: '08-09-10-11-12-13-14',
-  dw_3: '15-16-17-18-19-20-21', dw_4: '22-23-24-25-26-27-28',
-  dw_5: '29-30-31-32-33-34-35', dw_6: '36-37-38-39-40-41-42',
-  dw_7: '43-44-45-46-47-48-49',
-  hdx_hexiao: '01-02-03-04-05-06-10-11-12-13-14-15-20-21-22-23-24-30-31-32-33-40-41-42',
-  hdx_heda: '07-08-09-16-17-18-19-25-26-27-28-29-34-35-36-37-38-39-43-44-45-46-47-48-49',
-  wdx_weixiao: '01-02-03-04-10-11-12-13-14-20-21-22-23-24-30-31-32-33-34-40-41-42-43-44',
-  wdx_weida: '05-06-07-08-09-15-16-17-18-19-25-26-27-28-29-35-36-37-38-39-45-46-47-48-49',
-  bds_xiaodan: '01-03-05-07-09-11-13-15-17-19-21-23',
-  bds_xiaoshuang: '02-04-06-08-10-12-14-16-18-20-22-24',
-  bds_dadan: '25-27-29-31-33-35-37-39-41-43-45-47-49',
-  bds_dashuang: '26-28-30-32-34-36-38-40-42-44-46-48',
-  hw_0: '19-28-37-46', hw_1: '01-10-29-38-47', hw_2: '02-11-20-39-48',
-  hw_3: '03-12-21-30-49', hw_4: '04-13-22-31-40', hw_5: '05-14-23-32-41',
-  hw_6: '06-15-24-33-42', hw_7: '07-16-25-34-43', hw_8: '08-17-26-35-44',
-  hw_9: '09-18-27-36-45',
-  hsd_hsd: '01-03-05-07-09-10-12-14-16-18-21-23-25-27-29-30-32-34-36-38-41-43-45-47-49',
-  hsd_hss: '02-04-06-08-11-13-15-17-19-20-22-24-26-28-31-33-35-37-39-40-42-44-46-48'
+  jin:'04 05 12 13 26 27 34 35 42 43',mu:'08 09 16 17 24 25 38 39 46 47',shui:'01 14 15 22 23 30 31 44 45',huo:'02 03 10 11 18 19 32 33 40 41 48 49',tu:'06 07 20 21 28 29 36 37',
+  shu:'07 19 31 43',niu:'06 18 30 42',hu:'05 17 29 41',tu2:'04 16 28 40',long:'03 15 27 39',she:'02 14 26 38',ma:'01 13 25 37 49',yang:'12 24 36 48',hou:'11 23 35 47',ji:'10 22 34 46',gou:'09 21 33 45',zhu:'08 20 32 44',
+  sx_jiaqin:'牛 马 羊 鸡 狗 猪',sx_yeshou:'鼠 虎 兔 龙 蛇 猴',
+  hongbo:'01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46',lanbo:'03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48',lvbo:'05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49',
+  // 半波配置
+  hongshuang:'02 08 12 18 24 30 34 40 46',hongdan:'01 07 13 19 23 29 35 45',
+  lanshuang:'04 10 14 26 36 42 48',landan:'03 09 15 25 31 37 47',
+  lvshuang:'06 16 22 28 32 38 44',lvdan:'05 11 17 21 27 33 39 49',
+  // 单双属性配置
+  danshu:'01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49',
+  shuangshu:'02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48',
+  // 其他配置保持不变
+  ws_0:'10 20 30 40',ws_1:'01 11 21 31 41',ws_2:'02 12 22 32 42',ws_3:'03 13 23 33 43',ws_4:'04 14 24 34 44',ws_5:'05 15 25 35 45',ws_6:'06 16 26 36 46',ws_7:'07 17 27 37 47',ws_8:'08 18 28 38 48',ws_9:'09 19 29 39 49',
+  dadan:'25 27 29 31 33 35 37 39 41 43 45 47 49',dashuang:'26 28 30 32 34 36 38 40 42 44 46 48',xiaodan:'01 03 05 07 09 11 13 15 17 19 21 23',xiaoshuang:'02 04 06 08 10 12 14 16 18 20 22 24',
+  dx_xiao:'01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24',dx_da:'25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49',
+  hs_01:'01-10',hs_02:'02-11-20',hs_03:'03-12-21-30',hs_04:'04-13-22-31-40',hs_05:'05-14-23-32-41',hs_06:'06-15-24-33-42',hs_07:'07-16-25-34-43',hs_08:'08-17-26-35-44',hs_09:'09-18-27-36-45',hs_10:'19-28-37-46',hs_11:'29-38-47',hs_12:'39-48',hs_13:'49',
+  ts_0:'01 02 03 04 05 06 07 08 09',ts_1:'10 11 12 13 14 15 16 17 18 19',ts_2:'20 21 22 23 24 25 26 27 28 29',ts_3:'30 31 32 33 34 35 36 37 38 39',ts_4:'40 41 42 43 44 45 46 47 48 49',
+  ms_1:'01-02-03-04-05-06-07-08-09',ms_2:'10-11-12-13-14-15-16-17-18',ms_3:'19-20-21-22-23-24-25-26-27',ms_4:'28-29-30-31-32-33-34-35-36-37',ms_5:'38-39-40-41-42-43-44-45-46-47-48-49',
+  dw_1:'01-02-03-04-05-06-07',dw_2:'08-09-10-11-12-13-14',dw_3:'15-16-17-18-19-20-21',dw_4:'22-23-24-25-26-27-28',dw_5:'29-30-31-32-33-34-35',dw_6:'36-37-38-39-40-41-42',dw_7:'43-44-45-46-47-48-49',
+  hdx_hexiao:'01-02-03-04-05-06-10-11-12-13-14-15-20-21-22-23-24-30-31-32-33-40-41-42',hdx_heda:'07-08-09-16-17-18-19-25-26-27-28-29-34-35-36-37-38-39-43-44-45-46-47-48-49',
+  wdx_weixiao:'01-02-03-04-10-11-12-13-14-20-21-22-23-24-30-31-32-33-34-40-41-42-43-44',wdx_weida:'05-06-07-08-09-15-16-17-18-19-25-26-27-28-29-35-36-37-38-39-45-46-47-48-49',
+  bds_xiaodan:'01-03-05-07-09-11-13-15-17-19-21-23',bds_xiaoshuang:'02-04-06-08-10-12-14-16-18-20-22-24',bds_dadan:'25-27-29-31-33-35-37-39-41-43-45-47-49',bds_dashuang:'26-28-30-32-34-36-38-40-42-44-46-48',
+  hw_0:'19-28-37-46',hw_1:'01-10-29-38-47',hw_2:'02-11-20-39-48',hw_3:'03-12-21-30-49',hw_4:'04-13-22-31-40',hw_5:'05-14-23-32-41',hw_6:'06-15-24-33-42',hw_7:'07-16-25-34-43',hw_8:'08-17-26-35-44',hw_9:'09-18-27-36-45',
+  hsd_hsd:'01-03-05-07-09-10-12-14-16-18-21-23-25-27-29-30-32-34-36-38-41-43-45-47-49',hsd_hss:'02-04-06-08-11-13-15-17-19-20-22-24-26-28-31-33-35-37-39-40-42-44-46-48'
 };
 
-// 锁定所有配置输入框
-function lockAllInputs() {
-  document.querySelectorAll('.config-input').forEach(el => {
-    el.disabled = true;
-  });
+// 快速添加功能（带金额）
+function quickAddWithAmount(text) {
+  const shortInput = document.querySelector('.extra-short-input');
+  const amount = shortInput.value.trim() || '10';
+  const input = document.querySelector('.source-order-input');
+  const currentValue = input.value.trim();
+  const separator = currentValue ? '\n' : '';
+  input.value = currentValue + separator + text + '各号' + amount;
+  convertOrderText();
 }
 
-// 解锁所有配置输入框
-function unlockAllInputs() {
-  document.querySelectorAll('.config-input').forEach(el => {
-    el.disabled = false;
-  });
-}
+// ========== 修复后的订单文本转换逻辑 ==========
+function convertOrderText() {
+  const inputText = document.querySelector('.source-order-input').value.trim();
+  if (!inputText) {
+    document.getElementById('orderResult').value = '';
+    return;
+  }
 
-// 初始化配置
-function initDataConfig() {
-  let cfg = DEFAULT_CONFIG;
-  try {
-    const saved = localStorage.getItem('customDataConfigObj');
-    if (saved) {
-      cfg = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+  const lines = inputText.split('\n');
+  const resultLines = [];
+
+  // 定义所有可能的分隔符（包括空格、逗号、点、加号、减号、乘号、斜杠、顿号、星号等）
+  const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;  
+  // 金额前缀：支持多种变体
+  const AMOUNT_PREFIX = '(?:各|各号|各数|每数|每号|个号|每个号|各码|各号码)';  
+  // 金额后缀：支持多种变体（将被忽略）
+  const AMOUNT_SUFFIX = '[元井#米咪块斤]?';
+
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+
+    // 统一的解析逻辑：先提取金额，再解析内容
+    const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)${AMOUNT_SUFFIX}$`);
+    const match = line.match(pattern);
+    
+    if (match) {
+      let content = match[1].trim();
+      const amount = match[2];
+      
+      // 判断内容是数字还是中文
+      const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
+      
+      if (isNumber) {
+        // 数字内容：按分隔符切割
+        const numbers = content.split(SEPARATORS).filter(item => item);
+        const processedNumbers = numbers.map(n => {
+          n = n.trim();
+          return n.length === 1 ? `0${n}` : n;
+        }).join('-');
+        
+        resultLines.push(`澳门·特码${processedNumbers} 各数 ${amount}`);
+      } else {
+        // 中文内容：可能是单个分类名称或多个生肖
+        // 尝试按分隔符分割
+        const items = content.split(SEPARATORS).filter(item => item);
+        
+        if (items.length > 1) {
+          // 多个项目：可能是多个生肖
+          const processedItems = items.join('');
+          resultLines.push(`澳门·特码${processedItems} 各数 ${amount}`);
+        } else {
+          // 单个项目：可能是分类名称（如"家禽"）或单个生肖
+          resultLines.push(`澳门·特码${content} 各数 ${amount}`);
+        }
+      }
+      return;
     }
-  } catch (e) {}
+
+    // 兼容旧格式：单个号码
+    const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)${AMOUNT_SUFFIX}`);
+    const singleMatch = line.match(singlePattern);
+    if (singleMatch) {
+      let number = singleMatch[1].trim();
+      const num = singleMatch[2];
+      number = number.length === 1 ? `0${number}` : number;
+      resultLines.push(`澳门·特码${number} 各数 ${num}`);
+    }
+  });
+
+  // 去重并输出结果
+  const uniqueResult = [...new Set(resultLines)];
+  document.getElementById('orderResult').value = uniqueResult.join('\n');
+}
+
+// ========== 修复后的保存下单函数 ==========
+function saveOrder(){
+  let input = document.getElementById('orderResult').value.trim();
+  if(!input){
+    input = document.querySelector('.source-order-input').value.trim();
+  }
   
-  Object.keys(cfg).forEach(key => {
-    const input = document.getElementById(`config_${key}`);
-    if (input) input.value = cfg[key];
+  if(!input){alert('请先输入订单内容！');return;}
+  
+  saveOrderRecord(input);
+  
+  const lines = input.split('\n').filter(line => line.trim());
+  
+  // 获取所有配置数据
+  const configData = getAllConfigData();
+  
+  // 收集所有分类键（用于判断是否是分类名称）
+  const categoryKeys = new Set([
+    ...Object.keys(configData.shengxiaoAttr), // 家禽、野兽
+    ...Object.keys(configData.wuxing), // 金、木、水、火、土
+    ...Object.keys(configData.bose), // 红波、蓝波、绿波
+    ...Object.keys(configData.banbo), // 红双、红单、蓝双、蓝单、绿双、绿单
+    ...Object.keys(configData.danshuang), // 单数、双数
+    ...Object.keys(configData.weishu), // 0尾-9尾
+    ...Object.keys(configData.daxiaodanshuang), // 大单、大双、小单、小双
+    ...Object.keys(configData.daxiao), // 小、大
+    ...Object.keys(configData.heshu), // 01合-13合
+    ...Object.keys(configData.toushu), // 0头-4头
+    ...Object.keys(configData.menshu), // 1门-5门
+    ...Object.keys(configData.duanwei), // 1段-7段
+    ...Object.keys(configData.hedahexiao), // 合小、合大
+    ...Object.keys(configData.weidaweixiao), // 尾小、尾大
+    ...Object.keys(configData.hewei), // 0合尾-9合尾
+    ...Object.keys(configData.heshudanshuang) // 合数单、合数双
+  ]);
+  
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    
+    const pattern = /澳门·特码([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
+    const match = line.match(pattern);
+    
+    if (match) {
+      let content = match[1];
+      let amount = parseInt(match[2]) || 0;
+      
+      // 判断是数字组合还是中文内容
+      const isNumberCombination = /^[\d\-]+$/.test(content);
+      
+      let items = [];
+      if (isNumberCombination) {
+        // 数字组合：按 "-" 拆分
+        items = content.split('-').map(item => item.trim()).filter(item => item);
+      } else {
+        // 中文内容：判断是分类名称还是多个生肖连在一起
+        if (categoryKeys.has(content)) {
+          // 是分类名称（比如"家禽""红波""金"）
+          items = [content];
+        } else {
+          // 是多个生肖连在一起（比如"鼠牛虎"），拆成单个汉字
+          items = content.match(/[\u4e00-\u9fa5]/g) || [];
+        }
+      }
+      
+      items.forEach(item => {
+        // 1. 检查是否是生肖属性配置（家禽/野兽）
+        if (item === '家禽' || item === '野兽') {
+          processShengxiaoAttribute(item, amount, configData);
+        }
+        // 2. 检查是否是十二生肖配置
+        else if (configData.zodiac[item]) {
+          processZodiac(item, amount, configData);
+        }
+        // 3. 检查是否是五行配置
+        else if (configData.wuxing[item]) {
+          processWuxing(item, amount, configData);
+        }
+        // 4. 检查是否是波色配置
+        else if (configData.bose[item]) {
+          processBose(item, amount, configData);
+        }
+        // 5. 检查是否是半波配置
+        else if (configData.banbo[item]) {
+          processBanbo(item, amount, configData);
+        }
+        // 6. 检查是否是单双属性配置
+        else if (configData.danshuang[item]) {
+          processDanshuang(item, amount, configData);
+        }
+        // 7. 检查是否是尾数属性配置
+        else if (configData.weishu[item]) {
+          processWeishu(item, amount, configData);
+        }
+        // 8. 检查是否是大小单双配置
+        else if (configData.daxiaodanshuang[item]) {
+          processDaxiaodanshuang(item, amount, configData);
+        }
+        // 9. 检查是否是大小配置
+        else if (configData.daxiao[item]) {
+          processDaxiao(item, amount, configData);
+        }
+        // 10. 检查是否是合数配置
+        else if (configData.heshu[item]) {
+          processHeshu(item, amount, configData);
+        }
+        // 11. 检查是否是头数配置
+        else if (configData.toushu[item]) {
+          processToushu(item, amount, configData);
+        }
+        // 12. 检查是否是门数配置
+        else if (configData.menshu[item]) {
+          processMenshu(item, amount, configData);
+        }
+        // 13. 检查是否是段位配置
+        else if (configData.duanwei[item]) {
+          processDuanwei(item, amount, configData);
+        }
+        // 14. 检查是否是合大合小配置
+        else if (configData.hedahexiao[item]) {
+          processHedaHexiao(item, amount, configData);
+        }
+        // 15. 检查是否是尾大尾小配置
+        else if (configData.weidaweixiao[item]) {
+          processWeidaWeixiao(item, amount, configData);
+        }
+        // 16. 检查是否是合尾配置
+        else if (configData.hewei[item]) {
+          processHewei(item, amount, configData);
+        }
+        // 17. 检查是否是合数单双配置
+        else if (configData.heshudanshuang[item]) {
+          processHeshuDanshuang(item, amount, configData);
+        }
+        // 18. 检查是否是数字号码
+        else if (/^\d+$/.test(item)) {
+          const num = item.padStart(2, '0');
+          if (tableBetData[num] === undefined) {
+            tableBetData[num] = 0;
+          }
+          tableBetData[num] += amount;
+        }
+      });
+    }
   });
   
+  generateTable();
+  
+  // 清空订单输入框和识别结果框
+  document.querySelector('.source-order-input').value = '';
+  document.getElementById('orderResult').value = '';
+  
+  alert('已保存到表格和订单记录！');
+}
+
+// 获取所有配置数据
+function getAllConfigData() {
+  const configData = {
+    zodiac: {},      // 十二生肖配置
+    shengxiaoAttr: {}, // 生肖属性配置（家禽/野兽）
+    wuxing: {},     // 五行配置
+    bose: {},       // 波色配置
+    banbo: {},      // 半波配置
+    danshuang: {},  // 单双属性配置
+    weishu: {},     // 尾数属性配置
+    daxiaodanshuang: {}, // 大小单双配置
+    daxiao: {},     // 大小配置
+    heshu: {},      // 合数配置
+    toushu: {},     // 头数配置
+    menshu: {},     // 门数配置
+    duanwei: {},    // 段位配置
+    hedahexiao: {}, // 合大合小配置
+    weidaweixiao: {}, // 尾大尾小配置
+    hewei: {},      // 合尾配置
+    heshudanshuang: {} // 合数单双配置
+  };
+  
+  // 十二生肖配置
+  const zodiacIds = ['shu', 'niu', 'hu', 'tu2', 'long', 'she', 'ma', 'yang', 'hou', 'ji', 'gou', 'zhu'];
+  const zodiacNames = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+  zodiacIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.zodiac[zodiacNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 生肖属性配置
+  const sxJiaqin = document.getElementById('config_sx_jiaqin');
+  const sxYeshou = document.getElementById('config_sx_yeshou');
+  if (sxJiaqin) configData.shengxiaoAttr['家禽'] = sxJiaqin.value.trim().split(/\s+/);
+  if (sxYeshou) configData.shengxiaoAttr['野兽'] = sxYeshou.value.trim().split(/\s+/);
+  
+  // 五行配置
+  const wuxingIds = ['jin', 'mu', 'shui', 'huo', 'tu'];
+  const wuxingNames = ['金', '木', '水', '火', '土'];
+  wuxingIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.wuxing[wuxingNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 波色配置
+  const boseIds = ['hongbo', 'lanbo', 'lvbo'];
+  const boseNames = ['红波', '蓝波', '绿波'];
+  boseIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.bose[boseNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 半波配置
+  const banboIds = ['hongshuang', 'hongdan', 'lanshuang', 'landan', 'lvshuang', 'lvdan'];
+  const banboNames = ['红双', '红单', '蓝双', '蓝单', '绿双', '绿单'];
+  banboIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.banbo[banboNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 单双属性配置
+  const danshuangIds = ['danshu', 'shuangshu'];
+  const danshuangNames = ['单数', '双数'];
+  danshuangIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.danshuang[danshuangNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 尾数属性配置
+  for (let i = 0; i <= 9; i++) {
+    const inputElement = document.getElementById(`config_ws_${i}`);
+    if (inputElement) {
+      configData.weishu[`${i}尾`] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 大小单双配置
+  const dxdsIds = ['dadan', 'dashuang', 'xiaodan', 'xiaoshuang'];
+  const dxdsNames = ['大单', '大双', '小单', '小双'];
+  dxdsIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.daxiaodanshuang[dxdsNames[index]] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 大小配置
+  const dxIds = ['dx_xiao', 'dx_da'];
+  const dxNames = ['小', '大'];
+  dxIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.daxiao[dxNames[index]] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 合数配置
+  for (let i = 1; i <= 13; i++) {
+    const inputElement = document.getElementById(`config_hs_${i.toString().padStart(2, '0')}`);
+    if (inputElement) {
+      configData.heshu[`${i}合`] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 头数配置
+  for (let i = 0; i <= 4; i++) {
+    const inputElement = document.getElementById(`config_ts_${i}`);
+    if (inputElement) {
+      configData.toushu[`${i}头`] = inputElement.value.trim().split(/\s+/).filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 门数配置
+  for (let i = 1; i <= 5; i++) {
+    const inputElement = document.getElementById(`config_ms_${i}`);
+    if (inputElement) {
+      configData.menshu[`${i}门`] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 段位配置
+  for (let i = 1; i <= 7; i++) {
+    const inputElement = document.getElementById(`config_dw_${i}`);
+    if (inputElement) {
+      configData.duanwei[`${i}段`] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 合大合小配置
+  const hdhxIds = ['hdx_hexiao', 'hdx_heda'];
+  const hdhxNames = ['合小', '合大'];
+  hdhxIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.hedahexiao[hdhxNames[index]] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 尾大尾小配置
+  const wdwxIds = ['wdx_weixiao', 'wdx_weida'];
+  const wdwxNames = ['尾小', '尾大'];
+  wdwxIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.weidaweixiao[wdwxNames[index]] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  // 合尾配置
+  for (let i = 0; i <= 9; i++) {
+    const inputElement = document.getElementById(`config_hw_${i}`);
+    if (inputElement) {
+      configData.hewei[`${i}合尾`] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  }
+  
+  // 合数单双配置
+  const hsdsIds = ['hsd_hsd', 'hsd_hss'];
+  const hsdsNames = ['合数单', '合数双'];
+  hsdsIds.forEach((id, index) => {
+    const inputElement = document.getElementById(`config_${id}`);
+    if (inputElement) {
+      configData.heshudanshuang[hsdsNames[index]] = inputElement.value.trim().split('-').filter(n => /^\d+$/.test(n));
+    }
+  });
+  
+  return configData;
+}
+
+// 处理生肖属性配置（家禽/野兽）
+function processShengxiaoAttribute(attr, amount, configData) {
+  const zodiacs = configData.shengxiaoAttr[attr] || [];
+  zodiacs.forEach(zodiac => {
+    processZodiac(zodiac, amount, configData);
+  });
+}
+
+// 处理十二生肖配置
+function processZodiac(zodiac, amount, configData) {
+  const numbers = configData.zodiac[zodiac] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理五行配置
+function processWuxing(wuxing, amount, configData) {
+  const numbers = configData.wuxing[wuxing] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理波色配置
+function processBose(bose, amount, configData) {
+  const numbers = configData.bose[bose] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理半波配置
+function processBanbo(banbo, amount, configData) {
+  const numbers = configData.banbo[banbo] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理单双属性配置
+function processDanshuang(danshuang, amount, configData) {
+  const numbers = configData.danshuang[danshuang] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理尾数属性配置
+function processWeishu(weishu, amount, configData) {
+  const numbers = configData.weishu[weishu] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理大小单双配置
+function processDaxiaodanshuang(dxds, amount, configData) {
+  const numbers = configData.daxiaodanshuang[dxds] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理大小配置
+function processDaxiao(daxiao, amount, configData) {
+  const numbers = configData.daxiao[daxiao] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理合数配置
+function processHeshu(heshu, amount, configData) {
+  const numbers = configData.heshu[heshu] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理头数配置
+function processToushu(toushu, amount, configData) {
+  const numbers = configData.toushu[toushu] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理门数配置
+function processMenshu(menshu, amount, configData) {
+  const numbers = configData.menshu[menshu] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理段位配置
+function processDuanwei(duanwei, amount, configData) {
+  const numbers = configData.duanwei[duanwei] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理合大合小配置
+function processHedaHexiao(hdhx, amount, configData) {
+  const numbers = configData.hedahexiao[hdhx] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理尾大尾小配置
+function processWeidaWeixiao(wdwx, amount, configData) {
+  const numbers = configData.weidaweixiao[wdwx] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理合尾配置
+function processHewei(hewei, amount, configData) {
+  const numbers = configData.hewei[hewei] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 处理合数单双配置
+function processHeshuDanshuang(hsds, amount, configData) {
+  const numbers = configData.heshudanshuang[hsds] || [];
+  numbers.forEach(number => {
+    const num = number.padStart(2, '0');
+    if (tableBetData[num] === undefined) {
+      tableBetData[num] = 0;
+    }
+    tableBetData[num] += amount;
+  });
+}
+
+// 订单记录相关函数
+function getOrderRecords(){return JSON.parse(localStorage.getItem('orderRecords')||'[]');}
+function saveOrderRecord(content){const list=getOrderRecords();list.push({id:Date.now(),content});localStorage.setItem('orderRecords',JSON.stringify(list));}
+function deleteOrderRecord(id){let list=getOrderRecords();list=list.filter(i=>i.id!=id);localStorage.setItem('orderRecords',JSON.stringify(list));showOrderRecord();}
+function batchDeleteOrderRecord(ids){let list=getOrderRecords();list=list.filter(i=>!ids.includes(i.id));localStorage.setItem('orderRecords',JSON.stringify(list));showOrderRecord();}
+
+function showOrderRecord(){
+  const records=getOrderRecords();
+  let html=`<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button></div><div class="modal-body">`;
+  if(records.length===0){html+=`<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`;}else{
+    html+=`<div style="margin-bottom:10px;"><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;margin-right:8px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;margin-right:8px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`;
+    records.forEach(item=>{html+=`<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;});
+  }
+  html+=`</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">关闭</button></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function closeOrderModal(){const modal=document.getElementById('orderModal');if(modal)modal.remove();}
+function checkAll(){document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true);}
+function uncheckAll(){document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false);}
+function deleteChecked(){
+  const ids=[];document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
+  if(ids.length===0){alert('请先选择要删除的订单');return;}
+  if(!confirm('确定删除选中的订单？'))return;batchDeleteOrderRecord(ids);
+}
+
+// 清空所有输入
+function clearAllInput() {
+  document.querySelector('.source-order-input').value = '';
+  document.getElementById('orderResult').value = '';
+  allBetData = [];
+}
+
+// 撤销最后输入
+function cancelLastInput() {
+  const input = document.querySelector('.source-order-input');
+  input.value = input.value.substring(0, input.value.length - 1);
+  convertOrderText();
+}
+
+// 配置相关函数
+function lockAllInputs(){document.querySelectorAll('.config-input').forEach(el=>el.disabled=true);}
+function unlockAllInputs(){document.querySelectorAll('.config-input').forEach(el=>el.disabled=false);}
+
+function initDataConfig(){
+  let cfg=DEFAULT_CONFIG;
+  try{const saved=localStorage.getItem('customDataConfigObj');if(saved)cfg={...DEFAULT_CONFIG,...JSON.parse(saved)};}catch(e){}
+  Object.keys(cfg).forEach(key=>{const input=document.getElementById(`config_${key}`);if(input)input.value=cfg[key];});
   lockAllInputs();
 }
 
-// 修改数据（解锁）—— 强制触发弹窗+验证
-function enableEditConfig() {
-  try {
-    const inputPwd = prompt("请输入修改密码：", "");
-    if (inputPwd === PASSWORD) {
-      unlockAllInputs();
-      alert("解锁成功！现在可以修改数据");
-    } else {
-      alert("密码错误！");
-    }
-  } catch (e) { alert("操作异常"); }
+function enableEditConfig(){
+  try{const inputPwd=prompt("请输入修改密码：","");if(inputPwd===PASSWORD){unlockAllInputs();alert("解锁成功！现在可以修改数据");}else{alert("密码错误！");}}catch(e){alert("操作异常");}
+}
+function saveDataConfig(){
+  try{
+    const inputPwd=prompt("请输入保存密码：","");if(inputPwd!==PASSWORD){alert("密码错误，无法保存！");return;}
+    const newConfig={};document.querySelectorAll('.config-input').forEach(input=>{const key=input.id.replace('config_','');newConfig[key]=input.value.trim();});
+    localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig));lockAllInputs();alert("保存成功！配置已锁定");
+  }catch(e){alert("操作异常");}
+}
+function resetDataConfig(){
+  try{
+    const inputPwd=prompt("请输入恢复默认密码：","");if(inputPwd!==PASSWORD){alert("密码错误！");return;}
+    if(confirm("确定要恢复成原始默认数据吗？")){localStorage.removeItem('customDataConfigObj');initDataConfig();alert("已恢复默认数据！");}
+  }catch(e){alert("操作异常");}
 }
 
-// 保存修改 —— 强制触发弹窗+验证
-function saveDataConfig() {
-  try {
-    const inputPwd = prompt("请输入保存密码：", "");
-    if (inputPwd !== PASSWORD) {
-      alert("密码错误，无法保存！");
-      return;
-    }
-    const newConfig = {};
-    document.querySelectorAll('.config-input').forEach(input => {
-      const key = input.id.replace('config_', '');
-      newConfig[key] = input.value.trim();
-    });
-    localStorage.setItem('customDataConfigObj', JSON.stringify(newConfig));
-    lockAllInputs();
-    alert("保存成功！配置已锁定");
-  } catch (e) { alert("操作异常"); }
+// 表格重置
+function resetTable(){
+  try{const inputPwd=prompt("请输入清空数据密码：","");if(inputPwd===PASSWORD){tableBetData={};generateTable();alert("数据已清空！");}else{alert("密码错误！");}}catch(e){alert("操作异常");}
 }
 
-// 恢复默认 —— 强制触发弹窗+验证
-function resetDataConfig() {
-  try {
-    const inputPwd = prompt("请输入恢复默认密码：", "");
-    if (inputPwd !== PASSWORD) {
-      alert("密码错误！");
-      return;
-    }
-    if (confirm("确定要恢复成原始默认数据吗？")) {
-      localStorage.removeItem('customDataConfigObj');
-      initDataConfig();
-      alert("已恢复默认数据！");
-    }
-  } catch (e) { alert("操作异常"); }
-}
-
-// 清空数据（顶部按钮）—— 强制触发弹窗+验证
-function resetTable() {
-  try {
-    const inputPwd = prompt("请输入清空数据密码：", "");
-    if (inputPwd === PASSWORD) {
-      tableBetData = {};
-      generateTable();
-      alert("数据已清空！");
-    } else {
-      alert("密码错误！");
-    }
-  } catch (e) { alert("操作异常"); }
-}
-
-// ==================== 原有功能保持不变 ====================
-function pasteAndRecognize() {
-  const input = document.getElementById('recognizeInput').value.trim();
-  allBetData = []; let res = ''; if (!input) { document.getElementById('recognizeResult').textContent = ''; return; }
-  const lines = input.split('\n').filter(i => i.trim());
-  lines.forEach(line => {
-    let s = line.trim().replace(/[.\s]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const m = s.match(/^(.*?)各(\d+)$/);
-    if (m) {
-      const nums = m[1].replace(/\D+/g, ' ').split(' ').filter(n => n).map(n => n.padStart(2, '0'));
-      res += `澳门特码${m[1]} 各数 ${m[2]}\n`;
-      allBetData.push({ numbers: nums, multiplier: parseInt(m[2]) });
-    }
-  });
-  document.getElementById('recognizeResult').textContent = res || '未识别到有效格式';
-}
-
-function saveOrder() {
-  if (allBetData.length === 0) { alert('请先识别有效号码！'); return; }
-  allBetData.forEach(g => { g.numbers.forEach(n => { tableBetData[n] = (tableBetData[n] || 0) + g.multiplier; }); });
-  generateTable(); clearRecognize(); alert('已保存到表格');
-}
-
-function reRecognize() { pasteAndRecognize(); }
-function clearRecognize() { document.getElementById('recognizeInput').value = ''; document.getElementById('recognizeResult').textContent = ''; allBetData = []; }
-function cancelRecognize() { if(allBetData.length>0) allBetData.pop(); pasteAndRecognize(); }
-
-function generateTable() {
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '';
-  let total = 0;
-  const totalRebate = parseFloat(document.getElementById('totalRebate').textContent) || 0;
-  const multiple = parseFloat(document.getElementById('multipleVal').value) || 1;
-
-  let sortedList = [];
-  for (let num in tableBetData) {
-    const bet = tableBetData[num];
-    total += bet;
-    sortedList.push({ num, bet });
+// 保存额外订单
+function saveExtraOrder(){
+  const longVal=document.querySelector('.extra-long-input').value.trim();
+  const shortVal=document.querySelector('.extra-short-input').value.trim();
+  if(!longVal&&!shortVal){
+    alert('长框或短框必须输入内容！');
+    return;
   }
-  for (let i = 1; i <= 49; i++) {
-    const num = i.toString().padStart(2, '0');
-    if (!tableBetData[num]) sortedList.push({ num, bet: 0 });
-  }
-  sortedList.sort((a, b) => b.bet - a.bet);
+  let content='';
+  if(longVal)content+='长框：'+longVal+'\n';
+  if(shortVal)content+='短框：'+shortVal+'\n';
+  saveOrderRecord(content);
+  alert('已保存到订单记录！');
+}
 
-  sortedList.forEach(item => {
-    const { num, bet } = item;
-    let risk = Math.round(total - bet * multiple - totalRebate);
+// 生成表格
+function generateTable(){
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  let total=0;
+  const totalRebate=parseFloat(document.getElementById('totalRebate').textContent)||0;
+  const multiple=parseFloat(document.getElementById('multipleVal').value)||1;
+  let sortedList=[];
+  
+  for(let num in tableBetData){
+    const bet=tableBetData[num];
+    total+=bet;
+    sortedList.push({num,bet});
+  }
+  
+  for(let i=1;i<=49;i++){
+    const num=i.toString().padStart(2,'0');
+    if(!tableBetData[num]){
+      sortedList.push({num,bet:0});
+    }
+  }
+  
+  sortedList.sort((a,b)=>b.bet-a.bet);
+  
+  sortedList.forEach(item=>{
+    const {num,bet}=item;
+    let risk=Math.round(total-bet*multiple-totalRebate);
+    let colorClass='';
+    if(redNumbers.includes(num))colorClass='red-text';
+    else if(blueNumbers.includes(num))colorClass='blue-text';
+    else if(greenNumbers.includes(num))colorClass='green-text';
     
-    let colorClass = '';
-    if (redNumbers.includes(num)) colorClass = 'red-text';
-    else if (blueNumbers.includes(num)) colorClass = 'blue-text';
-    else if (greenNumbers.includes(num)) colorClass = 'green-text';
-
-    const numWithZodiac = num + zodiacMap[num];
-    const tr = document.createElement('tr');
-    tr.className = colorClass;
-    tr.innerHTML = `
-      <td>${numWithZodiac}</td>
-      <td>${bet}</td>
-      <td>${risk}</td>
-      <td>${parseInt(num)}</td>
-    `;
+    const numWithZodiac=num+zodiacMap[num];
+    const tr=document.createElement('tr');
+    tr.className=colorClass;
+    tr.innerHTML=`<td>${numWithZodiac}</td><td>${bet}</td><td>${risk}</td><td>${num}</td>`;
     tbody.appendChild(tr);
   });
-
-  document.getElementById('totalBet').textContent = total;
-  updateRebate();
+  
+  document.getElementById('totalBet').textContent=total;
+  const rebateRate=parseFloat(document.getElementById('rebateRate').value)||0;
+  const rebate=(total*rebateRate/100).toFixed(2);
+  document.getElementById('totalRebate').textContent=rebate;
 }
 
-function updateRebate() {
-  const total = parseInt(document.getElementById('totalBet').textContent) || 0;
-  const rate = parseFloat(document.getElementById('rebateRate').value) || 0;
-  const rebate = (total * rate / 100).toFixed(2);
-  document.getElementById('totalRebate').textContent = rebate;
-}
+// 绑定输入事件
+document.getElementById('rebateRate').addEventListener('input',generateTable);
+document.getElementById('multipleVal').addEventListener('input',generateTable);
 
-document.getElementById('rebateRate').addEventListener('input', updateRebate);
-document.getElementById('multipleVal').addEventListener('input', generateTable);
-
-// 启动
-initDataConfig();
-generateTable();
+// 初始化
+window.onload=()=>{
+  initDataConfig();
+  generateTable();
+};
 </script>
 </body>
 </html>
