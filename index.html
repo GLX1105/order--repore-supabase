@@ -516,21 +516,21 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
           <input type="text" class="extra-short-input" placeholder="金额" value="10">
         </div>
       </div>
-
-      <div class="card risk-card">
-        <div class="card-title">风险值</div>
-        <div class="summary-row">
-          <div class="summary-item">总下注：<span id="totalBet">0</span></div>
-          <div class="summary-item">返水%：<input type="number" id="rebateRate" value="4" min="0" max="100" step="0.1"></div>
-          <div class="summary-item">返水：<span id="totalRebate">0</span></div>
-          <div class="summary-item">倍数：<input type="number" id="multipleVal" value="47" min="0.1" step="0.1"></div>
-        </div>
-        <div class="table-container">
-          <table id="dataTable">
-            <thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th></tr></thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
+    </div>
+    <!-- 风险值卡片 - 确保位于右侧 -->
+    <div class="card risk-card">
+      <div class="card-title">风险值</div>
+      <div class="summary-row">
+        <div class="summary-item">总下注：<span id="totalBet">0</span></div>
+        <div class="summary-item">返水%：<input type="number" id="rebateRate" value="4" min="0" max="100" step="0.1"></div>
+        <div class="summary-item">返水：<span id="totalRebate">0</span></div>
+        <div class="summary-item">倍数：<input type="number" id="multipleVal" value="47" min="0.1" step="0.1"></div>
+      </div>
+      <div class="table-container">
+        <table id="dataTable">
+          <thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -966,9 +966,14 @@ async function calculateStorageUsage() {
   }
 }
 
-// 显示/隐藏数据库模态框
+// 显示/隐藏数据库模态框（加入密码验证）
 function showDatabase() {
-  document.getElementById('databaseModal').style.display = 'flex';
+  const pwd = prompt("请输入数据库访问密码：", "");
+  if (pwd === PASSWORD) {
+    document.getElementById('databaseModal').style.display = 'flex';
+  } else if (pwd !== null) {
+    alert("密码错误！");
+  }
 }
 
 function hideDatabase() {
