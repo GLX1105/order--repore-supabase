@@ -62,9 +62,8 @@ body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;positi
 .risk-report-area {flex:0 0 420px;position:sticky;top:10px;}
 
 .card {background:#fff;border:1px solid #ddd;border-radius:6px;padding:15px;box-shadow:0 1px 5px rgba(0,0,0,0.08);}
-.card-title {font-size:16px;font-weight:bold;color:#333;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
-.card-title .title-left {display:flex;align-items:center;gap:8px;}
-.card-title .year-zodiac-area {display:flex;align-items:center;gap:6px;font-size:13px;font-weight:normal;}
+.card-title {font-size:16px;font-weight:bold;color:#333;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.year-zodiac-area {display:flex;align-items:center;gap:6px;font-size:13px;font-weight:normal;}
 .year-zodiac-area select {padding:3px 6px;border-radius:4px;border:1px solid #ccc;font-size:13px;background:#fff;}
 .summary-row {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;font-weight:bold;color:#222;gap:6px;flex-wrap:wrap;}
 .summary-item {padding:5px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #eee;display:flex;align-items:center;gap:5px;}
@@ -125,6 +124,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .order-item:hover {background:#f9f9f9;}
 .order-item input {width:16px;height:16px;}
 .order-content {flex:1;font-size:13px;white-space:pre-wrap;}
+.order-user {font-size:11px;color:#007bff;margin-top:2px;}
 .order-time {font-size:11px;color:#666;margin-top:3px;}
 .order-del {padding:5px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;cursor:pointer;}
 
@@ -171,6 +171,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
   <div class="navbar-actions">
     <button class="btn btn-reset" onclick="resetTable()">清空</button>
     <button class="btn btn-save-order" onclick="showOrderRecord()">记录</button>
+    <button class="btn btn-primary" onclick="showUserManager()">添加用户</button>
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
   </div>
 </div>
@@ -178,7 +179,10 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 <div class="container">
   <div class="recognize-wrap">
       <div class="card recognize-card">
-        <div class="card-title">订单输入</div>
+        <div class="card-title">
+          订单输入
+          <select id="orderUserSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;"></select>
+        </div>
         <div class="order-input-container">
           <div class="input-column">
             <div class="box-label">订单输入框</div>
@@ -234,7 +238,6 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         </div>
       </div>
 
-      <!-- 下注统计卡片 -->
       <div class="card" style="margin-top:0;">
         <div class="card-title">下注统计</div>
         <div class="freq-container">
@@ -243,7 +246,6 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         </div>
       </div>
 
-      <!-- 金额次数统计卡片 -->
       <div class="card" style="margin-top:0;">
         <div class="card-title">金额次数统计</div>
         <div class="freq-container">
@@ -258,7 +260,6 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         </div>
       </div>
 
-      <!-- 上报控制卡片 -->
       <div class="card" style="margin-top:0;">
         <div class="card-title">上报控制</div>
         <div class="freq-container">
@@ -274,14 +275,16 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
       </div>
     </div>
 
-    <!-- 右侧粘性卡片组（合并风险值与上报） -->
     <div class="risk-report-area">
         <div class="card">
           <div class="card-title">
             <div class="title-left">
               <select id="riskReportSwitcher" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:14px;" onchange="switchRiskReport()">
-                <option value="risk" selected>风险值</option>
+                <option value="risk" selected>总风险</option>
                 <option value="report">上报</option>
+              </select>
+              <select id="viewUserSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:14px;" onchange="generateRiskTable()">
+                <option value="all" selected>全部用户</option>
               </select>
             </div>
             <div class="year-zodiac-area">
@@ -292,7 +295,6 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
             </div>
           </div>
 
-          <!-- 风险值区域 -->
           <div id="riskSection">
             <div class="summary-row">
               <div class="summary-item">总下注：<span id="totalBet">0</span></div>
@@ -305,7 +307,6 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
             </div>
           </div>
 
-          <!-- 上报区域 -->
           <div id="reportSection" style="display:none;">
             <div class="summary-row">
               <div class="summary-item">总下注：<span id="reportTotalBet">0</span></div>
@@ -460,12 +461,9 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 </div>
 
 <script>
-let allBetData = [];
-let tableBetData = {};
-let numberCount = {};
-let zodiacCount = {};
-let numberAmountCount = {};
-let zodiacAmountCount = {};
+let tableBetData = {}; // 总风险 (全部用户合计)
+let userBetData = {};  // 按用户存储 { 用户: { num: bet } }
+let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCount = {};
 
 const PASSWORD = "891105";
 const YEAR_ZODIAC_PASSWORD = "150408";
@@ -482,25 +480,21 @@ const greenNumbers = ['05','06','11','16','17','21','22','27','28','32','33','38
 
 function buildZodiacMap(startZodiac) {
   const map = {};
-  const startIndex = zodiacOrder.indexOf(startZodiac);
-  const idx = startIndex !== -1 ? startIndex : 0;
+  const idx = zodiacOrder.indexOf(startZodiac);
   for (let i = 1; i <= 49; i++) map[i.toString().padStart(2,'0')] = zodiacOrder[(idx + i - 1) % 12];
   return map;
 }
 
 function changeStartZodiac() {
-  const select = document.getElementById('startZodiacSelect');
-  const newZodiac = select.value;
-  const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
-  if (newZodiac === savedZodiac) return;
-  const inputPwd = prompt("请输入本年生肖切换密码：", "");
-  if (inputPwd !== YEAR_ZODIAC_PASSWORD) { alert("密码错误"); select.value = savedZodiac; return; }
-  localStorage.setItem('selectedStartZodiac', newZodiac);
-  currentZodiacMap = buildZodiacMap(newZodiac);
-  generateRiskTable();
-  generateReportTable();
-  renderFrequencyCards();
-  renderAmountFrequencyCards();
+  const sel = document.getElementById('startZodiacSelect');
+  const newZ = sel.value;
+  const saved = localStorage.getItem('selectedStartZodiac') || '马';
+  if (newZ === saved) return;
+  const pwd = prompt("请输入本年生肖切换密码：", "");
+  if (pwd !== YEAR_ZODIAC_PASSWORD) { alert("密码错误"); sel.value = saved; return; }
+  localStorage.setItem('selectedStartZodiac', newZ);
+  currentZodiacMap = buildZodiacMap(newZ);
+  generateRiskTable(); generateReportTable(); renderFreqCards(); renderAmountFreqCards();
 }
 
 function switchRiskReport() {
@@ -509,200 +503,409 @@ function switchRiskReport() {
   document.getElementById('reportSection').style.display = (val === 'report') ? '' : 'none';
 }
 
-function initIndexedDB() {
-  return new Promise((resolve) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = () => { document.getElementById('idbStatus').textContent = '❌ 不可用'; resolve(false); };
-    request.onsuccess = (event) => { db = event.target.result; document.getElementById('idbStatus').textContent = '✅ 可用'; resolve(true); };
-    request.onupgradeneeded = (event) => { db = event.target.result; if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' }); };
+function initIDB() {
+  return new Promise(resolve => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = () => { document.getElementById('idbStatus').textContent = '❌ 不可用'; resolve(false); };
+    req.onsuccess = e => { db = e.target.result; document.getElementById('idbStatus').textContent = '✅ 可用'; resolve(true); };
+    req.onupgradeneeded = e => { db = e.target.result; if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' }); };
   });
 }
 
-async function getOrderRecords() { return new Promise((resolve) => { if (!db) resolve([]); const tx = db.transaction([STORE_NAME],'readonly'); const store = tx.objectStore(STORE_NAME); const req = store.getAll(); req.onsuccess = (e) => resolve(e.target.result || []); req.onerror = () => resolve([]); }); }
-async function saveOrderRecordToIDB(content) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const record = { id: Date.now(), content, timestamp: new Date().toISOString() }; const req = store.add(record); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
-async function deleteOrderRecordFromIDB(id) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.delete(id); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
-async function batchDeleteOrderRecordFromIDB(ids) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); let count = 0; ids.forEach(id => { const req = store.delete(id); req.onsuccess = () => { count++; if (count === ids.length) resolve(true); }; }); }); }
-async function clearAllOrderRecordsFromIDB() { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.clear(); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
+async function getRecords() { return new Promise(resolve => { if (!db) resolve([]); const tx = db.transaction([STORE_NAME],'readonly'); const store = tx.objectStore(STORE_NAME); const req = store.getAll(); req.onsuccess = e => resolve(e.target.result || []); }); }
+async function saveRecord(content, user) { return new Promise(resolve => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const record = { id: Date.now(), content, user, timestamp: new Date().toISOString() }; const req = store.add(record); req.onsuccess = () => resolve(true); }); }
+async function deleteRecord(id) { return new Promise(resolve => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.delete(id); req.onsuccess = () => resolve(true); }); }
+async function batchDeleteRecords(ids) { return new Promise(resolve => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); let cnt = 0; ids.forEach(id => { const req = store.delete(id); req.onsuccess = () => { cnt++; if (cnt === ids.length) resolve(true); }; }); }); }
+async function clearRecords() { return new Promise(resolve => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.clear(); req.onsuccess = () => resolve(true); }); }
 
-async function calculateStorageUsage() {
-  const records = await getOrderRecords(); const orderCount = records.length; let usedBytes = 0;
-  records.forEach(r => usedBytes += JSON.stringify(r).length * 2);
-  usedBytes += JSON.stringify(getAllConfigData()).length * 2;
-  const usedKB = (usedBytes / 1024).toFixed(2); const maxStorage = 50 * 1024 * 1024; const freeKB = ((maxStorage - usedBytes) / 1024).toFixed(2); const usagePercent = ((usedBytes / maxStorage) * 100).toFixed(1);
-  document.getElementById('orderCount').textContent = orderCount;
-  document.getElementById('usedSpace').textContent = `${usedKB} KB`; document.getElementById('freeSpace').textContent = `${freeKB} KB`;
-  const progressBar = document.getElementById('storageProgress'); progressBar.style.width = `${usagePercent}%`;
-  progressBar.className = usagePercent > 80 ? 'progress-fill critical' : (usagePercent > 60 ? 'progress-fill warning' : 'progress-fill');
+async function calcStorage() {
+  const records = await getRecords(); const cnt = records.length; let bytes = 0;
+  records.forEach(r => bytes += JSON.stringify(r).length * 2);
+  bytes += JSON.stringify(getAllConfigData()).length * 2;
+  const usedKB = (bytes / 1024).toFixed(2); const max = 50 * 1024 * 1024;
+  const freeKB = ((max - bytes) / 1024).toFixed(2); const pct = ((bytes / max) * 100).toFixed(1);
+  document.getElementById('orderCount').textContent = cnt;
+  document.getElementById('usedSpace').textContent = `${usedKB} KB`;
+  document.getElementById('freeSpace').textContent = `${freeKB} KB`;
+  const bar = document.getElementById('storageProgress'); bar.style.width = `${pct}%`;
+  bar.className = pct > 80 ? 'progress-fill critical' : (pct > 60 ? 'progress-fill warning' : 'progress-fill');
 }
 
 function showDatabase() { const pwd = prompt("请输入数据库密码：",""); if (pwd === PASSWORD) document.getElementById('databaseModal').style.display = 'flex'; else alert("密码错误"); }
 function hideDatabase() { document.getElementById('databaseModal').style.display = 'none'; }
 
-async function saveOrderRecord(content) { await saveOrderRecordToIDB(content); calculateStorageUsage(); }
-async function deleteOrderRecord(id) { if(!confirm('确定删除？')) return; await deleteOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
-async function batchDeleteOrderRecord(ids) { if(!confirm('确定删除选中？')) return; await batchDeleteOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
-async function resetTable() { if(prompt("输入清空密码：","") !== PASSWORD) { alert("密码错误"); return; } tableBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; await clearAllOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); calculateStorageUsage(); alert("已清空"); }
+async function resetTable() {
+  if (prompt("输入清空密码：","") !== PASSWORD) { alert("密码错误"); return; }
+  tableBetData = {}; userBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
+  await clearRecords(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); refreshAll(); calcStorage(); alert("已清空");
+}
 
-document.querySelectorAll('.category-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
+/* ---- 用户管理 ---- */
+function getUsers() { return JSON.parse(localStorage.getItem('users') || '[]'); }
+function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
+function addUser(name) {
+  const users = getUsers(); if (users.includes(name)) { alert('用户已存在'); return false; }
+  users.push(name); saveUsers(users); return true;
+}
+function deleteUser(name) {
+  let users = getUsers(); users = users.filter(u => u !== name); saveUsers(users);
+  if (userBetData[name]) delete userBetData[name];
+  rebuildTotal(); refreshAll();
+}
+function rebuildTotal() {
+  tableBetData = {};
+  for (const u in userBetData) for (const n in userBetData[u]) tableBetData[n] = (tableBetData[n]||0) + userBetData[u][n];
+}
+function refreshAll() { updateSelects(); generateRiskTable(); generateReportTable(); renderFreqCards(); renderAmountFreqCards(); }
+function updateSelects() {
+  const users = getUsers();
+  const orderSel = document.getElementById('orderUserSelect'); orderSel.innerHTML = ''; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; orderSel.appendChild(o); });
+  const viewSel = document.getElementById('viewUserSelect'); viewSel.innerHTML = '<option value="all" selected>全部用户</option>'; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; viewSel.appendChild(o); });
+}
 
-const DEFAULT_CONFIG = { jin:'04 05 12 13 26 27 34 35 42 43',mu:'08 09 16 17 24 25 38 39 46 47',shui:'01 14 15 22 23 30 31 44 45',huo:'02 03 10 11 18 19 32 33 40 41 48 49',tu:'06 07 20 21 28 29 36 37', shu:'07 19 31 43',niu:'06 18 30 42',hu:'05 17 29 41',tu2:'04 16 28 40',long:'03 15 27 39',she:'02 14 26 38',ma:'01 13 25 37 49',yang:'12 24 36 48',hou:'11 23 35 47',ji:'10 22 34 46',gou:'09 21 33 45',zhu:'08 20 32 44', sx_jiaqin:'牛 马 羊 鸡 狗 猪',sx_yeshou:'鼠 虎 兔 龙 蛇 猴', hongbo:'01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46',lanbo:'03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48',lvbo:'05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49', hongshuang:'02 08 12 18 24 30 34 40 46',hongdan:'01 07 13 19 23 29 35 45',lanshuang:'04 10 14 26 36 42 48',landan:'03 09 15 25 31 37 47',lvshuang:'06 16 22 28 32 38 44',lvdan:'05 11 17 21 27 33 39 49', danshu:'01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49',shuangshu:'02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48', ws_0:'10 20 30 40',ws_1:'01 11 21 31 41',ws_2:'02 12 22 32 42',ws_3:'03 13 23 33 43',ws_4:'04 14 24 34 44',ws_5:'05 15 25 35 45',ws_6:'06 16 26 36 46',ws_7:'07 17 27 37 47',ws_8:'08 18 28 38 48',ws_9:'09 19 29 39 49', dadan:'25 27 29 31 33 35 37 39 41 43 45 47 49',dashuang:'26 28 30 32 34 36 38 40 42 44 46 48',xiaodan:'01 03 05 07 09 11 13 15 17 19 21 23',xiaoshuang:'02 04 06 08 10 12 14 16 18 20 22 24', dx_xiao:'01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24',dx_da:'25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49', hs_01:'01-10',hs_02:'02-11-20',hs_03:'03-12-21-30',hs_04:'04-13-22-31-40',hs_05:'05-14-23-32-41',hs_06:'06-15-24-33-42',hs_07:'07-16-25-34-43',hs_08:'08-17-26-35-44',hs_09:'09-18-27-36-45',hs_10:'19-28-37-46',hs_11:'29-38-47',hs_12:'39-48',hs_13:'49', ts_0:'01 02 03 04 05 06 07 08 09',ts_1:'10 11 12 13 14 15 16 17 18 19',ts_2:'20 21 22 23 24 25 26 27 28 29',ts_3:'30 31 32 33 34 35 36 37 38 39',ts_4:'40 41 42 43 44 45 46 47 48 49', ms_1:'01-02-03-04-05-06-07-08-09',ms_2:'10-11-12-13-14-15-16-17-18',ms_3:'19-20-21-22-23-24-25-26-27',ms_4:'28-29-30-31-32-33-34-35-36-37',ms_5:'38-39-40-41-42-43-44-45-46-47-48-49', dw_1:'01-02-03-04-05-06-07',dw_2:'08-09-10-11-12-13-14',dw_3:'15-16-17-18-19-20-21',dw_4:'22-23-24-25-26-27-28',dw_5:'29-30-31-32-33-34-35',dw_6:'36-37-38-39-40-41-42',dw_7:'43-44-45-46-47-48-49', hdx_hexiao:'01-02-03-04-05-06-10-11-12-13-14-15-20-21-22-23-24-30-31-32-33-40-41-42',hdx_heda:'07-08-09-16-17-18-19-25-26-27-28-29-34-35-36-37-38-39-43-44-45-46-47-48-49', wdx_weixiao:'01-02-03-04-10-11-12-13-14-20-21-22-23-24-30-31-32-33-34-40-41-42-43-44',wdx_weida:'05-06-07-08-09-15-16-17-18-19-25-26-27-28-29-35-36-37-38-39-45-46-47-48-49' };
+function showUserManager() {
+  let html = `<div class="modal-overlay" id="userModal"><div class="modal-box" style="max-width:400px;"><div class="modal-header"><h3>管理用户</h3><button onclick="document.getElementById('userModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><input type="text" id="newUserName" placeholder="用户名" style="padding:6px;width:200px;border:1px solid #ccc;border-radius:4px;"> <button onclick="addUserAction()" style="padding:6px 12px;">添加</button></div><div id="userList"></div></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderUserList();
+}
+function renderUserList() {
+  const users = getUsers(); const c = document.getElementById('userList'); if (!c) return;
+  c.innerHTML = ''; users.forEach(u => {
+    const d = document.createElement('div'); d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px'; d.style.marginBottom='4px';
+    d.innerHTML = `<span style="flex:1;">${u}</span><button onclick="deleteUserAction('${u}')" style="background:#e74c3c;color:#fff;border:none;padding:2px 8px;border-radius:3px;">删除</button>`;
+    c.appendChild(d);
+  });
+}
+function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
+function deleteUserAction(name) { if (!confirm(`确定删除用户"${name}"及其数据吗？`)) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
 
-function quickAddWithAmount(text, button) { const input = document.querySelector('.source-order-input'); const lines = input.value.trim().split('\n').filter(l=>l.trim()); const idx = lines.findIndex(l=> l.includes(text) && (l.includes('各数')||l.includes('各号'))); if (idx !== -1) { lines.splice(idx,1); button.classList.remove('active'); } else { lines.push(`${text} 各数`); button.classList.add('active'); } input.value = lines.join('\n'); convertOrderText(); }
+/* ---- 识别核心（完整保留） ---- */
+const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
+const AMOUNT_PREFIX = '(?:各|各号|各数|每数|每号|个号|每个号|各码|各号码)';
+const AMOUNT_SUFFIX = '[元块咪斤#，。\\s]*';
+const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','澳门','澳門','澳門特碼','澳门特码','澳門特码','特碼'];
 
-function convertOrderText() { const inputText = document.querySelector('.source-order-input').value.trim(); if (!inputText) { document.getElementById('orderResult').value = ''; return; } const lines = inputText.split('\n'); const resultLines = []; const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/; const AMOUNT_PREFIX = '(?:各|各号|各数|每数|每号|个号|每个号|各码|各号码)'; const AMOUNT_SUFFIX = '[元块咪斤#，。\\s]*'; const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','澳门','澳門','澳門特碼','澳门特码','澳門特码','特碼']; lines.forEach(line => { line = line.trim(); if (!line) return; let cleanedLine = line; for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim(); const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g'); const orderMatches = cleanedLine.match(orderPattern); if (orderMatches && orderMatches.length > 0) { let remainingLine = cleanedLine; orderMatches.forEach(orderMatch => { const orderIndex = remainingLine.indexOf(orderMatch); if (orderIndex !== -1) { const content = remainingLine.substring(0, orderIndex).trim(); const amountMatch = orderMatch.match(/(\d+)/); if (amountMatch) { const amount = amountMatch[1]; if (content) { const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(item => { if(validCategories.has(item)) return true; if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){ const z=item.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } remainingLine = remainingLine.substring(orderIndex + orderMatch.length); } } }); if (remainingLine.trim()) { const remaining = remainingLine.trim(); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = remaining.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } else { const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleanedLine.match(pattern); if (match) { let content = match[1].trim(); const amount = match[2]; const isNumber = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){ const z=i.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } else { const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const singleMatch = cleanedLine.match(singlePattern); if (singleMatch) { let number = singleMatch[1].trim(); const num = singleMatch[2]; if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${num}`); } } else { const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = cleanedLine.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } } }); document.getElementById('orderResult').value = [...new Set(resultLines)].join('\n'); }
+function quickAddWithAmount(text, btn) {
+  const input = document.querySelector('.source-order-input'); const lines = input.value.trim().split('\n').filter(l => l.trim());
+  const idx = lines.findIndex(l => l.includes(text) && (l.includes('各数') || l.includes('各号')));
+  if (idx !== -1) { lines.splice(idx, 1); btn.classList.remove('active'); }
+  else { lines.push(`${text} 各数`); btn.classList.add('active'); }
+  input.value = lines.join('\n'); convertOrderText();
+}
 
-function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); return set; }
+function convertOrderText() {
+  const inputText = document.querySelector('.source-order-input').value.trim();
+  if (!inputText) { document.getElementById('orderResult').value = ''; return; }
+  const lines = inputText.split('\n'); const resultLines = [];
+  lines.forEach(line => {
+    line = line.trim(); if (!line) return;
+    let cleaned = line;
+    for (const pf of IGNORE_PREFIXES) if (cleaned.startsWith(pf)) cleaned = cleaned.substring(pf.length).trim();
+    const orderPat = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g');
+    const matches = cleaned.match(orderPat);
+    if (matches && matches.length) {
+      let remaining = cleaned;
+      matches.forEach(m => {
+        const idx = remaining.indexOf(m); if (idx === -1) return;
+        const content = remaining.substring(0, idx).trim(); const amt = m.match(/(\d+)/)[1];
+        if (content) {
+          const isNum = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
+          if (isNum) {
+            const nums = content.split(SEPARATORS).filter(i=>i).map(n => { n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n);
+            if (nums.length) resultLines.push(nums.join('-') + ' 各数 ' + amt);
+          } else {
+            const items = content.split(SEPARATORS).filter(i=>i); const config = getAllConfigData(); const validCat = getAllValidCategories(config);
+            const valid = items.filter(i => validCat.has(i) || (i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i) && i.match(/[\u4e00-\u9fa5]/g).every(z=>validCat.has(z))));
+            if (valid.length) resultLines.push(valid.join('') + ' 各数 ' + amt);
+          }
+        }
+        remaining = remaining.substring(idx + m.length);
+      });
+      if (remaining.trim()) { const config = getAllConfigData(); const validCat = getAllValidCategories(config); const items = remaining.split(SEPARATORS).filter(i=>i); const valid = items.filter(i=>validCat.has(i)); if (valid.length) resultLines.push(valid.join('') + ' 各数 0'); }
+    } else {
+      const pat = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleaned.match(pat);
+      if (match) {
+        let content = match[1].trim(); const amt = match[2];
+        const isNum = /^[\d\s,，.。、+\-*＊\/\\|]+$/.test(content);
+        if (isNum) {
+          const nums = content.split(SEPARATORS).filter(i=>i).map(n => { n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n);
+          if (nums.length) resultLines.push(nums.join('-') + ' 各数 ' + amt);
+        } else {
+          const items = content.split(SEPARATORS).filter(i=>i); const config = getAllConfigData(); const validCat = getAllValidCategories(config);
+          const valid = items.filter(i => validCat.has(i) || (i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i) && i.match(/[\u4e00-\u9fa5]/g).every(z=>validCat.has(z))));
+          if (valid.length) resultLines.push(valid.join('') + ' 各数 ' + amt);
+        }
+      } else {
+        const sp = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const sm = cleaned.match(sp);
+        if (sm) { let n = sm[1]; const num = parseInt(n); if (num>=1&&num<=49) { n = n.length===1?`0${n}`:n; resultLines.push(n + ' 各数 ' + sm[2]); } }
+        else { const config = getAllConfigData(); const validCat = getAllValidCategories(config); const items = cleaned.split(SEPARATORS).filter(i=>i); const valid = items.filter(i=>validCat.has(i)); if (valid.length) resultLines.push(valid.join('') + ' 各数 0'); }
+      }
+    }
+  });
+  document.getElementById('orderResult').value = [...new Set(resultLines)].join('\n');
+}
 
-function saveOrder(){ let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim(); if(!input) return; const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; }); if(!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; } const content = validLines.join('\n'); saveOrderRecord(content); processCurrentOrder(content); document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = ''; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); }
+function getAllValidCategories(config) { const set = new Set(); for (const k in config) if (typeof config[k]==='object') Object.keys(config[k]).forEach(kk=>set.add(kk)); return set; }
 
-function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const isNumber = /^[\d\-]+$/.test(content); let items = []; if (isNumber) items = content.split('-').map(i=>i.trim()).filter(i=>i); else { if (categoryKeys.has(content)) items = [content]; else items = content.match(/[\u4e00-\u9fa5]/g) || []; } const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) numbers.push(item.padStart(2,'0')); else if (item === '家禽' || item === '野兽') { const list = configData.shengxiaoAttr[item] || []; list.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) zodiacs.push(item); }); return { numbers, zodiacs, amount }; }
+function getAllConfigData() {
+  const c = { zodiac:{}, shengxiaoAttr:{}, wuxing:{}, bose:{}, banbo:{}, danshuang:{}, weishu:{}, daxiaodanshuang:{}, daxiao:{}, heshu:{}, toushu:{}, menshu:{}, duanwei:{}, hedahexiao:{}, weidaweixiao:{}, hewei:{}, heshudanshuang:{} };
+  const zIds=['shu','niu','hu','tu2','long','she','ma','yang','hou','ji','gou','zhu'], zNames=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
+  zIds.forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.zodiac[zNames[i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  const jq=document.getElementById('config_sx_jiaqin'); if(jq) c.shengxiaoAttr['家禽']=jq.value.trim().split(/\s+/);
+  const ys=document.getElementById('config_sx_yeshou'); if(ys) c.shengxiaoAttr['野兽']=ys.value.trim().split(/\s+/);
+  ['jin','mu','shui','huo','tu'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.wuxing[['金','木','水','火','土'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  ['hongbo','lanbo','lvbo'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.bose[['红波','蓝波','绿波'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  ['hongshuang','hongdan','lanshuang','landan','lvshuang','lvdan'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.banbo[['红双','红单','蓝双','蓝单','绿双','绿单'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  ['danshu','shuangshu'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.danshuang[['单数','双数'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  for(let i=0;i<=9;i++){ const el=document.getElementById(`config_ws_${i}`); if(el) c.weishu[`${i}尾`]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }
+  ['dadan','dashuang','xiaodan','xiaoshuang'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.daxiaodanshuang[['大单','大双','小单','小双'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
+  ['dx_xiao','dx_da'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.daxiao[['小','大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); });
+  for(let i=1;i<=13;i++){ const el=document.getElementById(`config_hs_${i.toString().padStart(2,'0')}`); if(el) c.heshu[`${i}合`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }
+  for(let i=0;i<=4;i++){ const el=document.getElementById(`config_ts_${i}`); if(el) c.toushu[`${i}头`]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }
+  for(let i=1;i<=5;i++){ const el=document.getElementById(`config_ms_${i}`); if(el) c.menshu[`${i}门`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }
+  for(let i=1;i<=7;i++){ const el=document.getElementById(`config_dw_${i}`); if(el) c.duanwei[`${i}段`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }
+  ['hdx_hexiao','hdx_heda'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.hedahexiao[['合小','合大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); });
+  ['wdx_weixiao','wdx_weida'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.weidaweixiao[['尾小','尾大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); });
+  for(let i=0;i<=9;i++){ const el=document.getElementById(`config_hw_${i}`); if(el) c.hewei[`${i}合尾`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }
+  ['hsd_hsd','hsd_hss'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) c.heshudanshuang[['合数单','合数双'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); });
+  return c;
+}
 
-function processCurrentOrder(input) { const configData = getAllConfigData(); const categoryKeys = new Set([...Object.keys(configData.shengxiaoAttr),...Object.keys(configData.wuxing),...Object.keys(configData.bose),...Object.keys(configData.banbo),...Object.keys(configData.danshuang),...Object.keys(configData.weishu),...Object.keys(configData.daxiaodanshuang),...Object.keys(configData.daxiao),...Object.keys(configData.heshu),...Object.keys(configData.toushu),...Object.keys(configData.menshu),...Object.keys(configData.duanwei),...Object.keys(configData.hedahexiao),...Object.keys(configData.weidaweixiao),...Object.keys(configData.hewei),...Object.keys(configData.heshudanshuang)]); const lines = input.split('\n').filter(l=>l.trim()); lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; numbers.forEach(num => { numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; tableBetData[num] = (tableBetData[num]||0) + amount; }); zodiacs.forEach(z => { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); tableBetData[num] = (tableBetData[num]||0) + amount; }); }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); }
+function saveOrder() {
+  const user = document.getElementById('orderUserSelect').value;
+  if (!user) { alert('请先添加并选择用户'); return; }
+  let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim();
+  if (!input) return;
+  const validLines = input.split('\n').filter(l => { const m = l.match(/各数\s+(\d+)/); return m && parseInt(m[1]) > 0; });
+  if (!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; }
+  const content = validLines.join('\n');
+  saveRecord(content, user);
+  processOrder(content, user);
+  document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = '';
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+}
 
-async function updateTableFromRecords() { tableBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; const records = await getOrderRecords(); const configData = getAllConfigData(); const categoryKeys = new Set([...Object.keys(configData.shengxiaoAttr),...Object.keys(configData.wuxing),...Object.keys(configData.bose),...Object.keys(configData.banbo),...Object.keys(configData.danshuang),...Object.keys(configData.weishu),...Object.keys(configData.daxiaodanshuang),...Object.keys(configData.daxiao),...Object.keys(configData.heshu),...Object.keys(configData.toushu),...Object.keys(configData.menshu),...Object.keys(configData.duanwei),...Object.keys(configData.hedahexiao),...Object.keys(configData.weidaweixiao),...Object.keys(configData.hewei),...Object.keys(configData.heshudanshuang)]); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; records.forEach(record => { record.content.split('\n').filter(l=>l.trim()).forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); numbers.forEach(num => { numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; tableBetData[num] = (tableBetData[num]||0) + amount; }); zodiacs.forEach(z => { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); tableBetData[num] = (tableBetData[num]||0) + amount; }); }); }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); }
+function countItems(line, config, catKeys) {
+  const pat = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pat);
+  if (!match) return { numbers:[], zodiacs:[], amount:0 };
+  let content = match[1]; const amount = parseInt(match[2])||0;
+  const isNum = /^[\d\-]+$/.test(content); let items = [];
+  if (isNum) items = content.split('-').map(i=>i.trim()).filter(i=>i);
+  else { if (catKeys.has(content)) items = [content]; else items = content.match(/[\u4e00-\u9fa5]/g) || []; }
+  const numbers = [], zodiacs = [];
+  items.forEach(item => {
+    if (/^\d+$/.test(item)) numbers.push(item.padStart(2,'0'));
+    else if (item==='家禽'||item==='野兽') { (config.shengxiaoAttr[item]||[]).forEach(z=>zodiacs.push(z)); }
+    else if (config.zodiac[item]) zodiacs.push(item);
+  });
+  return { numbers, zodiacs, amount };
+}
 
-function getAllConfigData() { const configData = { zodiac:{}, shengxiaoAttr:{}, wuxing:{}, bose:{}, banbo:{}, danshuang:{}, weishu:{}, daxiaodanshuang:{}, daxiao:{}, heshu:{}, toushu:{}, menshu:{}, duanwei:{}, hedahexiao:{}, weidaweixiao:{}, hewei:{}, heshudanshuang:{} }; const zodiacIds=['shu','niu','hu','tu2','long','she','ma','yang','hou','ji','gou','zhu'], zodiacNames=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪']; zodiacIds.forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.zodiac[zodiacNames[i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); const sxJiaqin=document.getElementById('config_sx_jiaqin'); if(sxJiaqin) configData.shengxiaoAttr['家禽']=sxJiaqin.value.trim().split(/\s+/); const sxYeshou=document.getElementById('config_sx_yeshou'); if(sxYeshou) configData.shengxiaoAttr['野兽']=sxYeshou.value.trim().split(/\s+/); ['jin','mu','shui','huo','tu'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.wuxing[['金','木','水','火','土'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); ['hongbo','lanbo','lvbo'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.bose[['红波','蓝波','绿波'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); ['hongshuang','hongdan','lanshuang','landan','lvshuang','lvdan'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.banbo[['红双','红单','蓝双','蓝单','绿双','绿单'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); ['danshu','shuangshu'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.danshuang[['单数','双数'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); for(let i=0;i<=9;i++){ const el=document.getElementById(`config_ws_${i}`); if(el) configData.weishu[`${i}尾`]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); } ['dadan','dashuang','xiaodan','xiaoshuang'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.daxiaodanshuang[['大单','大双','小单','小双'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }); ['dx_xiao','dx_da'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.daxiao[['小','大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }); for(let i=1;i<=13;i++){ const el=document.getElementById(`config_hs_${i.toString().padStart(2,'0')}`); if(el) configData.heshu[`${i}合`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); } for(let i=0;i<=4;i++){ const el=document.getElementById(`config_ts_${i}`); if(el) configData.toushu[`${i}头`]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); } for(let i=1;i<=5;i++){ const el=document.getElementById(`config_ms_${i}`); if(el) configData.menshu[`${i}门`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); } for(let i=1;i<=7;i++){ const el=document.getElementById(`config_dw_${i}`); if(el) configData.duanwei[`${i}段`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); } ['hdx_hexiao','hdx_heda'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.hedahexiao[['合小','合大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }); ['wdx_weixiao','wdx_weida'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.weidaweixiao[['尾小','尾大'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }); for(let i=0;i<=9;i++){ const el=document.getElementById(`config_hw_${i}`); if(el) configData.hewei[`${i}合尾`]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); } ['hsd_hsd','hsd_hss'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.heshudanshuang[['合数单','合数双'][i]]=el.value.trim().split('-').filter(n=>/^\d+$/.test(n)); }); return configData; }
+function processOrder(input, user) {
+  const config = getAllConfigData();
+  const catKeys = new Set([...Object.keys(config.zodiac),...Object.keys(config.shengxiaoAttr),...Object.keys(config.wuxing),...Object.keys(config.bose),...Object.keys(config.banbo),...Object.keys(config.danshuang),...Object.keys(config.weishu),...Object.keys(config.daxiaodanshuang),...Object.keys(config.daxiao),...Object.keys(config.heshu),...Object.keys(config.toushu),...Object.keys(config.menshu),...Object.keys(config.duanwei),...Object.keys(config.hedahexiao),...Object.keys(config.weidaweixiao),...Object.keys(config.hewei),...Object.keys(config.heshudanshuang)]);
+  if (!userBetData[user]) userBetData[user] = {};
+  const lines = input.split('\n').filter(l => l.trim());
+  lines.forEach(line => {
+    const { numbers, zodiacs, amount } = countItems(line, config, catKeys);
+    const nmin = +document.getElementById('numAmountMin').value||1, nmax = +document.getElementById('numAmountMax').value||50000;
+    const zmin = +document.getElementById('zodiacAmountMin').value||1, zmax = +document.getElementById('zodiacAmountMax').value||50000;
+    numbers.forEach(num => {
+      userBetData[user][num] = (userBetData[user][num]||0) + amount;
+      tableBetData[num] = (tableBetData[num]||0) + amount;
+      numberCount[num] = (numberCount[num]||0) + 1;
+      if (amount>=nmin && amount<=nmax) numberAmountCount[num] = (numberAmountCount[num]||0) + 1;
+    });
+    zodiacs.forEach(z => {
+      zodiacCount[z] = (zodiacCount[z]||0) + 1;
+      if (amount>=zmin && amount<=zmax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0) + 1;
+      (config.zodiac[z]||[]).forEach(n => {
+        const num = n.padStart(2,'0');
+        userBetData[user][num] = (userBetData[user][num]||0) + amount;
+        tableBetData[num] = (tableBetData[num]||0) + amount;
+      });
+    });
+  });
+  generateRiskTable(); generateReportTable(); renderFreqCards(); renderAmountFreqCards();
+}
 
-function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
-
-async function showOrderRecord(){ const records = await getOrderRecords(); let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`; if (records.length===0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`; else { html += `<div style="margin-bottom:10px;"><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;margin-right:8px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;margin-right:8px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`; records.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`; }); } html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`; document.body.insertAdjacentHTML('beforeend', html); }
-function closeOrderModal(){ const modal=document.getElementById('orderModal'); if(modal) modal.remove(); }
-function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true); }
-function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
-async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ alert('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
-
-function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; }
-function cancelLastInput(){ const input=document.querySelector('.source-order-input'); input.value=input.value.substring(0,input.value.length-1); convertOrderText(); }
-function lockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=true); }
-function unlockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=false); }
-function initDataConfig(){ let cfg = DEFAULT_CONFIG; try { const saved = localStorage.getItem('customDataConfigObj'); if(saved) cfg = {...DEFAULT_CONFIG,...JSON.parse(saved)}; } catch(e) {} Object.keys(cfg).forEach(key=>{ const input=document.getElementById(`config_${key}`); if(input) input.value=cfg[key]; }); lockAllInputs(); }
-function enableEditConfig(){ if(prompt("输入修改密码：")===PASSWORD){ unlockAllInputs(); alert("解锁成功"); } else alert("密码错误"); }
-function saveDataConfig(){ if(prompt("输入保存密码：")!==PASSWORD) { alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(input=>{ newConfig[input.id.replace('config_','')] = input.value.trim(); }); localStorage.setItem('customDataConfigObj', JSON.stringify(newConfig)); lockAllInputs(); alert("保存成功"); }
-function resetDataConfig(){ if(prompt("输入密码：")!==PASSWORD) { alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); alert("已恢复默认"); }
+async function updateFromRecords() {
+  tableBetData = {}; userBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
+  const records = await getRecords();
+  const config = getAllConfigData();
+  const catKeys = new Set([...Object.keys(config.zodiac),...Object.keys(config.shengxiaoAttr),...Object.keys(config.wuxing),...Object.keys(config.bose),...Object.keys(config.banbo),...Object.keys(config.danshuang),...Object.keys(config.weishu),...Object.keys(config.daxiaodanshuang),...Object.keys(config.daxiao),...Object.keys(config.heshu),...Object.keys(config.toushu),...Object.keys(config.menshu),...Object.keys(config.duanwei),...Object.keys(config.hedahexiao),...Object.keys(config.weidaweixiao),...Object.keys(config.hewei),...Object.keys(config.heshudanshuang)]);
+  const nmin = +document.getElementById('numAmountMin').value||1, nmax = +document.getElementById('numAmountMax').value||50000;
+  const zmin = +document.getElementById('zodiacAmountMin').value||1, zmax = +document.getElementById('zodiacAmountMax').value||50000;
+  records.forEach(r => {
+    if (!userBetData[r.user]) userBetData[r.user] = {};
+    r.content.split('\n').filter(l=>l.trim()).forEach(line => {
+      const { numbers, zodiacs, amount } = countItems(line, config, catKeys);
+      numbers.forEach(num => {
+        userBetData[r.user][num] = (userBetData[r.user][num]||0) + amount;
+        tableBetData[num] = (tableBetData[num]||0) + amount;
+        numberCount[num] = (numberCount[num]||0) + 1;
+        if (amount>=nmin && amount<=nmax) numberAmountCount[num] = (numberAmountCount[num]||0) + 1;
+      });
+      zodiacs.forEach(z => {
+        zodiacCount[z] = (zodiacCount[z]||0) + 1;
+        if (amount>=zmin && amount<=zmax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0) + 1;
+        (config.zodiac[z]||[]).forEach(n => {
+          const num = n.padStart(2,'0');
+          userBetData[r.user][num] = (userBetData[r.user][num]||0) + amount;
+          tableBetData[num] = (tableBetData[num]||0) + amount;
+        });
+      });
+    });
+  });
+  generateRiskTable(); generateReportTable(); renderFreqCards(); renderAmountFreqCards();
+}
 
 function generateRiskTable() {
+  const viewUser = document.getElementById('viewUserSelect').value;
+  const data = (viewUser === 'all' || !userBetData[viewUser]) ? tableBetData : (userBetData[viewUser] || {});
   const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-  let total = 0; const multiple = parseFloat(document.getElementById('multipleVal').value)||1;
-  const rebateRate = parseFloat(document.getElementById('rebateRate').value)||0;
+  let total = 0; const mul = +document.getElementById('multipleVal').value||1, rate = +document.getElementById('rebateRate').value||0;
   let list = [];
-  for(let num in tableBetData) { const bet = tableBetData[num]; total += bet; list.push({num, bet}); }
-  for(let i=1;i<=49;i++) { const num = i.toString().padStart(2,'0'); if(!tableBetData[num]) list.push({num,bet:0}); }
-  list.sort((a,b)=>b.bet-a.bet);
-  const rebate = (total * rebateRate / 100).toFixed(2);
+  for (let n in data) { const bet = data[n]; total += bet; list.push({num:n, bet}); }
+  for (let i=1;i<=49;i++) { const n = i.toString().padStart(2,'0'); if (!data[n]) list.push({num:n, bet:0}); }
+  list.sort((a,b) => b.bet - a.bet);
+  const rebate = (total * rate / 100).toFixed(2);
   list.forEach(item => {
-    const {num, bet} = item;
-    const risk = Math.round(total - bet*multiple - parseFloat(rebate));
-    let colorClass = redNumbers.includes(num) ? 'red-text' : (blueNumbers.includes(num) ? 'blue-text' : 'green-text');
-    const tr = document.createElement('tr'); tr.className = colorClass;
-    tr.innerHTML = `<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td>`;
+    const risk = Math.round(total - item.bet*mul - parseFloat(rebate));
+    const cls = redNumbers.includes(item.num) ? 'red-text' : (blueNumbers.includes(item.num) ? 'blue-text' : 'green-text');
+    const tr = document.createElement('tr'); tr.className = cls;
+    tr.innerHTML = `<td>${item.num}${currentZodiacMap[item.num]||''}</td><td>${item.bet}</td><td>${risk}</td><td>${item.num}</td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('totalBet').textContent = total;
   document.getElementById('totalRebate').textContent = rebate;
 }
 
-function applyReportCap() { generateReportTable(); }
-
 function generateReportTable() {
-  const capInput = document.getElementById('reportCapInput');
-  let capValue = parseFloat(capInput.value);
-  if (isNaN(capValue) || capValue <= 0) capInput.value = '';
+  const capVal = +document.getElementById('reportCapInput').value;
+  const data = tableBetData;
   const tbody = document.getElementById('reportTableBody'); tbody.innerHTML = '';
-  const multiple = parseFloat(document.getElementById('reportMultipleVal').value)||1;
-  const rebateRate = parseFloat(document.getElementById('reportRebateRate').value)||0;
-  let total = 0; let list = [];
-  for(let num in tableBetData) {
-    let bet = tableBetData[num];
-    if (!isNaN(capValue) && capValue > 0 && bet > capValue) bet = capValue;
-    total += bet; list.push({num, bet});
-  }
-  for(let i=1;i<=49;i++) { const num = i.toString().padStart(2,'0'); if(!tableBetData[num]) list.push({num,bet:0}); }
-  list.sort((a,b)=>b.bet-a.bet);
-  const rebate = (total * rebateRate / 100).toFixed(2);
+  let total = 0; const mul = +document.getElementById('reportMultipleVal').value||1, rate = +document.getElementById('reportRebateRate').value||0;
+  let list = [];
+  for (let n in data) { let bet = data[n]; if (!isNaN(capVal) && capVal>0 && bet>capVal) bet = capVal; total += bet; list.push({num:n, bet}); }
+  for (let i=1;i<=49;i++) { const n = i.toString().padStart(2,'0'); if (!data[n]) list.push({num:n, bet:0}); }
+  list.sort((a,b) => b.bet - a.bet);
+  const rebate = (total * rate / 100).toFixed(2);
   list.forEach(item => {
-    const {num, bet} = item;
-    const risk = Math.round(total - bet*multiple - parseFloat(rebate));
-    let colorClass = redNumbers.includes(num) ? 'red-text' : (blueNumbers.includes(num) ? 'blue-text' : 'green-text');
-    const tr = document.createElement('tr'); tr.className = colorClass;
-    tr.innerHTML = `<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td>`;
+    const risk = Math.round(total - item.bet*mul - parseFloat(rebate));
+    const cls = redNumbers.includes(item.num) ? 'red-text' : (blueNumbers.includes(item.num) ? 'blue-text' : 'green-text');
+    const tr = document.createElement('tr'); tr.className = cls;
+    tr.innerHTML = `<td>${item.num}${currentZodiacMap[item.num]||''}</td><td>${item.bet}</td><td>${risk}</td><td>${item.num}</td>`;
     tbody.appendChild(tr);
   });
   document.getElementById('reportTotalBet').textContent = total;
   document.getElementById('reportTotalRebate').textContent = rebate;
-
-  const infoDiv = document.getElementById('reportCapInfo');
-  if (!isNaN(capValue) && capValue > 0) {
-    const exceedList = [];
-    for(let num in tableBetData) {
-      if (tableBetData[num] > capValue) exceedList.push({num, exceed: tableBetData[num] - capValue});
-    }
-    if (exceedList.length > 0) {
-      exceedList.sort((a,b) => a.exceed - b.exceed);
-      let text = ''; let totalExceed = 0;
-      exceedList.forEach(item => { text += `${item.num}各${item.exceed}米<br>`; totalExceed += item.exceed; });
-      text += `合计${totalExceed}`;
-      infoDiv.innerHTML = text;
-    } else { infoDiv.textContent = '无超出的号码'; }
-  } else { infoDiv.textContent = ''; }
-
-  if (Object.keys(tableBetData).length > 0) {
-    const maxBet = Math.max(...Object.values(tableBetData));
-    capInput.placeholder = `当前最大: ${maxBet}`;
-  }
+  const info = document.getElementById('reportCapInfo');
+  if (!isNaN(capVal) && capVal>0) {
+    const exc = []; for (let n in data) if (data[n] > capVal) exc.push({num:n, exc:data[n]-capVal});
+    if (exc.length) { exc.sort((a,b)=>a.exc-b.exc); let t='', s=0; exc.forEach(e=>{t+=`${e.num}各${e.exc}米<br>`; s+=e.exc;}); t+=`合计${s}`; info.innerHTML = t; }
+    else info.textContent = '无超出的号码';
+  } else info.textContent = '';
+  if (Object.keys(data).length) document.getElementById('reportCapInput').placeholder = `当前最大: ${Math.max(...Object.values(data))}`;
 }
 
-function renderFrequencyCards() {
+function renderFreqCards() {
   const numTable = document.getElementById('numberFreqTable'); numTable.innerHTML = '';
-  const numCols = [ Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')), Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0')) ];
-  let thead = '<thead><tr>'; for(let c=0;c<5;c++) thead += '<th>号码</th><th>次数</th>'; thead += '</tr></thead>';
-  let tbody = '<tbody>';
-  for(let r=0;r<10;r++) { tbody += '<tr>'; for(let c=0;c<5;c++) { const num = numCols[c][r]||''; if(num){ const count = numberCount[num]||0; const cls = redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tbody += `<td class="${cls}">${num}</td><td class="black-text">${count>0?count:''}</td>`; } else tbody += '<td></td><td></td>'; } tbody += '</tr>'; }
-  tbody += '</tbody>'; numTable.innerHTML = thead + tbody;
+  const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))];
+  let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>次数</th>'; th+='</tr></thead>';
+  let tb='<tbody>';
+  for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const cnt=numberCount[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${cnt||''}</td>`; }else tb+='<td></td><td></td>'; } tb+='</tr>'; }
+  tb+='</tbody>'; numTable.innerHTML=th+tb;
 
-  const zodiacTable = document.getElementById('zodiacFreqTable'); zodiacTable.innerHTML = '';
-  const leftZ = ['鼠','牛','虎','兔','龙','蛇'], rightZ = ['马','羊','猴','鸡','狗','猪'];
-  const zodiacColorMap = {'鼠':'red-text','兔':'red-text','马':'red-text','鸡':'red-text','虎':'blue-text','蛇':'blue-text','猴':'blue-text','猪':'blue-text','牛':'green-text','龙':'green-text','羊':'green-text','狗':'green-text'};
-  let zthead = '<thead><tr><th>生肖</th><th>次数</th><th>生肖</th><th>次数</th></tr></thead>';
-  let ztbody = '<tbody>';
-  for(let r=0;r<6;r++) { const l = leftZ[r], r2 = rightZ[r]; const lc = zodiacCount[l]||0, rc = zodiacCount[r2]||0; ztbody += `<tr><td class="${zodiacColorMap[l]||''}">${l}</td><td class="black-text">${lc>0?lc:''}</td><td class="${zodiacColorMap[r2]||''}">${r2}</td><td class="black-text">${rc>0?rc:''}</td></tr>`; }
-  ztbody += '</tbody>'; zodiacTable.innerHTML = zthead + ztbody;
+  const zTable=document.getElementById('zodiacFreqTable'); zTable.innerHTML='';
+  const leftZ=['鼠','牛','虎','兔','龙','蛇'], rightZ=['马','羊','猴','鸡','狗','猪'];
+  const zcm={'鼠':'red-text','兔':'red-text','马':'red-text','鸡':'red-text','虎':'blue-text','蛇':'blue-text','猴':'blue-text','猪':'blue-text','牛':'green-text','龙':'green-text','羊':'green-text','狗':'green-text'};
+  let zth='<thead><tr><th>生肖</th><th>次数</th><th>生肖</th><th>次数</th></tr></thead>', ztb='<tbody>';
+  for(let r=0;r<6;r++){ const l=leftZ[r],r2=rightZ[r]; const lc=zodiacCount[l]||0,rc=zodiacCount[r2]||0; ztb+=`<tr><td class="${zcm[l]}">${l}</td><td class="black-text">${lc||''}</td><td class="${zcm[r2]}">${r2}</td><td class="black-text">${rc||''}</td></tr>`; }
+  ztb+='</tbody>'; zTable.innerHTML=zth+ztb;
 }
 
-function renderAmountFrequencyCards() {
+function renderAmountFreqCards() {
   const numTable = document.getElementById('numberAmountFreqTable'); numTable.innerHTML = '';
-  const numCols = [ Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')), Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')), Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0')) ];
-  let thead = '<thead><tr>'; for(let c=0;c<5;c++) thead += '<th>号码</th><th>次数</th>'; thead += '</tr></thead>';
-  let tbody = '<tbody>';
-  for(let r=0;r<10;r++) { tbody += '<tr>'; for(let c=0;c<5;c++) { const num = numCols[c][r]||''; if(num){ const count = numberAmountCount[num]||0; const cls = redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tbody += `<td class="${cls}">${num}</td><td class="black-text">${count>0?count:''}</td>`; } else tbody += '<td></td><td></td>'; } tbody += '</tr>'; }
-  tbody += '</tbody>'; numTable.innerHTML = thead + tbody;
+  const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))];
+  let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>次数</th>'; th+='</tr></thead>';
+  let tb='<tbody>';
+  for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const cnt=numberAmountCount[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${cnt||''}</td>`; }else tb+='<td></td><td></td>'; } tb+='</tr>'; }
+  tb+='</tbody>'; numTable.innerHTML=th+tb;
 
-  const zodiacTable = document.getElementById('zodiacAmountFreqTable'); zodiacTable.innerHTML = '';
-  const leftZ = ['鼠','牛','虎','兔','龙','蛇'], rightZ = ['马','羊','猴','鸡','狗','猪'];
-  const zodiacColorMap = {'鼠':'red-text','兔':'red-text','马':'red-text','鸡':'red-text','虎':'blue-text','蛇':'blue-text','猴':'blue-text','猪':'blue-text','牛':'green-text','龙':'green-text','羊':'green-text','狗':'green-text'};
-  let zthead = '<thead><tr><th>生肖</th><th>次数</th><th>生肖</th><th>次数</th></tr></thead>';
-  let ztbody = '<tbody>';
-  for(let r=0;r<6;r++) { const l = leftZ[r], r2 = rightZ[r]; const lc = zodiacAmountCount[l]||0, rc = zodiacAmountCount[r2]||0; ztbody += `<tr><td class="${zodiacColorMap[l]||''}">${l}</td><td class="black-text">${lc>0?lc:''}</td><td class="${zodiacColorMap[r2]||''}">${r2}</td><td class="black-text">${rc>0?rc:''}</td></tr>`; }
-  ztbody += '</tbody>'; zodiacTable.innerHTML = zthead + ztbody;
+  const zTable=document.getElementById('zodiacAmountFreqTable'); zTable.innerHTML='';
+  const leftZ=['鼠','牛','虎','兔','龙','蛇'], rightZ=['马','羊','猴','鸡','狗','猪'];
+  const zcm={'鼠':'red-text','兔':'red-text','马':'red-text','鸡':'red-text','虎':'blue-text','蛇':'blue-text','猴':'blue-text','猪':'blue-text','牛':'green-text','龙':'green-text','羊':'green-text','狗':'green-text'};
+  let zth='<thead><tr><th>生肖</th><th>次数</th><th>生肖</th><th>次数</th></tr></thead>', ztb='<tbody>';
+  for(let r=0;r<6;r++){ const l=leftZ[r],r2=rightZ[r]; const lc=zodiacAmountCount[l]||0,rc=zodiacAmountCount[r2]||0; ztb+=`<tr><td class="${zcm[l]}">${l}</td><td class="black-text">${lc||''}</td><td class="${zcm[r2]}">${r2}</td><td class="black-text">${rc||''}</td></tr>`; }
+  ztb+='</tbody>'; zTable.innerHTML=zth+ztb;
 }
+
+function formatTime(iso){ return new Date(iso).toLocaleString('zh-CN',{hour12:false,timeZone:'Asia/Shanghai'}); }
+
+async function showOrderRecord(filter='all'){
+  const records = await getRecords(); const users = getUsers();
+  const filtered = filter==='all' ? records : records.filter(r => r.user === filter);
+  let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="document.getElementById('orderModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
+  html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <select id="recordFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;">
+      <option value="all" selected>全部用户</option>`;
+  users.forEach(u => html += `<option value="${u}">${u}</option>`);
+  html += `</select>
+    <button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
+    <button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
+    <button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`;
+  if (!filtered.length) html += `<div style="text-align:center;color:#666;padding:20px;">暂无记录</div>`;
+  else filtered.forEach(r => {
+    html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${r.id}"><div><div class="order-content">${r.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${r.user||'未知'}</div><div class="order-time">${formatTime(r.timestamp)}</div></div><button class="order-del" onclick="deleteOrder(${r.id})">删除</button></div>`;
+  });
+  html += `</div><div class="modal-footer"><button onclick="document.getElementById('orderModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+  const old = document.getElementById('orderModal'); if (old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function deleteOrder(id) { if (!confirm('确定删除？')) return; await deleteRecord(id); await updateFromRecords(); calcStorage(); document.getElementById('orderModal').remove(); showOrderRecord(); }
+async function deleteChecked() { const ids = []; document.querySelectorAll('.order-check:checked').forEach(cb => ids.push(Number(cb.dataset.id))); if (!ids.length) { alert('请选择'); return; } await batchDeleteRecords(ids); await updateFromRecords(); calcStorage(); document.getElementById('orderModal').remove(); showOrderRecord(); }
+function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true); }
+function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
+
+function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; }
+function cancelLastInput(){ const i=document.querySelector('.source-order-input'); i.value=i.value.substring(0,i.value.length-1); convertOrderText(); }
+
+function lockAll(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=true); }
+function unlockAll(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=false); }
+
+const DEFAULT_CONFIG = { jin:'04 05 12 13 26 27 34 35 42 43',mu:'08 09 16 17 24 25 38 39 46 47',shui:'01 14 15 22 23 30 31 44 45',huo:'02 03 10 11 18 19 32 33 40 41 48 49',tu:'06 07 20 21 28 29 36 37', shu:'07 19 31 43',niu:'06 18 30 42',hu:'05 17 29 41',tu2:'04 16 28 40',long:'03 15 27 39',she:'02 14 26 38',ma:'01 13 25 37 49',yang:'12 24 36 48',hou:'11 23 35 47',ji:'10 22 34 46',gou:'09 21 33 45',zhu:'08 20 32 44', sx_jiaqin:'牛 马 羊 鸡 狗 猪',sx_yeshou:'鼠 虎 兔 龙 蛇 猴', hongbo:'01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46',lanbo:'03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48',lvbo:'05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49', hongshuang:'02 08 12 18 24 30 34 40 46',hongdan:'01 07 13 19 23 29 35 45',lanshuang:'04 10 14 26 36 42 48',landan:'03 09 15 25 31 37 47',lvshuang:'06 16 22 28 32 38 44',lvdan:'05 11 17 21 27 33 39 49', danshu:'01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49',shuangshu:'02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48', ws_0:'10 20 30 40',ws_1:'01 11 21 31 41',ws_2:'02 12 22 32 42',ws_3:'03 13 23 33 43',ws_4:'04 14 24 34 44',ws_5:'05 15 25 35 45',ws_6:'06 16 26 36 46',ws_7:'07 17 27 37 47',ws_8:'08 18 28 38 48',ws_9:'09 19 29 39 49', dadan:'25 27 29 31 33 35 37 39 41 43 45 47 49',dashuang:'26 28 30 32 34 36 38 40 42 44 46 48',xiaodan:'01 03 05 07 09 11 13 15 17 19 21 23',xiaoshuang:'02 04 06 08 10 12 14 16 18 20 22 24', dx_xiao:'01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24',dx_da:'25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49', hs_01:'01-10',hs_02:'02-11-20',hs_03:'03-12-21-30',hs_04:'04-13-22-31-40',hs_05:'05-14-23-32-41',hs_06:'06-15-24-33-42',hs_07:'07-16-25-34-43',hs_08:'08-17-26-35-44',hs_09:'09-18-27-36-45',hs_10:'19-28-37-46',hs_11:'29-38-47',hs_12:'39-48',hs_13:'49', ts_0:'01 02 03 04 05 06 07 08 09',ts_1:'10 11 12 13 14 15 16 17 18 19',ts_2:'20 21 22 23 24 25 26 27 28 29',ts_3:'30 31 32 33 34 35 36 37 38 39',ts_4:'40 41 42 43 44 45 46 47 48 49', ms_1:'01-02-03-04-05-06-07-08-09',ms_2:'10-11-12-13-14-15-16-17-18',ms_3:'19-20-21-22-23-24-25-26-27',ms_4:'28-29-30-31-32-33-34-35-36-37',ms_5:'38-39-40-41-42-43-44-45-46-47-48-49', dw_1:'01-02-03-04-05-06-07',dw_2:'08-09-10-11-12-13-14',dw_3:'15-16-17-18-19-20-21',dw_4:'22-23-24-25-26-27-28',dw_5:'29-30-31-32-33-34-35',dw_6:'36-37-38-39-40-41-42',dw_7:'43-44-45-46-47-48-49', hdx_hexiao:'01-02-03-04-05-06-10-11-12-13-14-15-20-21-22-23-24-30-31-32-33-40-41-42',hdx_heda:'07-08-09-16-17-18-19-25-26-27-28-29-34-35-36-37-38-39-43-44-45-46-47-48-49', wdx_weixiao:'01-02-03-04-10-11-12-13-14-20-21-22-23-24-30-31-32-33-34-40-41-42-43-44',wdx_weida:'05-06-07-08-09-15-16-17-18-19-25-26-27-28-29-35-36-37-38-39-45-46-47-48-49' };
+
+function initDataConfig(){
+  let cfg = DEFAULT_CONFIG;
+  try { const saved = localStorage.getItem('customDataConfigObj'); if(saved) cfg = {...DEFAULT_CONFIG,...JSON.parse(saved)}; } catch(e){}
+  Object.keys(cfg).forEach(key=>{ const el=document.getElementById(`config_${key}`); if(el) el.value=cfg[key]; });
+  lockAll();
+}
+function enableEditConfig(){ if(prompt("输入修改密码：")===PASSWORD){ unlockAll(); alert("解锁成功"); } else alert("密码错误"); }
+function saveDataConfig(){ if(prompt("输入保存密码：")!==PASSWORD){ alert("密码错误"); return; } const newCfg={}; document.querySelectorAll('.config-input').forEach(el=>{ newCfg[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newCfg)); lockAll(); alert("保存成功"); }
+function resetDataConfig(){ if(prompt("输入密码：")!==PASSWORD){ alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); alert("已恢复默认"); }
 
 document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
 document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
 document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
 document.getElementById('reportMultipleVal').addEventListener('input', generateReportTable);
 document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
-document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
+document.getElementById('numAmountMin').addEventListener('input', updateFromRecords);
+document.getElementById('numAmountMax').addEventListener('input', updateFromRecords);
+document.getElementById('zodiacAmountMin').addEventListener('input', updateFromRecords);
+document.getElementById('zodiacAmountMax').addEventListener('input', updateFromRecords);
 
 window.onload = async () => {
-  await initIndexedDB();
+  await initIDB();
   initDataConfig();
-  const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
-  document.getElementById('startZodiacSelect').value = savedZodiac;
-  currentZodiacMap = buildZodiacMap(savedZodiac);
-  await updateTableFromRecords();
-  calculateStorageUsage();
+  const savedZ = localStorage.getItem('selectedStartZodiac')||'马';
+  document.getElementById('startZodiacSelect').value = savedZ;
+  currentZodiacMap = buildZodiacMap(savedZ);
+  updateSelects();
+  await updateFromRecords();
+  calcStorage();
 };
 </script>
 </body>
