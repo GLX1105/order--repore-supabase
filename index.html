@@ -113,19 +113,29 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .blue-text {color:#0000ff!important;font-weight:bold;}
 .green-text {color:#008000!important;font-weight:bold;}
 
-.modal-overlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;display:flex;align-items:center;justify-content:center;}
-.modal-box {background:#fff;width:90%;max-width:700px;border-radius:8px;overflow:hidden;max-height:80vh;display:flex;flex-direction:column;}
+/* 弹窗优化动画 */
+.modal-overlay {
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;
+    display:flex;align-items:center;justify-content:center;
+    animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+.modal-box {
+    background:#fff;width:90%;max-width:700px;border-radius:8px;overflow:hidden;max-height:80vh;
+    display:flex;flex-direction:column;
+    animation: slideDown 0.25s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+@keyframes slideDown { from {transform:translateY(-30px);opacity:0;} to {transform:translateY(0);opacity:1;} }
 .modal-header {padding:10px 12px;background:#1a1a2e;color:#fff;display:flex;justify-content:space-between;align-items:center;}
 .modal-body {padding:12px;overflow-y:auto;}
 .modal-footer {padding:8px 12px;background:#f5f7fa;display:flex;gap:8px;justify-content:flex-end;}
-.order-item {padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.order-item {padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;gap:8px;transition:background 0.2s;}
+.order-item:hover {background:#f9f9f9;}
 .order-item input {width:16px;height:16px;}
 .order-content {flex:1;font-size:13px;white-space:pre-wrap;}
+.order-time {font-size:11px;color:#666;margin-top:3px;}
 .order-del {padding:5px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;cursor:pointer;}
-
-.extra-input-group {margin-top:12px;display:flex;gap:8px;align-items:center;}
-.extra-long-input {flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;font-size:13px;}
-.extra-short-input {width:70px;padding:6px 6px;border:1px solid #ddd;border-radius:4px;font-size:13px;text-align:center;}
 
 .order-input-container {display:flex;width:100%;height:280px;border:1px solid #ddd;}
 .input-column,.result-column {flex:1;display:flex;flex-direction:column;}
@@ -144,8 +154,16 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .storage-info .warning {color:#ff9800;}
 .storage-info .critical {color:#f44336;}
 
-.database-modal {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;display:flex;align-items:center;justify-content:center;padding:20px;}
-.database-modal-box {background:#fff;width:100%;max-width:900px;border-radius:8px;overflow:hidden;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,0.3);}
+.database-modal {
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    animation: fadeIn 0.2s ease;
+}
+.database-modal-box {
+    background:#fff;width:100%;max-width:900px;border-radius:8px;overflow:hidden;max-height:85vh;
+    display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    animation: slideDown 0.25s ease;
+}
 .database-modal-header {padding:15px 20px;background:#1a1a2e;color:#fff;display:flex;justify-content:space-between;align-items:center;}
 .database-modal-header h3 {margin:0;font-size:16px;}
 .database-modal-body {padding:20px;overflow-y:auto;max-height:70vh;}
@@ -160,6 +178,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .freq-table th {background:#f0f0f0;font-weight:bold;color:#333;padding:3px 4px;}
 .freq-table td {padding:2px 4px;border:1px solid #eee;text-align:center;}
 .black-text {color:#000000!important;font-weight:normal;}
+.range-input {width:70px;padding:2px 4px;font-size:11px;border:1px solid #ccc;border-radius:3px;}
 </style>
 </head>
 <body>
@@ -230,16 +249,9 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
           <button class="category-btn" onclick="quickAddWithAmount('火', this)">火</button>
           <button class="category-btn" onclick="quickAddWithAmount('土', this)">土</button>
         </div>
-        <div style="margin-top:10px;text-align:right;">
-          <button class="btn btn-save-order" onclick="saveExtraOrder()">保存备注</button>
-        </div>
-        <div class="extra-input-group" style="margin-top:8px;">
-          <input type="text" class="extra-long-input" placeholder="备注信息">
-          <input type="text" class="extra-short-input" placeholder="金额" value="10">
-        </div>
       </div>
 
-      <!-- 统计卡片容器 -->
+      <!-- 下注统计卡片 -->
       <div class="card" style="margin-top:0;">
         <div class="card-title">下注统计</div>
         <div class="freq-container">
@@ -250,6 +262,33 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
           <div class="freq-card">
             <div class="freq-title">生肖次数</div>
             <table class="freq-table" id="zodiacFreqTable"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 金额次数统计卡片 -->
+      <div class="card" style="margin-top:0;">
+        <div class="card-title">金额次数统计</div>
+        <div class="freq-container">
+          <div class="freq-card">
+            <div class="freq-title">
+              号码金额次数
+              <span style="font-size:11px;font-weight:normal;margin-left:8px;">
+                范围：<input type="number" id="numAmountMin" class="range-input" value="1" min="1"> - 
+                <input type="number" id="numAmountMax" class="range-input" value="50000" min="1">
+              </span>
+            </div>
+            <table class="freq-table" id="numberAmountFreqTable"></table>
+          </div>
+          <div class="freq-card">
+            <div class="freq-title">
+              生肖金额次数
+              <span style="font-size:11px;font-weight:normal;margin-left:8px;">
+                范围：<input type="number" id="zodiacAmountMin" class="range-input" value="1" min="1"> - 
+                <input type="number" id="zodiacAmountMax" class="range-input" value="50000" min="1">
+              </span>
+            </div>
+            <table class="freq-table" id="zodiacAmountFreqTable"></table>
           </div>
         </div>
       </div>
@@ -462,6 +501,8 @@ let allBetData = [];
 let tableBetData = {};
 let numberCount = {};
 let zodiacCount = {};
+let numberAmountCount = {};
+let zodiacAmountCount = {};
 
 const PASSWORD = "891105";
 const YEAR_ZODIAC_PASSWORD = "150408";
@@ -504,6 +545,7 @@ function changeStartZodiac() {
   currentZodiacMap = buildZodiacMap(newZodiac);
   generateTable();
   renderFrequencyCards();
+  renderAmountFrequencyCards();
 }
 
 function initIndexedDB() {
@@ -631,15 +673,19 @@ async function saveOrderRecord(content) {
 async function deleteOrderRecord(id) {
   if(!confirm('确定要删除这条订单记录吗？')) return;
   await deleteOrderRecordFromIDB(id);
-  updateTableFromRecords();
+  await updateTableFromRecords();
   calculateStorageUsage();
+  closeOrderModal();
+  showOrderRecord();
 }
 
 async function batchDeleteOrderRecord(ids) {
   if(!confirm('确定要删除选中的订单记录吗？')) return;
   await batchDeleteOrderRecordFromIDB(ids);
-  updateTableFromRecords();
+  await updateTableFromRecords();
   calculateStorageUsage();
+  closeOrderModal();
+  showOrderRecord();
 }
 
 async function resetTable() {
@@ -649,11 +695,14 @@ async function resetTable() {
       tableBetData = {};
       numberCount = {};
       zodiacCount = {};
+      numberAmountCount = {};
+      zodiacAmountCount = {};
       await clearAllOrderRecordsFromIDB();
       localStorage.removeItem('customDataConfigObj');
       initDataConfig();
       generateTable();
       renderFrequencyCards();
+      renderAmountFrequencyCards();
       calculateStorageUsage();
       alert("数据已清空！");
     } else alert("密码错误！");
@@ -689,8 +738,6 @@ const DEFAULT_CONFIG = {
 };
 
 function quickAddWithAmount(text, button) {
-  const shortInput = document.querySelector('.extra-short-input');
-  const amount = shortInput.value.trim() || '10';
   const input = document.querySelector('.source-order-input');
   const currentValue = input.value.trim();
   const lines = currentValue.split('\n').filter(line => line.trim());
@@ -699,7 +746,7 @@ function quickAddWithAmount(text, button) {
     lines.splice(existingIndex, 1);
     button.classList.remove('active');
   } else {
-    lines.push(`${text} 各数 ${amount}`);
+    lines.push(`${text} 各数`);
     button.classList.add('active');
   }
   input.value = lines.join('\n');
@@ -714,7 +761,7 @@ function convertOrderText() {
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
   const AMOUNT_PREFIX = '(?:各|各号|各数|每数|每号|个号|每个号|各码|各号码)';
   const AMOUNT_SUFFIX = '[元块咪斤#，。\\s]*';
-  const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','澳门','澳門','澳門特碼','澳门特码','澳門特码','特碼'];
+  const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','澳门','澳門','澳門特碼','澳门特码','澳門特码','特碼','奥','澳'];
 
   lines.forEach(line => {
     line = line.trim();
@@ -830,8 +877,21 @@ function saveOrder(){
   let input = document.getElementById('orderResult').value.trim();
   if(!input) input = document.querySelector('.source-order-input').value.trim();
   if(!input) return;
-  saveOrderRecord(input);
-  processCurrentOrder(input);
+  const lines = input.split('\n').filter(line => line.trim());
+  const validLines = [];
+  for (let line of lines) {
+    const match = line.match(/各数\s+(\d+)/);
+    if (match && parseInt(match[1]) > 0) {
+      validLines.push(line);
+    }
+  }
+  if (validLines.length === 0) {
+    alert('订单无效，请确保有号码或生肖且金额大于0。');
+    return;
+  }
+  const validInput = validLines.join('\n');
+  saveOrderRecord(validInput);
+  processCurrentOrder(validInput);
   document.querySelector('.source-order-input').value = '';
   document.getElementById('orderResult').value = '';
   document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
@@ -840,10 +900,9 @@ function saveOrder(){
 function countItemsInLine(line, configData, categoryKeys) {
   const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
   const match = line.match(pattern);
-  if (!match) return { numbers: [], zodiacs: [] };
+  if (!match) return { numbers: [], zodiacs: [], amount: 0 };
   let content = match[1];
   const amount = parseInt(match[2]) || 0;
-  if (amount <= 0) return { numbers: [], zodiacs: [] };
 
   const isNumberCombination = /^[\d\-]+$/.test(content);
   let items = [];
@@ -866,7 +925,7 @@ function countItemsInLine(line, configData, categoryKeys) {
       zodiacs.push(item);
     }
   });
-  return { numbers, zodiacs };
+  return { numbers, zodiacs, amount };
 }
 
 function processCurrentOrder(input) {
@@ -879,19 +938,23 @@ function processCurrentOrder(input) {
   ]);
   const lines = input.split('\n').filter(line => line.trim());
   lines.forEach(line => {
-    const { numbers, zodiacs } = countItemsInLine(line, configData, categoryKeys);
+    const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
+    const numMin = parseInt(document.getElementById('numAmountMin').value) || 1;
+    const numMax = parseInt(document.getElementById('numAmountMax').value) || 50000;
+    const zodMin = parseInt(document.getElementById('zodiacAmountMin').value) || 1;
+    const zodMax = parseInt(document.getElementById('zodiacAmountMax').value) || 50000;
+    const inNumRange = amount >= numMin && amount <= numMax;
+    const inZodRange = amount >= zodMin && amount <= zodMax;
     numbers.forEach(num => {
       numberCount[num] = (numberCount[num] || 0) + 1;
-      const amount = parseInt(line.match(/(\d+)$/)?.[1] || '0');
-      if (amount > 0) {
-        if (tableBetData[num] === undefined) tableBetData[num] = 0;
-        tableBetData[num] += amount;
-      }
+      if (inNumRange) numberAmountCount[num] = (numberAmountCount[num] || 0) + 1;
+      if (tableBetData[num] === undefined) tableBetData[num] = 0;
+      tableBetData[num] += amount;
     });
     zodiacs.forEach(z => {
       zodiacCount[z] = (zodiacCount[z] || 0) + 1;
+      if (inZodRange) zodiacAmountCount[z] = (zodiacAmountCount[z] || 0) + 1;
       const numbersOfZodiac = configData.zodiac[z] || [];
-      const amount = parseInt(line.match(/(\d+)$/)?.[1] || '0');
       numbersOfZodiac.forEach(n => {
         const num = n.padStart(2, '0');
         if (tableBetData[num] === undefined) tableBetData[num] = 0;
@@ -901,12 +964,15 @@ function processCurrentOrder(input) {
   });
   generateTable();
   renderFrequencyCards();
+  renderAmountFrequencyCards();
 }
 
 async function updateTableFromRecords() {
   tableBetData = {};
   numberCount = {};
   zodiacCount = {};
+  numberAmountCount = {};
+  zodiacAmountCount = {};
   const records = await getOrderRecords();
   const configData = getAllConfigData();
   const categoryKeys = new Set([
@@ -915,18 +981,25 @@ async function updateTableFromRecords() {
     ...Object.keys(configData.heshu), ...Object.keys(configData.toushu), ...Object.keys(configData.menshu), ...Object.keys(configData.duanwei),
     ...Object.keys(configData.hedahexiao), ...Object.keys(configData.weidaweixiao), ...Object.keys(configData.hewei), ...Object.keys(configData.heshudanshuang)
   ]);
+  const numMin = parseInt(document.getElementById('numAmountMin').value) || 1;
+  const numMax = parseInt(document.getElementById('numAmountMax').value) || 50000;
+  const zodMin = parseInt(document.getElementById('zodiacAmountMin').value) || 1;
+  const zodMax = parseInt(document.getElementById('zodiacAmountMax').value) || 50000;
   records.forEach(record => {
     const lines = record.content.split('\n').filter(line => line.trim());
     lines.forEach(line => {
-      const { numbers, zodiacs } = countItemsInLine(line, configData, categoryKeys);
-      const amount = parseInt(line.match(/(\d+)$/)?.[1] || '0');
+      const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
+      const inNumRange = amount >= numMin && amount <= numMax;
+      const inZodRange = amount >= zodMin && amount <= zodMax;
       numbers.forEach(num => {
         numberCount[num] = (numberCount[num] || 0) + 1;
+        if (inNumRange) numberAmountCount[num] = (numberAmountCount[num] || 0) + 1;
         if (tableBetData[num] === undefined) tableBetData[num] = 0;
         tableBetData[num] += amount;
       });
       zodiacs.forEach(z => {
         zodiacCount[z] = (zodiacCount[z] || 0) + 1;
+        if (inZodRange) zodiacAmountCount[z] = (zodiacAmountCount[z] || 0) + 1;
         const nums = configData.zodiac[z] || [];
         nums.forEach(n => {
           const num = n.padStart(2, '0');
@@ -938,6 +1011,7 @@ async function updateTableFromRecords() {
   });
   generateTable();
   renderFrequencyCards();
+  renderAmountFrequencyCards();
 }
 
 function getAllConfigData() {
@@ -974,13 +1048,22 @@ function getAllConfigData() {
   return configData;
 }
 
+function formatTimestampToCST(isoString) {
+  const date = new Date(isoString);
+  const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' };
+  return new Intl.DateTimeFormat('zh-CN', options).format(date);
+}
+
 async function showOrderRecord(){
   const records = await getOrderRecords();
   let html=`<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">×</button></div><div class="modal-body">`;
   if(records.length===0){ html+=`<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`; }
   else {
     html+=`<div style="margin-bottom:10px;"><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;margin-right:8px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;margin-right:8px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`;
-    records.forEach(item=>{ html+=`<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`; });
+    records.forEach(item=>{
+      const timeStr = formatTimestampToCST(item.timestamp);
+      html+=`<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
+    });
   }
   html+=`</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;cursor:pointer;">关闭</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
@@ -1024,30 +1107,20 @@ function resetDataConfig(){
   }catch(e){ alert("操作异常"); }
 }
 
-function saveExtraOrder(){
-  const longVal=document.querySelector('.extra-long-input').value.trim();
-  const shortVal=document.querySelector('.extra-short-input').value.trim();
-  if(!longVal&&!shortVal){ alert('长框或短框必须输入内容！'); return; }
-  let content='';
-  if(longVal) content+='长框：'+longVal+'\n';
-  if(shortVal) content+='短框：'+shortVal+'\n';
-  saveOrderRecord(content);
-  alert('已保存到订单记录！');
-}
-
 function generateTable(){
   const tbody=document.getElementById('tableBody');
   tbody.innerHTML='';
   let total=0;
   const multiple=parseFloat(document.getElementById('multipleVal').value)||1;
+  const rebateRate=parseFloat(document.getElementById('rebateRate').value)||0;
   let sortedList=[];
   for(let num in tableBetData){ const bet=tableBetData[num]; total+=bet; sortedList.push({num,bet}); }
   for(let i=1;i<=49;i++){ const num=i.toString().padStart(2,'0'); if(!tableBetData[num]) sortedList.push({num,bet:0}); }
   sortedList.sort((a,b)=>b.bet-a.bet);
-  const totalRebate=parseFloat(document.getElementById('totalRebate').textContent)||0;
+  const rebate = (total * rebateRate / 100).toFixed(2);
   sortedList.forEach(item=>{
     const {num,bet}=item;
-    let risk=Math.round(total-bet*multiple-totalRebate);
+    let risk=Math.round(total - bet*multiple - parseFloat(rebate));
     let colorClass='';
     if(redNumbers.includes(num)) colorClass='red-text';
     else if(blueNumbers.includes(num)) colorClass='blue-text';
@@ -1059,13 +1132,10 @@ function generateTable(){
     tbody.appendChild(tr);
   });
   document.getElementById('totalBet').textContent=total;
-  const rebateRate=parseFloat(document.getElementById('rebateRate').value)||0;
-  const rebate=(total*rebateRate/100).toFixed(2);
   document.getElementById('totalRebate').textContent=rebate;
 }
 
 function renderFrequencyCards() {
-  // 号码次数表格：5列号码 + 5列次数
   const numTable = document.getElementById('numberFreqTable');
   numTable.innerHTML = '';
   const numCols = [
@@ -1077,9 +1147,7 @@ function renderFrequencyCards() {
   ];
   const maxRows = 10;
   let theadHtml = '<thead><tr>';
-  for (let c = 0; c < 5; c++) {
-    theadHtml += '<th>号码</th><th>次数</th>';
-  }
+  for (let c = 0; c < 5; c++) { theadHtml += '<th>号码</th><th>次数</th>'; }
   theadHtml += '</tr></thead>';
   let tbodyHtml = '<tbody>';
   for (let r = 0; r < maxRows; r++) {
@@ -1102,7 +1170,6 @@ function renderFrequencyCards() {
   tbodyHtml += '</tbody>';
   numTable.innerHTML = theadHtml + tbodyHtml;
 
-  // 生肖次数表格：2列生肖 + 2列次数
   const zodiacTable = document.getElementById('zodiacFreqTable');
   zodiacTable.innerHTML = '';
   const leftZodiacs = ['鼠','牛','虎','兔','龙','蛇'];
@@ -1128,9 +1195,73 @@ function renderFrequencyCards() {
   zodiacTable.innerHTML = zTheadHtml + zTbodyHtml;
 }
 
-document.getElementById('rebateRate').addEventListener('input',generateTable);
-document.getElementById('multipleVal').addEventListener('input',generateTable);
+function renderAmountFrequencyCards() {
+  const numTable = document.getElementById('numberAmountFreqTable');
+  numTable.innerHTML = '';
+  const numCols = [
+    Array.from({length:10}, (_, i) => (i+1).toString().padStart(2,'0')),
+    Array.from({length:10}, (_, i) => (i+11).toString().padStart(2,'0')),
+    Array.from({length:10}, (_, i) => (i+21).toString().padStart(2,'0')),
+    Array.from({length:10}, (_, i) => (i+31).toString().padStart(2,'0')),
+    Array.from({length:9}, (_, i) => (i+41).toString().padStart(2,'0'))
+  ];
+  const maxRows = 10;
+  let theadHtml = '<thead><tr>';
+  for (let c = 0; c < 5; c++) { theadHtml += '<th>号码</th><th>次数</th>'; }
+  theadHtml += '</tr></thead>';
+  let tbodyHtml = '<tbody>';
+  for (let r = 0; r < maxRows; r++) {
+    tbodyHtml += '<tr>';
+    for (let c = 0; c < 5; c++) {
+      const num = numCols[c][r] || '';
+      if (num) {
+        const count = numberAmountCount[num] || 0;
+        let colorClass = '';
+        if (redNumbers.includes(num)) colorClass = 'red-text';
+        else if (blueNumbers.includes(num)) colorClass = 'blue-text';
+        else colorClass = 'green-text';
+        tbodyHtml += `<td class="${colorClass}">${num}</td><td class="black-text">${count > 0 ? count : ''}</td>`;
+      } else {
+        tbodyHtml += '<td></td><td></td>';
+      }
+    }
+    tbodyHtml += '</tr>';
+  }
+  tbodyHtml += '</tbody>';
+  numTable.innerHTML = theadHtml + tbodyHtml;
+
+  const zodiacTable = document.getElementById('zodiacAmountFreqTable');
+  zodiacTable.innerHTML = '';
+  const leftZodiacs = ['鼠','牛','虎','兔','龙','蛇'];
+  const rightZodiacs = ['马','羊','猴','鸡','狗','猪'];
+  const zodiacColorMap = {
+    '鼠':'red-text','兔':'red-text','马':'red-text','鸡':'red-text',
+    '虎':'blue-text','蛇':'blue-text','猴':'blue-text','猪':'blue-text',
+    '牛':'green-text','龙':'green-text','羊':'green-text','狗':'green-text'
+  };
+  let zTheadHtml = '<thead><tr><th>生肖</th><th>次数</th><th>生肖</th><th>次数</th></tr></thead>';
+  let zTbodyHtml = '<tbody>';
+  for (let r = 0; r < 6; r++) {
+    const leftZ = leftZodiacs[r];
+    const rightZ = rightZodiacs[r];
+    const leftCount = zodiacAmountCount[leftZ] || 0;
+    const rightCount = zodiacAmountCount[rightZ] || 0;
+    zTbodyHtml += '<tr>';
+    zTbodyHtml += `<td class="${zodiacColorMap[leftZ] || ''}">${leftZ}</td><td class="black-text">${leftCount > 0 ? leftCount : ''}</td>`;
+    zTbodyHtml += `<td class="${zodiacColorMap[rightZ] || ''}">${rightZ}</td><td class="black-text">${rightCount > 0 ? rightCount : ''}</td>`;
+    zTbodyHtml += '</tr>';
+  }
+  zTbodyHtml += '</tbody>';
+  zodiacTable.innerHTML = zTheadHtml + zTbodyHtml;
+}
+
+document.getElementById('rebateRate').addEventListener('input', generateTable);
+document.getElementById('multipleVal').addEventListener('input', generateTable);
 document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
+document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
 
 window.onload=async()=>{
   await initIndexedDB();
