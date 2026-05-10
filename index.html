@@ -188,8 +188,9 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
   <div class="recognize-wrap">
       <div class="card recognize-card">
         <div class="card-title">
-          订单输入 <input type="date" id="orderDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;margin-left:8px;">
+          订单输入
           <select id="orderUserSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;"></select>
+          <input type="date" id="orderDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;margin-left:8px;">
         </div>
         <div class="order-input-container">
           <div class="input-column">
@@ -292,7 +293,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         <div class="card">
           <div class="card-title">
             <div class="title-left">
-              <input type="date" id="filterDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;" onchange="refreshAll()">
+              <input type="date" id="filterDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;" onchange="updateTableFromRecords()">
               <select id="riskReportSwitcher" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:14px;" onchange="switchRiskReport()">
                 <option value="total" selected>总风险</option>
                 <option value="user">用户</option>
@@ -625,7 +626,7 @@ const DEFAULT_CONFIG = { jin:'04 05 12 13 26 27 34 35 42 43', mu:'08 09 16 17 24
 
 function quickAddWithAmount(text, button) { const input = document.querySelector('.source-order-input'); const lines = input.value.trim().split('\n').filter(l=>l.trim()); const idx = lines.findIndex(l=> l.includes(text) && (l.includes('各数')||l.includes('各号'))); if (idx !== -1) { lines.splice(idx,1); button.classList.remove('active'); } else { lines.push(`${text} 各数`); button.classList.add('active'); } input.value = lines.join('\n'); convertOrderText(); }
 
-function convertOrderText() { const inputText = document.querySelector('.source-order-input').value.trim(); if (!inputText) { document.getElementById('orderResult').value = ''; return; } const lines = inputText.split('\n'); const resultLines = []; const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/; const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)'; const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*'; const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','新澳','新特','新澳特','特碼']; lines.forEach(line => { line = line.trim(); if (!line) return; let cleanedLine = line; for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim(); const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g'); const orderMatches = cleanedLine.match(orderPattern); if (orderMatches && orderMatches.length > 0) { let remainingLine = cleanedLine; orderMatches.forEach(orderMatch => { const orderIndex = remainingLine.indexOf(orderMatch); if (orderIndex !== -1) { const content = remainingLine.substring(0, orderIndex).trim(); const amountMatch = orderMatch.match(/(\d+)/); if (amountMatch) { const amount = amountMatch[1]; if (content) { const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(item => { if(validCategories.has(item)) return true; if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){ const z=item.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } remainingLine = remainingLine.substring(orderIndex + orderMatch.length); } } }); if (remainingLine.trim()) { const remaining = remainingLine.trim(); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = remaining.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } else { const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleanedLine.match(pattern); if (match) { let content = match[1].trim(); const amount = match[2]; const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){ const z=i.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } else { const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const singleMatch = cleanedLine.match(singlePattern); if (singleMatch) { let number = singleMatch[1].trim(); const num = singleMatch[2]; if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${num}`); } } else { const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = cleanedLine.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } } }); document.getElementById('orderResult').value = [...new Set(resultLines)].join('\n'); }
+function convertOrderText() { const inputText = document.querySelector('.source-order-input').value.trim(); if (!inputText) { document.getElementById('orderResult').value = ''; return; } const lines = inputText.split('\n'); const resultLines = []; const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/; const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)'; const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*'; const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼']; lines.forEach(line => { line = line.trim(); if (!line) return; let cleanedLine = line; for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim(); const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g'); const orderMatches = cleanedLine.match(orderPattern); if (orderMatches && orderMatches.length > 0) { let remainingLine = cleanedLine; orderMatches.forEach(orderMatch => { const orderIndex = remainingLine.indexOf(orderMatch); if (orderIndex !== -1) { const content = remainingLine.substring(0, orderIndex).trim(); const amountMatch = orderMatch.match(/(\d+)/); if (amountMatch) { const amount = amountMatch[1]; if (content) { const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(item => { if(validCategories.has(item)) return true; if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){ const z=item.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } remainingLine = remainingLine.substring(orderIndex + orderMatch.length); } } }); if (remainingLine.trim()) { const remaining = remainingLine.trim(); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = remaining.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } else { const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleanedLine.match(pattern); if (match) { let content = match[1].trim(); const amount = match[2]; const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){ const z=i.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } else { const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const singleMatch = cleanedLine.match(singlePattern); if (singleMatch) { let number = singleMatch[1].trim(); const num = singleMatch[2]; if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${num}`); } } else { const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = cleanedLine.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } } }); document.getElementById('orderResult').value = [...new Set(resultLines)].join('\n'); }
 
 function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
@@ -645,7 +646,7 @@ function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users))
 function addUser(name) { const users = getUsers(); if (users.includes(name)) { alert('用户已存在'); return false; } users.push(name); saveUsers(users); return true; }
 function deleteUser(name) { let users = getUsers(); users = users.filter(u => u !== name); saveUsers(users); if (userBetData[name]) delete userBetData[name]; rebuildTotal(); refreshAll(); }
 function rebuildTotal() { tableBetData = {}; for (const u in userBetData) for (const n in userBetData[u]) tableBetData[n] = (tableBetData[n]||0) + userBetData[u][n]; }
-function refreshAll() { updateSelects(); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); }
+function refreshAll() { updateSelects(); updateTableFromRecords(); }
 function updateSelects() { const users = getUsers(); const orderSel = document.getElementById('orderUserSelect'); orderSel.innerHTML = ''; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; orderSel.appendChild(o); }); const viewSel = document.getElementById('viewUserSelect'); viewSel.innerHTML = ''; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; viewSel.appendChild(o); }); }
 
 function showUserManager() { let html = `<div class="modal-overlay" id="userModal"><div class="modal-box" style="max-width:400px;"><div class="modal-header"><h3>管理用户</h3><button onclick="document.getElementById('userModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><input type="text" id="newUserName" placeholder="用户名" style="padding:6px;width:200px;border:1px solid #ccc;border-radius:4px;"> <button onclick="addUserAction()" style="padding:6px 12px;">添加</button></div><div id="userList"></div></div></div></div>`; document.body.insertAdjacentHTML('beforeend', html); renderUserList(); }
@@ -722,28 +723,32 @@ async function importData() {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data.orders || !data.reports) { alert('无效的数据格式'); return; }
-        let oldCount = 0, newCount = 0;
-        // 处理订单
+        let skipCount = 0, newCount = 0;
         const existingOrders = await getOrderRecords();
         for (const rec of data.orders) {
           const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) { await deleteOrderRecordFromIDB(exist.id); oldCount++; }
-          await saveOrderRecordToIDB(rec.content, rec.user, rec.date);
-          newCount++;
+          if (exist) {
+            skipCount++;
+          } else {
+            await saveOrderRecordToIDB(rec.content, rec.user, rec.date);
+            newCount++;
+          }
         }
-        // 处理上报订单
         const existingReports = await getReportOrderRecords();
         for (const rec of data.reports) {
           const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) { await deleteReportOrderRecordFromIDB(exist.id); oldCount++; }
-          await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date);
-          newCount++;
+          if (exist) {
+            skipCount++;
+          } else {
+            await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date);
+            newCount++;
+          }
         }
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
         initDataConfig();
         await updateTableFromRecords();
         calculateStorageUsage();
-        alert(`导入完成：覆盖 ${oldCount} 条旧记录，新增 ${newCount} 条记录。`);
+        alert(`导入完成：跳过 ${skipCount} 条重复记录，新增 ${newCount} 条记录。`);
       } catch (err) { alert('导入失败，请检查文件格式'); }
     };
     reader.readAsText(file);
