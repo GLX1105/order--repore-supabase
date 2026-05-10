@@ -1020,6 +1020,70 @@ async function importData() {
   input.click();
 }
 
+// ===== 新增：卡密库导出/导入 =====
+function exportCards() {
+  const cards = getCards();
+  const blob = new Blob([JSON.stringify(cards, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `卡密库_${getTodayCST()}.json`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function importCards() {
+  const input = document.createElement('input'); input.type = 'file'; input.accept = '.json'; input.style.display = 'none';
+  document.body.appendChild(input);
+  input.onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) { document.body.removeChild(input); return; }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const importedCards = JSON.parse(ev.target.result);
+        if (!Array.isArray(importedCards)) { await alert('无效的卡密库格式'); document.body.removeChild(input); return; }
+        const currentCards = getCards();
+        // 合并卡密：若ID已存在则跳过，否则添加
+        const existingIds = new Set(currentCards.map(c => c.id));
+        let added = 0;
+        importedCards.forEach(card => {
+          if (!existingIds.has(card.id)) {
+            currentCards.push(card);
+            existingIds.add(card.id);
+            added++;
+          }
+        });
+        saveCards(currentCards);
+        await alert(`导入成功：新增 ${added} 条卡密`);
+        if (typeof showCardManagement === 'function') showCardManagement(); // 若管理弹窗开着则刷新
+        document.body.removeChild(input);
+      } catch (err) { await alert('导入失败，请检查文件格式'); document.body.removeChild(input); }
+    };
+    reader.onerror = async () => { await alert('文件读取失败'); document.body.removeChild(input); };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ===== 修改卡密管理弹窗，增加导入/导出按钮 =====
+function showCardManagement() {
+  const cards = getCards();
+  let listHtml = cards.map(c => {
+    const status = c.used ? '已使用' : (Date.now() > (c.createTime + c.expiredDays * 86400000) ? '已过期' : '未使用');
+    return `<div class="card-item"><span><b>${c.id}</b> (${c.expiredDays}天)</span><span>${status}</span></div>`;
+  }).join('') || '<div style="color:#999;text-align:center;">暂无卡密</div>';
+  const overlay = document.createElement('div'); overlay.className = 'card-mgmt-modal';
+  overlay.innerHTML = `<div class="card-mgmt-box"><div class="card-mgmt-header"><h3>🔑 卡密管理</h3><button onclick="this.closest('.card-mgmt-modal').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;">×</button></div><div class="card-list">${listHtml}</div><div style="display:flex; gap:8px; margin-bottom:8px;"><button class="btn" style="background:#16a085;color:white;flex:1;" onclick="generateCardAction(this)">➕ 生成卡密</button><button class="btn" style="background:#2980b9;color:white;flex:1;" onclick="exportCards()">📤 导出卡密库</button><button class="btn" style="background:#8e44ad;color:white;flex:1;" onclick="importCards()">📥 导入卡密库</button></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+async function generateCardAction(btn) {
+  const days = await prompt('请输入有效期天数：', '30');
+  if(!days || isNaN(parseInt(days))) return;
+  const cardId = await generateCard(parseInt(days));
+  await alert(`卡密已生成：${cardId}`);
+  btn.closest('.card-mgmt-modal').remove();
+  showCardManagement();
+}
+
 window.onload = async () => {
   initAuth();
   await initIndexedDB();
