@@ -63,7 +63,12 @@ body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;positi
 
 .card {background:#fff;border:1px solid #eee;border-radius:14px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,0.08);transition:all 0.25s ease;}
 .card:hover {transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.12);}
-.card-title {font-size:16px;font-weight:bold;color:#333;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #f0f0f0;display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.card-title {
+  font-size:16px; font-weight:bold; color:#333; margin-bottom:12px; padding:10px 12px 8px;
+  border-bottom:2px solid #e0e0e0; display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+  background-color: #e3f2fd; /* 清新单一颜色 */
+  border-radius: 10px 10px 0 0;
+}
 .year-zodiac-area {display:flex;align-items:center;gap:6px;font-size:13px;font-weight:normal;}
 .year-zodiac-area select {padding:3px 6px;border-radius:4px;border:1px solid #ccc;font-size:13px;background:#fff;}
 .summary-row {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;font-weight:bold;color:#222;gap:6px;flex-wrap:wrap;}
@@ -117,8 +122,16 @@ input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #d
 
 .table-container {width:100%;overflow-x:auto;}
 table {width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
-th,td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
-th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
+/* 表头恢复为简单的灰色 */
+th {
+  background: #f0f0f0;
+  font-weight: bold;
+  color: #1a1a2e;
+  padding: 5px 6px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+}
+td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
 .red-text {color:#ff0000!important;font-weight:bold;}
 .blue-text {color:#0000ff!important;font-weight:bold;}
 .green-text {color:#008000!important;font-weight:bold;}
@@ -163,7 +176,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .freq-card {flex:1;min-width:220px;background:#fafafa;border:1px solid #eee;border-radius:6px;padding:10px;}
 .freq-title {font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;text-align:center;padding-bottom:4px;border-bottom:1px solid #eee;}
 .freq-table {width:100%;border-collapse:collapse;font-size:12px;}
-.freq-table th {background:#f0f0f0;font-weight:bold;color:#333;padding:3px 4px;}
+.freq-table th {background:#f0f0f0; font-weight:bold; color:#333; padding:3px 4px;}
 .freq-table td {padding:2px 4px;border:1px solid #eee;text-align:center;}
 .black-text {color:#000000!important;font-weight:normal;}
 .range-input {width:70px;padding:2px 4px;font-size:11px;border:1px solid #ccc;border-radius:3px;}
@@ -625,29 +638,18 @@ function showCustomDialog({ title = '提示', message = '', type = 'alert', defa
   });
 }
 
-// 替换原生 alert
-async function customAlert(message) {
-  await showCustomDialog({ title: '提示', message, type: 'alert' });
-}
-// 替换原生 confirm
-async function customConfirm(message) {
-  return await showCustomDialog({ title: '请确认', message, type: 'confirm' });
-}
-// 替换原生 prompt
-async function customPrompt(message, defaultValue = '') {
-  return await showCustomDialog({ title: '请输入', message, type: 'prompt', defaultValue });
-}
+async function customAlert(message) { await showCustomDialog({ title: '提示', message, type: 'alert' }); }
+async function customConfirm(message) { return await showCustomDialog({ title: '请确认', message, type: 'confirm' }); }
+async function customPrompt(message, defaultValue = '') { return await showCustomDialog({ title: '请输入', message, type: 'prompt', defaultValue }); }
 
-// 全局替换原生的 alert, confirm, prompt
 window.alert = async (msg) => { await customAlert(msg); };
 window.confirm = async (msg) => { return await customConfirm(msg); };
 window.prompt = async (msg, def) => { return await customPrompt(msg, def); };
-// ===== 弹窗系统结束 =====
 
-let tableBetData = {}; 
-let userBetData = {};  
-let reportBetData = {}; 
-let reportAmountData = {}; 
+let tableBetData = {};
+let userBetData = {};
+let reportBetData = {};
+let reportAmountData = {};
 let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCount = {};
 
 const PASSWORD = "891105";
@@ -735,7 +737,7 @@ const DEFAULT_CONFIG = { jin:'04 05 12 13 26 27 34 35 42 43', mu:'08 09 16 17 24
 
 function quickAddWithAmount(text, button) { const input = document.querySelector('.source-order-input'); const lines = input.value.trim().split('\n').filter(l=>l.trim()); const idx = lines.findIndex(l=> l.includes(text) && (l.includes('各数')||l.includes('各号'))); if (idx !== -1) { lines.splice(idx,1); button.classList.remove('active'); } else { lines.push(`${text} 各数`); button.classList.add('active'); } input.value = lines.join('\n'); convertOrderText(); }
 
-function convertOrderText() { const inputText = document.querySelector('.source-order-input').value.trim(); if (!inputText) { document.getElementById('orderResult').value = ''; return; } const lines = inputText.split('\n'); const resultLines = []; const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/; const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)'; const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*'; const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼']; lines.forEach(line => { line = line.trim(); if (!line) return; let cleanedLine = line; for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim(); const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g'); const orderMatches = cleanedLine.match(orderPattern); if (orderMatches && orderMatches.length > 0) { let remainingLine = cleanedLine; orderMatches.forEach(orderMatch => { const orderIndex = remainingLine.indexOf(orderMatch); if (orderIndex !== -1) { const content = remainingLine.substring(0, orderIndex).trim(); const amountMatch = orderMatch.match(/(\d+)/); if (amountMatch) { const amount = amountMatch[1]; if (content) { const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(item => { if(validCategories.has(item)) return true; if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){ const z=item.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } remainingLine = remainingLine.substring(orderIndex + orderMatch.length); } } }); if (remainingLine.trim()) { const remaining = remainingLine.trim(); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = remaining.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } else { const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleanedLine.match(pattern); if (match) { let content = match[1].trim(); const amount = match[2]; const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){ const z=i.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } else { const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const singleMatch = cleanedLine.match(singlePattern); if (singleMatch) { let number = singleMatch[1].trim(); const num = singleMatch[2]; if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${num}`); } } else { const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = cleanedLine.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } } }); document.getElementById('orderResult').value = [...new Set(resultLines)].join('\n'); }
+function convertOrderText() { const inputText = document.querySelector('.source-order-input').value.trim(); if (!inputText) { document.getElementById('orderResult').value = ''; return; } const lines = inputText.split('\n'); const resultLines = []; const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/; const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)'; const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*'; const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼']; lines.forEach(line => { line = line.trim(); if (!line) return; let cleanedLine = line; for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim(); const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g'); const orderMatches = cleanedLine.match(orderPattern); if (orderMatches && orderMatches.length > 0) { let remainingLine = cleanedLine; orderMatches.forEach(orderMatch => { const orderIndex = remainingLine.indexOf(orderMatch); if (orderIndex !== -1) { const content = remainingLine.substring(0, orderIndex).trim(); const amountMatch = orderMatch.match(/(\d+)/); if (amountMatch) { const amount = amountMatch[1]; if (content) { const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(item => { if(validCategories.has(item)) return true; if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){ const z=item.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } remainingLine = remainingLine.substring(orderIndex + orderMatch.length); } } }); if (remainingLine.trim()) { const remaining = remainingLine.trim(); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = remaining.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } else { const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`); const match = cleanedLine.match(pattern); if (match) { let content = match[1].trim(); const amount = match[2]; const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content); if (isNumber) { const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n); if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`); } else { const items = content.split(SEPARATORS).filter(i=>i); const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){ const z=i.match(/[\u4e00-\u9fa5]/g)||[]; return z.every(z=>validCategories.has(z)); } return false; }); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`); } } else { const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`); const singleMatch = cleanedLine.match(singlePattern); if (singleMatch) { let number = singleMatch[1].trim(); const num = singleMatch[2]; if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${num}`); } } else { const configData = getAllConfigData(); const validCategories = getAllValidCategories(configData); const items = cleanedLine.split(SEPARATORS).filter(i=>i); const validItems = items.filter(i=>validCategories.has(i)); if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`); } } } }); document.getElementById('orderResult').value = resultLines.join('\n'); }
 
 function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
@@ -823,14 +825,24 @@ async function exportData() {
 }
 
 async function importData() {
-  const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
+  // 创建文件输入元素并添加到DOM以确保兼容
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
   input.onchange = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    if (!file) {
+      document.body.removeChild(input);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.orders || !data.reports) { await alert('无效的数据格式'); return; }
+        if (!data.orders || !data.reports) { await alert('无效的数据格式'); document.body.removeChild(input); return; }
         let skipCount = 0, newCount = 0;
         const existingOrders = await getOrderRecords();
         for (const rec of data.orders) {
@@ -849,10 +861,18 @@ async function importData() {
         await updateTableFromRecords();
         calculateStorageUsage();
         await alert(`导入完成：跳过 ${skipCount} 条重复记录，新增 ${newCount} 条记录。`);
-      } catch (err) { await alert('导入失败，请检查文件格式'); }
+        document.body.removeChild(input);
+      } catch (err) { await alert('导入失败，请检查文件格式'); document.body.removeChild(input); }
     };
+    reader.onerror = async () => { await alert('文件读取失败'); document.body.removeChild(input); };
     reader.readAsText(file);
   };
+
+  // 监听取消选择
+  input.addEventListener('cancel', () => {
+    document.body.removeChild(input);
+  });
+
   input.click();
 }
 
