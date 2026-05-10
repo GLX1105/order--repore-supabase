@@ -167,6 +167,43 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 .freq-table td {padding:2px 4px;border:1px solid #eee;text-align:center;}
 .black-text {color:#000000!important;font-weight:normal;}
 .range-input {width:70px;padding:2px 4px;font-size:11px;border:1px solid #ccc;border-radius:3px;}
+
+/* 自定义弹窗样式 */
+.custom-dialog-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; animation: fadeIn 0.2s ease;
+}
+.custom-dialog-box {
+  background: rgba(255,255,255,0.75); backdrop-filter: blur(20px);
+  border-radius: 20px; padding: 25px 20px 20px;
+  width: 90%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.4);
+  text-align: center; animation: slideDown 0.25s ease;
+}
+.custom-dialog-title {
+  font-size: 18px; font-weight: bold; margin-bottom: 15px; color:#1a1a2e;
+}
+.custom-dialog-message {
+  font-size: 15px; color:#333; margin-bottom: 20px; line-height: 1.5;
+}
+.custom-dialog-input {
+  width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
+  font-size: 16px; margin-bottom: 20px; outline: none;
+  background: rgba(255,255,255,0.9);
+}
+.custom-dialog-buttons {
+  display: flex; gap: 10px; justify-content: center;
+}
+.custom-dialog-btn {
+  padding: 10px 25px; border: none; border-radius: 25px; font-size: 16px;
+  font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 80px;
+}
+.custom-dialog-btn.confirm { background: #3498db; color: #fff; }
+.custom-dialog-btn.confirm:hover { background: #2980b9; }
+.custom-dialog-btn.cancel { background: #bdc3c7; color: #fff; }
+.custom-dialog-btn.cancel:hover { background: #95a5a6; }
 </style>
 </head>
 <body>
@@ -534,10 +571,83 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 </div>
 
 <script>
-let tableBetData = {}; // 总风险 (全部用户合计)
-let userBetData = {};  // 按用户存储 { 用户: { num: bet } }
-let reportBetData = {}; // 上报表格数据
-let reportAmountData = {}; // 上报号码金额数据（仅上报时累加）
+// ===== 自定义毛玻璃弹窗系统 =====
+function showCustomDialog({ title = '提示', message = '', type = 'alert', defaultValue = '', placeholder = '' }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-dialog-overlay';
+    overlay.innerHTML = `
+      <div class="custom-dialog-box">
+        <div class="custom-dialog-title">${title}</div>
+        <div class="custom-dialog-message">${message}</div>
+        ${type === 'prompt' ? `<input class="custom-dialog-input" type="text" value="${defaultValue}" placeholder="${placeholder}" id="custom-dialog-input">` : ''}
+        <div class="custom-dialog-buttons">
+          ${type === 'confirm' || type === 'prompt' ? '<button class="custom-dialog-btn cancel" id="custom-dialog-cancel">取消</button>' : ''}
+          <button class="custom-dialog-btn confirm" id="custom-dialog-confirm">确定</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const confirmBtn = overlay.querySelector('#custom-dialog-confirm');
+    const cancelBtn = overlay.querySelector('#custom-dialog-cancel');
+    const inputEl = overlay.querySelector('#custom-dialog-input');
+
+    const close = (result) => {
+      document.body.removeChild(overlay);
+      resolve(result);
+    };
+
+    confirmBtn.onclick = () => {
+      if (type === 'prompt') {
+        close(inputEl.value);
+      } else if (type === 'confirm') {
+        close(true);
+      } else {
+        close(undefined);
+      }
+    };
+
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        if (type === 'confirm') close(false);
+        else if (type === 'prompt') close(null);
+        else close(undefined);
+      };
+    }
+
+    if (inputEl) {
+      inputEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') confirmBtn.click();
+      });
+      inputEl.focus();
+    }
+  });
+}
+
+// 替换原生 alert
+async function customAlert(message) {
+  await showCustomDialog({ title: '提示', message, type: 'alert' });
+}
+// 替换原生 confirm
+async function customConfirm(message) {
+  return await showCustomDialog({ title: '请确认', message, type: 'confirm' });
+}
+// 替换原生 prompt
+async function customPrompt(message, defaultValue = '') {
+  return await showCustomDialog({ title: '请输入', message, type: 'prompt', defaultValue });
+}
+
+// 全局替换原生的 alert, confirm, prompt
+window.alert = async (msg) => { await customAlert(msg); };
+window.confirm = async (msg) => { return await customConfirm(msg); };
+window.prompt = async (msg, def) => { return await customPrompt(msg, def); };
+// ===== 弹窗系统结束 =====
+
+let tableBetData = {}; 
+let userBetData = {};  
+let reportBetData = {}; 
+let reportAmountData = {}; 
 let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCount = {};
 
 const PASSWORD = "891105";
@@ -554,7 +664,6 @@ const redNumbers = ['01','02','07','08','12','13','18','19','23','24','29','30',
 const blueNumbers = ['03','04','09','10','14','15','20','25','26','31','36','37','41','42','47','48'];
 const greenNumbers = ['05','06','11','16','17','21','22','27','28','32','33','38','39','43','44','49'];
 
-// 获取中国时区今天日期字符串 YYYY-MM-DD
 function getTodayCST() { return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"})).toISOString().split("T")[0]; }
 
 function buildZodiacMap(startZodiac) {
@@ -565,13 +674,13 @@ function buildZodiacMap(startZodiac) {
   return map;
 }
 
-function changeStartZodiac() {
+async function changeStartZodiac() {
   const select = document.getElementById('startZodiacSelect');
   const newZodiac = select.value;
   const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
   if (newZodiac === savedZodiac) return;
-  const inputPwd = prompt("请输入本年生肖切换密码：", "");
-  if (inputPwd !== YEAR_ZODIAC_PASSWORD) { alert("密码错误"); select.value = savedZodiac; return; }
+  const inputPwd = await prompt("请输入本年生肖切换密码：", "");
+  if (inputPwd !== YEAR_ZODIAC_PASSWORD) { await alert("密码错误"); select.value = savedZodiac; return; }
   localStorage.setItem('selectedStartZodiac', newZodiac);
   currentZodiacMap = buildZodiacMap(newZodiac);
   refreshAll();
@@ -609,16 +718,16 @@ async function clearAllOrderRecordsFromIDB() { return new Promise((resolve) => {
 async function clearAllReportOrderRecordsFromIDB() { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([REPORT_STORE_NAME],'readwrite'); const store = tx.objectStore(REPORT_STORE_NAME); const req = store.clear(); req.onsuccess = () => resolve(true); }); }
 
 async function calculateStorageUsage() { const records = await getOrderRecords(); const reportRecords = await getReportOrderRecords(); const orderCount = records.length + reportRecords.length; let usedBytes = 0; records.forEach(r => usedBytes += JSON.stringify(r).length * 2); reportRecords.forEach(r => usedBytes += JSON.stringify(r).length * 2); usedBytes += JSON.stringify(getAllConfigData()).length * 2; const usedMB = (usedBytes / (1024 * 1024)).toFixed(2); const maxStorage = 50 * 1024 * 1024; const freeMB = ((maxStorage - usedBytes) / (1024 * 1024)).toFixed(2); document.getElementById('orderCount').textContent = orderCount; document.getElementById('usedSpace').textContent = `${usedMB} MB`; document.getElementById('freeSpace').textContent = `${freeMB} MB`; }
-function showDatabase() { const pwd = prompt("请输入数据库密码：",""); if (pwd === PASSWORD) document.getElementById('databaseModal').style.display = 'flex'; else alert("密码错误"); }
+async function showDatabase() { const pwd = await prompt("请输入数据库密码：",""); if (pwd === PASSWORD) document.getElementById('databaseModal').style.display = 'flex'; else await alert("密码错误"); }
 function hideDatabase() { document.getElementById('databaseModal').style.display = 'none'; }
 
 async function saveOrderRecord(content, user, date) { await saveOrderRecordToIDB(content, user, date); calculateStorageUsage(); }
 async function saveReportOrderRecord(content, user, date) { await saveReportOrderRecordToIDB(content, user, date); calculateStorageUsage(); }
-async function deleteOrderRecord(id) { if(!confirm('确定删除？')) return; await deleteOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
-async function deleteReportOrderRecord(id) { if(!confirm('确定删除？')) return; await deleteReportOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeReportModal(); showReportOrderRecord(); }
-async function batchDeleteOrderRecord(ids) { if(!confirm('确定删除选中？')) return; await batchDeleteOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
-async function batchDeleteReportOrderRecord(ids) { if(!confirm('确定删除选中？')) return; await batchDeleteReportOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeReportModal(); showReportOrderRecord(); }
-async function resetTable() { if(prompt("输入清空密码：","") !== PASSWORD) { alert("密码错误"); return; } tableBetData = {}; userBetData = {}; reportBetData = {}; reportAmountData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); refreshAll(); calculateStorageUsage(); alert("已清空"); }
+async function deleteOrderRecord(id) { if(!(await confirm('确定删除？'))) return; await deleteOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
+async function deleteReportOrderRecord(id) { if(!(await confirm('确定删除？'))) return; await deleteReportOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeReportModal(); showReportOrderRecord(); }
+async function batchDeleteOrderRecord(ids) { if(!(await confirm('确定删除选中？'))) return; await batchDeleteOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
+async function batchDeleteReportOrderRecord(ids) { if(!(await confirm('确定删除选中？'))) return; await batchDeleteReportOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeReportModal(); showReportOrderRecord(); }
+async function resetTable() { if((await prompt("输入清空密码：","")) !== PASSWORD) { await alert("密码错误"); return; } tableBetData = {}; userBetData = {}; reportBetData = {}; reportAmountData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); refreshAll(); calculateStorageUsage(); await alert("已清空"); }
 
 document.querySelectorAll('.category-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
 
@@ -630,8 +739,8 @@ function convertOrderText() { const inputText = document.querySelector('.source-
 
 function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
-function saveOrder(){ const user = document.getElementById('orderUserSelect').value; if (!user) { alert('请先添加用户并选择'); return; } let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim(); if(!input) return; const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; }); if(!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; } const content = validLines.join('\n'); const date = document.getElementById('orderDate').value || getTodayCST(); saveOrderRecord(content, user, date); processCurrentOrder(content, user, true, date); document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = ''; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); }
-function saveReportOrder(){ const user = document.getElementById('orderUserSelect').value; if (!user) { alert('请先添加用户并选择'); return; } let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim(); if(!input) return; const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; }); if(!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; } const content = validLines.join('\n'); const date = document.getElementById('orderDate').value || getTodayCST(); saveReportOrderRecord(content, user, date); processCurrentOrder(content, user, false, date); document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = ''; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); }
+async function saveOrder(){ const user = document.getElementById('orderUserSelect').value; if (!user) { await alert('请先添加用户并选择'); return; } let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim(); if(!input) return; const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; }); if(!validLines.length) { await alert('订单无效，需有号码或生肖且金额>0'); return; } const content = validLines.join('\n'); const date = document.getElementById('orderDate').value || getTodayCST(); saveOrderRecord(content, user, date); processCurrentOrder(content, user, true, date); document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = ''; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); }
+async function saveReportOrder(){ const user = document.getElementById('orderUserSelect').value; if (!user) { await alert('请先添加用户并选择'); return; } let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim(); if(!input) return; const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; }); if(!validLines.length) { await alert('订单无效，需有号码或生肖且金额>0'); return; } const content = validLines.join('\n'); const date = document.getElementById('orderDate').value || getTodayCST(); saveReportOrderRecord(content, user, date); processCurrentOrder(content, user, false, date); document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = ''; document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active')); }
 
 function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const isNumber = /^[\d\-]+$/.test(content); let items = []; if (isNumber) items = content.split('-').map(i=>i.trim()).filter(i=>i); else { if (categoryKeys.has(content)) items = [content]; else items = content.match(/[\u4e00-\u9fa5]/g) || []; } const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) numbers.push(item.padStart(2,'0')); else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) zodiacs.push(item); else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); } else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); } }); return { numbers, zodiacs, amount }; }
 
@@ -644,22 +753,22 @@ function getAllConfigData() { const configData = { zodiac:{}, shengxiaoAttr:{}, 
 function getUsers() { return JSON.parse(localStorage.getItem('users') || '[]'); }
 function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
 function addUser(name) { const users = getUsers(); if (users.includes(name)) { alert('用户已存在'); return false; } users.push(name); saveUsers(users); return true; }
-function deleteUser(name) { let users = getUsers(); users = users.filter(u => u !== name); saveUsers(users); if (userBetData[name]) delete userBetData[name]; rebuildTotal(); refreshAll(); }
+async function deleteUser(name) { let users = getUsers(); users = users.filter(u => u !== name); saveUsers(users); if (userBetData[name]) delete userBetData[name]; rebuildTotal(); refreshAll(); }
 function rebuildTotal() { tableBetData = {}; for (const u in userBetData) for (const n in userBetData[u]) tableBetData[n] = (tableBetData[n]||0) + userBetData[u][n]; }
 function refreshAll() { updateSelects(); updateTableFromRecords(); }
 function updateSelects() { const users = getUsers(); const orderSel = document.getElementById('orderUserSelect'); orderSel.innerHTML = ''; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; orderSel.appendChild(o); }); const viewSel = document.getElementById('viewUserSelect'); viewSel.innerHTML = ''; users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; viewSel.appendChild(o); }); }
 
 function showUserManager() { let html = `<div class="modal-overlay" id="userModal"><div class="modal-box" style="max-width:400px;"><div class="modal-header"><h3>管理用户</h3><button onclick="document.getElementById('userModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><input type="text" id="newUserName" placeholder="用户名" style="padding:6px;width:200px;border:1px solid #ccc;border-radius:4px;"> <button onclick="addUserAction()" style="padding:6px 12px;">添加</button></div><div id="userList"></div></div></div></div>`; document.body.insertAdjacentHTML('beforeend', html); renderUserList(); }
 function renderUserList() { const users = getUsers(); const c = document.getElementById('userList'); if (!c) return; c.innerHTML = ''; users.forEach(u => { const d = document.createElement('div'); d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px'; d.style.marginBottom='4px'; d.innerHTML = `<span style="flex:1;">${u}</span><button onclick="deleteUserAction('${u}')" style="background:#e74c3c;color:#fff;border:none;padding:2px 8px;border-radius:3px;">删除</button>`; c.appendChild(d); }); }
-function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
-function deleteUserAction(name) { if (!confirm(`确定删除用户"${name}"及其数据吗？`)) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
+async function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { await alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
+async function deleteUserAction(name) { if (!(await confirm(`确定删除用户"${name}"及其数据吗？`))) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
 
 function generateRiskTable() { const switcher = document.getElementById('riskReportSwitcher').value; let data; if (switcher === 'total') data = tableBetData; else if (switcher === 'user') { const user = document.getElementById('viewUserSelect').value; data = userBetData[user] || {}; } else data = reportBetData; const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; let total = 0; const multiple = parseFloat(document.getElementById('multipleVal').value)||1; const rebateRate = parseFloat(document.getElementById('rebateRate').value)||0; let list = []; for(let num in data) { const bet = data[num]; total += bet; list.push({num, bet}); } for(let i=1;i<=49;i++) { const num = i.toString().padStart(2,'0'); if(!data[num]) list.push({num,bet:0}); } list.sort((a,b)=>b.bet-a.bet); const rebate = (total * rebateRate / 100).toFixed(2); list.forEach(item => { const {num, bet} = item; const risk = Math.round(total - bet*multiple - parseFloat(rebate)); let colorClass = redNumbers.includes(num) ? 'red-text' : (blueNumbers.includes(num) ? 'blue-text' : 'green-text'); const tr = document.createElement('tr'); tr.className = colorClass; tr.innerHTML = `<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td>`; tbody.appendChild(tr); }); document.getElementById('totalBet').textContent = total; document.getElementById('totalRebate').textContent = rebate; }
 
 function applyReportCap() { generateReportTable(); }
 function generateReportTable() { const capInput = document.getElementById('reportCapInput'); let capValue = parseFloat(capInput.value); if (isNaN(capValue) || capValue <= 0) capInput.value = ''; const data = reportBetData; const tbody = document.getElementById('reportTableBody'); tbody.innerHTML = ''; const multiple = parseFloat(document.getElementById('reportMultipleVal').value)||1; const rebateRate = parseFloat(document.getElementById('reportRebateRate').value)||0; let total = 0; let list = []; for(let num in data) { let bet = data[num]; if (!isNaN(capValue) && capValue > 0 && bet > capValue) bet = capValue; total += bet; list.push({num, bet}); } for(let i=1;i<=49;i++) { const num = i.toString().padStart(2,'0'); if(!data[num]) list.push({num,bet:0}); } list.sort((a,b)=>b.bet-a.bet); const rebate = (total * rebateRate / 100).toFixed(2); list.forEach(item => { const {num, bet} = item; const risk = Math.round(total - bet*multiple - parseFloat(rebate)); let colorClass = redNumbers.includes(num) ? 'red-text' : (blueNumbers.includes(num) ? 'blue-text' : 'green-text'); const tr = document.createElement('tr'); tr.className = colorClass; tr.innerHTML = `<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td>`; tbody.appendChild(tr); }); document.getElementById('reportTotalBet').textContent = total; document.getElementById('reportTotalRebate').textContent = rebate; const infoDiv = document.getElementById('reportCapInfo'); if (!isNaN(capValue) && capValue > 0) { const exceedList = []; for(let num in data) { if (data[num] > capValue) exceedList.push({num, exceed: data[num] - capValue}); } if (exceedList.length > 0) { exceedList.sort((a,b) => a.exceed - b.exceed); let text = ''; let totalExceed = 0; exceedList.forEach(item => { text += `${item.num}各${item.exceed}米<br>`; totalExceed += item.exceed; }); text += `合计${totalExceed}`; infoDiv.innerHTML = text; } else { infoDiv.textContent = '无超出的号码'; } } else { infoDiv.textContent = ''; } if (Object.keys(data).length > 0) { const maxBet = Math.max(...Object.values(data)); capInput.placeholder = `当前最大: ${maxBet}`; } }
 
-function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { alert('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(() => { alert('已复制到剪贴板'); }).catch(() => { alert('复制失败，请手动复制'); }); }
+async function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { await alert('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(async () => { await alert('已复制到剪贴板'); }).catch(async () => { await alert('复制失败，请手动复制'); }); }
 
 function renderReportAmountTable() { const table = document.getElementById('reportAmountTable'); table.innerHTML = ''; const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))]; let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>金额</th>'; th+='</tr></thead>'; let tb='<tbody>'; for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const amt=reportAmountData[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${amt||''}</td>`; }else{tb+='<td></td><td></td>';} } tb+='</tr>'; } tb+='</tbody>'; table.innerHTML=th+tb; }
 
@@ -668,27 +777,27 @@ function renderAmountFrequencyCards() { const numTable = document.getElementById
 
 function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
 
-async function showOrderRecord(filter='all'){ try { const records = await getOrderRecords(); const users = getUsers(); const filterDate = document.getElementById('filterDate').value; const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records; const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter); let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`; html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="recordUserFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" selected>全部用户</option>`; users.forEach(u => html += `<option value="${u}">${u}</option>`); html += `</select><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`; if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`; else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`; }); } html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`; const existing = document.getElementById('orderModal'); if (existing) existing.remove(); document.body.insertAdjacentHTML('beforeend', html); } catch (e) { alert('加载订单记录失败'); } }
-async function showReportOrderRecord(filter='all'){ try { const records = await getReportOrderRecords(); const users = getUsers(); const filterDate = document.getElementById('filterDate').value; const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records; const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter); let html = `<div class="modal-overlay" id="reportModal"><div class="modal-box"><div class="modal-header"><h3>上报数据</h3><button onclick="closeReportModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`; html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="reportRecordUserFilter" onchange="showReportOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" selected>全部用户</option>`; users.forEach(u => html += `<option value="${u}">${u}</option>`); html += `</select><button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`; if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`; else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`; }); } html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`; const existing = document.getElementById('reportModal'); if (existing) existing.remove(); document.body.insertAdjacentHTML('beforeend', html); } catch (e) { alert('加载上报数据失败'); } }
+async function showOrderRecord(filter='all'){ try { const records = await getOrderRecords(); const users = getUsers(); const filterDate = document.getElementById('filterDate').value; const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records; const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter); let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`; html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="recordUserFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" selected>全部用户</option>`; users.forEach(u => html += `<option value="${u}">${u}</option>`); html += `</select><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`; if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`; else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`; }); } html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`; const existing = document.getElementById('orderModal'); if (existing) existing.remove(); document.body.insertAdjacentHTML('beforeend', html); } catch (e) { await alert('加载订单记录失败'); } }
+async function showReportOrderRecord(filter='all'){ try { const records = await getReportOrderRecords(); const users = getUsers(); const filterDate = document.getElementById('filterDate').value; const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records; const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter); let html = `<div class="modal-overlay" id="reportModal"><div class="modal-box"><div class="modal-header"><h3>上报数据</h3><button onclick="closeReportModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`; html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="reportRecordUserFilter" onchange="showReportOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" selected>全部用户</option>`; users.forEach(u => html += `<option value="${u}">${u}</option>`); html += `</select><button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`; if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`; else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`; }); } html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`; const existing = document.getElementById('reportModal'); if (existing) existing.remove(); document.body.insertAdjacentHTML('beforeend', html); } catch (e) { await alert('加载上报数据失败'); } }
 function closeOrderModal(){ const modal=document.getElementById('orderModal'); if(modal) modal.remove(); }
 function closeReportModal(){ const modal=document.getElementById('reportModal'); if(modal) modal.remove(); }
 function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true); }
 function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
 function checkAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=true); }
 function uncheckAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=false); }
-async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ alert('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
-async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ alert('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
+async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ await alert('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
+async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ await alert('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
 
 function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; }
 function cancelLastInput(){ const input=document.querySelector('.source-order-input'); input.value=input.value.substring(0,input.value.length-1); convertOrderText(); }
-async function pasteOrder() { try { const text = await navigator.clipboard.readText(); if (text) { const input = document.querySelector('.source-order-input'); input.value = text; convertOrderText(); } } catch (err) { alert('无法访问剪贴板，请手动粘贴或检查浏览器权限。'); } }
+async function pasteOrder() { try { const text = await navigator.clipboard.readText(); if (text) { const input = document.querySelector('.source-order-input'); input.value = text; convertOrderText(); } } catch (err) { await alert('无法访问剪贴板，请手动粘贴或检查浏览器权限。'); } }
 
 function lockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=true); }
 function unlockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=false); }
 function initDataConfig(){ let cfg = DEFAULT_CONFIG; try { const saved = localStorage.getItem('customDataConfigObj'); if(saved) cfg = {...DEFAULT_CONFIG,...JSON.parse(saved)}; } catch(e) {} Object.keys(cfg).forEach(key=>{ const el=document.getElementById(`config_${key}`); if(el) el.value=cfg[key]; }); lockAllInputs(); }
-function enableEditConfig(){ if(prompt("输入修改密码：")===PASSWORD){ unlockAllInputs(); alert("解锁成功"); } else alert("密码错误"); }
-function saveDataConfig(){ if(prompt("输入保存密码：")!==PASSWORD) { alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); alert("保存成功"); }
-function resetDataConfig(){ if(prompt("输入密码：")!==PASSWORD) { alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); alert("已恢复默认"); }
+async function enableEditConfig(){ if((await prompt("输入修改密码："))===PASSWORD){ unlockAllInputs(); await alert("解锁成功"); } else await alert("密码错误"); }
+async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { await alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); await alert("保存成功"); }
+async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { await alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); await alert("已恢复默认"); }
 
 document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
 document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
@@ -700,7 +809,6 @@ document.getElementById('numAmountMax').addEventListener('input', updateTableFro
 document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
 document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
 
-// 导出导入功能
 async function exportData() {
   try {
     const orders = await getOrderRecords();
@@ -711,7 +819,7 @@ async function exportData() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
     URL.revokeObjectURL(url);
-  } catch (e) { alert('导出失败'); }
+  } catch (e) { await alert('导出失败'); }
 }
 
 async function importData() {
@@ -722,34 +830,26 @@ async function importData() {
     reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.orders || !data.reports) { alert('无效的数据格式'); return; }
+        if (!data.orders || !data.reports) { await alert('无效的数据格式'); return; }
         let skipCount = 0, newCount = 0;
         const existingOrders = await getOrderRecords();
         for (const rec of data.orders) {
           const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) {
-            skipCount++;
-          } else {
-            await saveOrderRecordToIDB(rec.content, rec.user, rec.date);
-            newCount++;
-          }
+          if (exist) { skipCount++; }
+          else { await saveOrderRecordToIDB(rec.content, rec.user, rec.date); newCount++; }
         }
         const existingReports = await getReportOrderRecords();
         for (const rec of data.reports) {
           const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) {
-            skipCount++;
-          } else {
-            await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date);
-            newCount++;
-          }
+          if (exist) { skipCount++; }
+          else { await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date); newCount++; }
         }
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
         initDataConfig();
         await updateTableFromRecords();
         calculateStorageUsage();
-        alert(`导入完成：跳过 ${skipCount} 条重复记录，新增 ${newCount} 条记录。`);
-      } catch (err) { alert('导入失败，请检查文件格式'); }
+        await alert(`导入完成：跳过 ${skipCount} 条重复记录，新增 ${newCount} 条记录。`);
+      } catch (err) { await alert('导入失败，请检查文件格式'); }
     };
     reader.readAsText(file);
   };
