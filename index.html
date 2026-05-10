@@ -529,7 +529,7 @@ let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCoun
 const PASSWORD = "891105";
 const YEAR_ZODIAC_PASSWORD = "150408";
 const DB_NAME = 'OrderDatabase';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // 升级版本，确保 report_orders 存储被创建
 const STORE_NAME = 'orders';
 const REPORT_STORE_NAME = 'report_orders';
 let db = null;
@@ -777,51 +777,55 @@ function processCurrentOrder(input, user, isNormal) {
 }
 
 async function updateTableFromRecords() {
-  tableBetData = {}; userBetData = {}; reportBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
-  const records = await getOrderRecords();
-  const reportRecords = await getReportOrderRecords();
-  const configData = getAllConfigData();
-  const categoryKeys = getAllValidCategories(configData);
-  const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000;
-  const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000;
-  records.forEach(record => {
-    if (!userBetData[record.user]) userBetData[record.user] = {};
-    record.content.split('\n').filter(l=>l.trim()).forEach(line => {
-      const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
-      numbers.forEach(num => {
-        userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount;
-        tableBetData[num] = (tableBetData[num]||0) + amount;
-        reportBetData[num] = (reportBetData[num]||0) + amount;
-        numberCount[num] = (numberCount[num]||0)+1;
-        if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1;
-      });
-      zodiacs.forEach(z => {
-        zodiacCount[z] = (zodiacCount[z]||0)+1;
-        if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1;
-        (configData.zodiac[z]||[]).forEach(n => {
-          const num = n.padStart(2,'0');
+  try {
+    tableBetData = {}; userBetData = {}; reportBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
+    const records = await getOrderRecords();
+    const reportRecords = await getReportOrderRecords();
+    const configData = getAllConfigData();
+    const categoryKeys = getAllValidCategories(configData);
+    const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000;
+    const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000;
+    records.forEach(record => {
+      if (!userBetData[record.user]) userBetData[record.user] = {};
+      record.content.split('\n').filter(l=>l.trim()).forEach(line => {
+        const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
+        numbers.forEach(num => {
           userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount;
           tableBetData[num] = (tableBetData[num]||0) + amount;
           reportBetData[num] = (reportBetData[num]||0) + amount;
+          numberCount[num] = (numberCount[num]||0)+1;
+          if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1;
+        });
+        zodiacs.forEach(z => {
+          zodiacCount[z] = (zodiacCount[z]||0)+1;
+          if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1;
+          (configData.zodiac[z]||[]).forEach(n => {
+            const num = n.padStart(2,'0');
+            userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount;
+            tableBetData[num] = (tableBetData[num]||0) + amount;
+            reportBetData[num] = (reportBetData[num]||0) + amount;
+          });
         });
       });
     });
-  });
-  reportRecords.forEach(record => {
-    record.content.split('\n').filter(l=>l.trim()).forEach(line => {
-      const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
-      numbers.forEach(num => {
-        reportBetData[num] = (reportBetData[num]||0) - amount;
-      });
-      zodiacs.forEach(z => {
-        (configData.zodiac[z]||[]).forEach(n => {
-          const num = n.padStart(2,'0');
+    reportRecords.forEach(record => {
+      record.content.split('\n').filter(l=>l.trim()).forEach(line => {
+        const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
+        numbers.forEach(num => {
           reportBetData[num] = (reportBetData[num]||0) - amount;
         });
+        zodiacs.forEach(z => {
+          (configData.zodiac[z]||[]).forEach(n => {
+            const num = n.padStart(2,'0');
+            reportBetData[num] = (reportBetData[num]||0) - amount;
+          });
+        });
       });
     });
-  });
-  generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards();
+    generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards();
+  } catch (e) {
+    console.error('更新表格失败', e);
+  }
 }
 
 function getAllConfigData() {
@@ -832,17 +836,17 @@ function getAllConfigData() {
   };
   const zodiacIds=['shu','niu','hu','tu2','long','she','ma','yang','hou','ji','gou','zhu'], zodiacNames=['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
   zodiacIds.forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.zodiac[zodiacNames[i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
-  configData.shengxiaoAttr['家禽'] = document.getElementById('config_sx_jiaqin').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['野兽'] = document.getElementById('config_sx_yeshou').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['吉美'] = document.getElementById('config_sx_jimei').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['凶丑'] = document.getElementById('config_sx_xiongchou').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['阴性'] = document.getElementById('config_sx_yinxing').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['阳性'] = document.getElementById('config_sx_yangxing').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['天肖'] = document.getElementById('config_sx_tianxiao').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['地肖'] = document.getElementById('config_sx_dixiao').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['单笔'] = document.getElementById('config_sx_danbi').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['双笔'] = document.getElementById('config_sx_shuangbi').value.trim().split(/\s+/);
-  configData.shengxiaoAttr['白边'] = document.getElementById('config_sx_baibian').value.trim().split(/\s+/);
+  configData.shengxiaoAttr['家禽'] = (document.getElementById('config_sx_jiaqin')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['野兽'] = (document.getElementById('config_sx_yeshou')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['吉美'] = (document.getElementById('config_sx_jimei')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['凶丑'] = (document.getElementById('config_sx_xiongchou')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['阴性'] = (document.getElementById('config_sx_yinxing')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['阳性'] = (document.getElementById('config_sx_yangxing')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['天肖'] = (document.getElementById('config_sx_tianxiao')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['地肖'] = (document.getElementById('config_sx_dixiao')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['单笔'] = (document.getElementById('config_sx_danbi')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['双笔'] = (document.getElementById('config_sx_shuangbi')?.value || '').trim().split(/\s+/);
+  configData.shengxiaoAttr['白边'] = (document.getElementById('config_sx_baibian')?.value || '').trim().split(/\s+/);
   ['jin','mu','shui','huo','tu'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.wuxing[['金','木','水','火','土'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
   ['hongbo','lanbo','lvbo'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.bose[['红波','蓝波','绿波'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
   ['hongshuang','hongdan','lanshuang','landan','lvshuang','lvdan'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.banbo[['红双','红单','蓝双','蓝单','绿双','绿单'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
@@ -857,18 +861,18 @@ function getAllConfigData() {
   ['hdx_hexiao','hdx_heda'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.hedahexiao[['合小','合大'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
   ['wdx_weixiao','wdx_weida'].forEach((id,i)=>{ const el=document.getElementById(`config_${id}`); if(el) configData.weidaweixiao[['尾小','尾大'][i]]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); });
   for(let i=0;i<=9;i++){ const el=document.getElementById(`config_hw_${i}`); if(el) configData.hewei[`${i}合尾`]=el.value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n)); }
-  configData.heshudanshuang['合数单'] = document.getElementById('config_hsd_hsd').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.heshudanshuang['合数双'] = document.getElementById('config_hsd_hss').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['0头单'] = document.getElementById('config_tds_0dan').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['0头双'] = document.getElementById('config_tds_0shuang').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['1头单'] = document.getElementById('config_tds_1dan').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['1头双'] = document.getElementById('config_tds_1shuang').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['2头单'] = document.getElementById('config_tds_2dan').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['2头双'] = document.getElementById('config_tds_2shuang').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['3头单'] = document.getElementById('config_tds_3dan').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['3头双'] = document.getElementById('config_tds_3shuang').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['4头单'] = document.getElementById('config_tds_4dan').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
-  configData.toushuDanshuang['4头双'] = document.getElementById('config_tds_4shuang').value.trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.heshudanshuang['合数单'] = (document.getElementById('config_hsd_hsd')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.heshudanshuang['合数双'] = (document.getElementById('config_hsd_hss')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['0头单'] = (document.getElementById('config_tds_0dan')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['0头双'] = (document.getElementById('config_tds_0shuang')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['1头单'] = (document.getElementById('config_tds_1dan')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['1头双'] = (document.getElementById('config_tds_1shuang')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['2头单'] = (document.getElementById('config_tds_2dan')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['2头双'] = (document.getElementById('config_tds_2shuang')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['3头单'] = (document.getElementById('config_tds_3dan')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['3头双'] = (document.getElementById('config_tds_3shuang')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['4头单'] = (document.getElementById('config_tds_4dan')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
+  configData.toushuDanshuang['4头双'] = (document.getElementById('config_tds_4shuang')?.value || '').trim().split(/\s+/).filter(n=>/^\d+$/.test(n));
   return configData;
 }
 
@@ -993,55 +997,59 @@ function renderAmountFrequencyCards() {
 function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
 
 async function showOrderRecord(filter='all'){
-  const records = await getOrderRecords(); const users = getUsers();
-  const filtered = (filter === 'all') ? records : records.filter(r => r.user === filter);
-  let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
-  html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-    <select id="recordUserFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
-      <option value="all" selected>全部用户</option>`;
-  users.forEach(u => html += `<option value="${u}">${u}</option>`);
-  html += `</select>
-    <button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
-    <button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
-    <button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
-  </div>`;
-  if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`;
-  else {
-    filtered.forEach(item => {
-      const timeStr = formatTimestampToCST(item.timestamp);
-      const userDisplay = item.user || '未知';
-      html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
-    });
-  }
-  html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
-  const existing = document.getElementById('orderModal'); if (existing) existing.remove();
-  document.body.insertAdjacentHTML('beforeend', html);
+  try {
+    const records = await getOrderRecords(); const users = getUsers();
+    const filtered = (filter === 'all') ? records : records.filter(r => r.user === filter);
+    let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
+    html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="recordUserFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
+        <option value="all" selected>全部用户</option>`;
+    users.forEach(u => html += `<option value="${u}">${u}</option>`);
+    html += `</select>
+      <button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
+      <button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
+      <button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
+    </div>`;
+    if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`;
+    else {
+      filtered.forEach(item => {
+        const timeStr = formatTimestampToCST(item.timestamp);
+        const userDisplay = item.user || '未知';
+        html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
+      });
+    }
+    html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+    const existing = document.getElementById('orderModal'); if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (e) { alert('加载订单记录失败'); }
 }
 
 async function showReportOrderRecord(filter='all'){
-  const records = await getReportOrderRecords(); const users = getUsers();
-  const filtered = (filter === 'all') ? records : records.filter(r => r.user === filter);
-  let html = `<div class="modal-overlay" id="reportModal"><div class="modal-box"><div class="modal-header"><h3>上报数据</h3><button onclick="closeReportModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
-  html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-    <select id="reportRecordUserFilter" onchange="showReportOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
-      <option value="all" selected>全部用户</option>`;
-  users.forEach(u => html += `<option value="${u}">${u}</option>`);
-  html += `</select>
-    <button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
-    <button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
-    <button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
-  </div>`;
-  if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`;
-  else {
-    filtered.forEach(item => {
-      const timeStr = formatTimestampToCST(item.timestamp);
-      const userDisplay = item.user || '未知';
-      html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`;
-    });
-  }
-  html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
-  const existing = document.getElementById('reportModal'); if (existing) existing.remove();
-  document.body.insertAdjacentHTML('beforeend', html);
+  try {
+    const records = await getReportOrderRecords(); const users = getUsers();
+    const filtered = (filter === 'all') ? records : records.filter(r => r.user === filter);
+    let html = `<div class="modal-overlay" id="reportModal"><div class="modal-box"><div class="modal-header"><h3>上报数据</h3><button onclick="closeReportModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
+    html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="reportRecordUserFilter" onchange="showReportOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
+        <option value="all" selected>全部用户</option>`;
+    users.forEach(u => html += `<option value="${u}">${u}</option>`);
+    html += `</select>
+      <button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
+      <button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
+      <button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
+    </div>`;
+    if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`;
+    else {
+      filtered.forEach(item => {
+        const timeStr = formatTimestampToCST(item.timestamp);
+        const userDisplay = item.user || '未知';
+        html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`;
+      });
+    }
+    html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+    const existing = document.getElementById('reportModal'); if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (e) { alert('加载上报数据失败'); }
 }
 
 function closeOrderModal(){ const modal=document.getElementById('orderModal'); if(modal) modal.remove(); }
