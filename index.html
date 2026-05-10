@@ -82,6 +82,8 @@ input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #d
 .btn-reset:hover {background:#c0392b;}
 .btn-paste {background:#2ecc71;color:white;}
 .btn-paste:hover {background:#27ae60;}
+.btn-report {background:#e67e22;color:white;}
+.btn-report:hover {background:#d35400;}
 
 .recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;}
 .recognize-card .btn-group .btn {flex:1;}
@@ -168,6 +170,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
   <div class="navbar-actions">
     <button class="btn btn-reset" onclick="resetTable()">清空</button>
     <button class="btn btn-save-order" onclick="showOrderRecord()">记录</button>
+    <button class="btn btn-primary" onclick="showReportOrderRecord()">上报数据</button>
     <button class="btn btn-primary" onclick="showUserManager()">添加用户</button>
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
   </div>
@@ -195,6 +198,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-paste" onclick="pasteOrder()">粘贴订单</button>
           <button class="btn btn-save-order" onclick="saveOrder()">保存下单</button>
+          <button class="btn btn-report" onclick="saveReportOrder()">上报</button>
           <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
           <button class="btn btn-cancel" onclick="cancelLastInput()">撤销</button>
         </div>
@@ -519,6 +523,7 @@ th {background:#f0f0f0;font-weight:bold;color:#1a1a2e;}
 <script>
 let tableBetData = {}; // 总风险 (全部用户合计)
 let userBetData = {};  // 按用户存储 { 用户: { num: bet } }
+let reportBetData = {}; // 上报表格数据
 let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCount = {};
 
 const PASSWORD = "891105";
@@ -526,6 +531,7 @@ const YEAR_ZODIAC_PASSWORD = "150408";
 const DB_NAME = 'OrderDatabase';
 const DB_VERSION = 1;
 const STORE_NAME = 'orders';
+const REPORT_STORE_NAME = 'report_orders';
 let db = null;
 
 const zodiacOrder = ['马','蛇','龙','兔','虎','牛','鼠','猪','狗','鸡','猴','羊'];
@@ -581,19 +587,30 @@ function initIndexedDB() {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onerror = () => { resolve(false); };
     request.onsuccess = (event) => { db = event.target.result; resolve(true); };
-    request.onupgradeneeded = (event) => { db = event.target.result; if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' }); };
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(REPORT_STORE_NAME)) db.createObjectStore(REPORT_STORE_NAME, { keyPath: 'id' });
+    };
   });
 }
 
 async function getOrderRecords() { return new Promise((resolve) => { if (!db) resolve([]); const tx = db.transaction([STORE_NAME],'readonly'); const store = tx.objectStore(STORE_NAME); const req = store.getAll(); req.onsuccess = (e) => resolve(e.target.result || []); req.onerror = () => resolve([]); }); }
+async function getReportOrderRecords() { return new Promise((resolve) => { if (!db) resolve([]); const tx = db.transaction([REPORT_STORE_NAME],'readonly'); const store = tx.objectStore(REPORT_STORE_NAME); const req = store.getAll(); req.onsuccess = (e) => resolve(e.target.result || []); req.onerror = () => resolve([]); }); }
 async function saveOrderRecordToIDB(content, user) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const record = { id: Date.now(), content, user, timestamp: new Date().toISOString() }; const req = store.add(record); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
+async function saveReportOrderRecordToIDB(content, user) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([REPORT_STORE_NAME],'readwrite'); const store = tx.objectStore(REPORT_STORE_NAME); const record = { id: Date.now(), content, user, timestamp: new Date().toISOString() }; const req = store.add(record); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
 async function deleteOrderRecordFromIDB(id) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.delete(id); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
+async function deleteReportOrderRecordFromIDB(id) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([REPORT_STORE_NAME],'readwrite'); const store = tx.objectStore(REPORT_STORE_NAME); const req = store.delete(id); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
 async function batchDeleteOrderRecordFromIDB(ids) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); let count = 0; ids.forEach(id => { const req = store.delete(id); req.onsuccess = () => { count++; if (count === ids.length) resolve(true); }; }); }); }
+async function batchDeleteReportOrderRecordFromIDB(ids) { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([REPORT_STORE_NAME],'readwrite'); const store = tx.objectStore(REPORT_STORE_NAME); let count = 0; ids.forEach(id => { const req = store.delete(id); req.onsuccess = () => { count++; if (count === ids.length) resolve(true); }; }); }); }
 async function clearAllOrderRecordsFromIDB() { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([STORE_NAME],'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.clear(); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
+async function clearAllReportOrderRecordsFromIDB() { return new Promise((resolve) => { if (!db) resolve(false); const tx = db.transaction([REPORT_STORE_NAME],'readwrite'); const store = tx.objectStore(REPORT_STORE_NAME); const req = store.clear(); req.onsuccess = () => resolve(true); req.onerror = () => resolve(false); }); }
 
 async function calculateStorageUsage() {
-  const records = await getOrderRecords(); const orderCount = records.length; let usedBytes = 0;
+  const records = await getOrderRecords(); const reportRecords = await getReportOrderRecords();
+  const orderCount = records.length + reportRecords.length; let usedBytes = 0;
   records.forEach(r => usedBytes += JSON.stringify(r).length * 2);
+  reportRecords.forEach(r => usedBytes += JSON.stringify(r).length * 2);
   usedBytes += JSON.stringify(getAllConfigData()).length * 2;
   const usedMB = (usedBytes / (1024 * 1024)).toFixed(2);
   const maxStorage = 50 * 1024 * 1024;
@@ -607,9 +624,12 @@ function showDatabase() { const pwd = prompt("请输入数据库密码：",""); 
 function hideDatabase() { document.getElementById('databaseModal').style.display = 'none'; }
 
 async function saveOrderRecord(content, user) { await saveOrderRecordToIDB(content, user); calculateStorageUsage(); }
+async function saveReportOrderRecord(content, user) { await saveReportOrderRecordToIDB(content, user); calculateStorageUsage(); }
 async function deleteOrderRecord(id) { if(!confirm('确定删除？')) return; await deleteOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
+async function deleteReportOrderRecord(id) { if(!confirm('确定删除？')) return; await deleteReportOrderRecordFromIDB(id); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showReportOrderRecord(); }
 async function batchDeleteOrderRecord(ids) { if(!confirm('确定删除选中？')) return; await batchDeleteOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showOrderRecord(); }
-async function resetTable() { if(prompt("输入清空密码：","") !== PASSWORD) { alert("密码错误"); return; } tableBetData = {}; userBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; await clearAllOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); refreshAll(); calculateStorageUsage(); alert("已清空"); }
+async function batchDeleteReportOrderRecord(ids) { if(!confirm('确定删除选中？')) return; await batchDeleteReportOrderRecordFromIDB(ids); await updateTableFromRecords(); calculateStorageUsage(); closeOrderModal(); showReportOrderRecord(); }
+async function resetTable() { if(prompt("输入清空密码：","") !== PASSWORD) { alert("密码错误"); return; } tableBetData = {}; userBetData = {}; reportBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); initDataConfig(); refreshAll(); calculateStorageUsage(); alert("已清空"); }
 
 document.querySelectorAll('.category-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
 
@@ -671,7 +691,21 @@ function saveOrder(){
   if(!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; }
   const content = validLines.join('\n');
   saveOrderRecord(content, user);
-  processCurrentOrder(content, user);
+  processCurrentOrder(content, user, true);
+  document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = '';
+  document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function saveReportOrder(){
+  const user = document.getElementById('orderUserSelect').value;
+  if (!user) { alert('请先添加用户并选择'); return; }
+  let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim();
+  if(!input) return;
+  const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; });
+  if(!validLines.length) { alert('订单无效，需有号码或生肖且金额>0'); return; }
+  const content = validLines.join('\n');
+  saveReportOrderRecord(content, user);
+  processCurrentOrder(content, user, false);
   document.querySelector('.source-order-input').value = ''; document.getElementById('orderResult').value = '';
   document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
 }
@@ -691,7 +725,6 @@ function countItemsInLine(line, configData, categoryKeys) {
     else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) {
       (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0')));
     } else {
-      // 尝试其他数字分类
       const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] ||
                      configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] ||
                      configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] ||
@@ -702,7 +735,7 @@ function countItemsInLine(line, configData, categoryKeys) {
   return { numbers, zodiacs, amount };
 }
 
-function processCurrentOrder(input, user) {
+function processCurrentOrder(input, user, isNormal) {
   const configData = getAllConfigData();
   const categoryKeys = getAllValidCategories(configData);
   const lines = input.split('\n').filter(l=>l.trim());
@@ -712,27 +745,41 @@ function processCurrentOrder(input, user) {
     const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000;
     const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000;
     numbers.forEach(num => {
-      userBetData[user][num] = (userBetData[user][num]||0)+amount;
-      tableBetData[num] = (tableBetData[num]||0) + amount;
-      numberCount[num] = (numberCount[num]||0)+1;
-      if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1;
-    });
-    zodiacs.forEach(z => {
-      zodiacCount[z] = (zodiacCount[z]||0)+1;
-      if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1;
-      (configData.zodiac[z]||[]).forEach(n => {
-        const num = n.padStart(2,'0');
+      if (isNormal) {
         userBetData[user][num] = (userBetData[user][num]||0)+amount;
         tableBetData[num] = (tableBetData[num]||0) + amount;
-      });
+        reportBetData[num] = (reportBetData[num]||0) + amount;
+        numberCount[num] = (numberCount[num]||0)+1;
+        if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1;
+      } else {
+        reportBetData[num] = (reportBetData[num]||0) - amount;
+      }
+    });
+    zodiacs.forEach(z => {
+      if (isNormal) {
+        zodiacCount[z] = (zodiacCount[z]||0)+1;
+        if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1;
+        (configData.zodiac[z]||[]).forEach(n => {
+          const num = n.padStart(2,'0');
+          userBetData[user][num] = (userBetData[user][num]||0)+amount;
+          tableBetData[num] = (tableBetData[num]||0) + amount;
+          reportBetData[num] = (reportBetData[num]||0) + amount;
+        });
+      } else {
+        (configData.zodiac[z]||[]).forEach(n => {
+          const num = n.padStart(2,'0');
+          reportBetData[num] = (reportBetData[num]||0) - amount;
+        });
+      }
     });
   });
   generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards();
 }
 
 async function updateTableFromRecords() {
-  tableBetData = {}; userBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
+  tableBetData = {}; userBetData = {}; reportBetData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {};
   const records = await getOrderRecords();
+  const reportRecords = await getReportOrderRecords();
   const configData = getAllConfigData();
   const categoryKeys = getAllValidCategories(configData);
   const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000;
@@ -744,13 +791,33 @@ async function updateTableFromRecords() {
       numbers.forEach(num => {
         userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount;
         tableBetData[num] = (tableBetData[num]||0) + amount;
+        reportBetData[num] = (reportBetData[num]||0) + amount;
         numberCount[num] = (numberCount[num]||0)+1;
         if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1;
       });
       zodiacs.forEach(z => {
         zodiacCount[z] = (zodiacCount[z]||0)+1;
         if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1;
-        (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; });
+        (configData.zodiac[z]||[]).forEach(n => {
+          const num = n.padStart(2,'0');
+          userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount;
+          tableBetData[num] = (tableBetData[num]||0) + amount;
+          reportBetData[num] = (reportBetData[num]||0) + amount;
+        });
+      });
+    });
+  });
+  reportRecords.forEach(record => {
+    record.content.split('\n').filter(l=>l.trim()).forEach(line => {
+      const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
+      numbers.forEach(num => {
+        reportBetData[num] = (reportBetData[num]||0) - amount;
+      });
+      zodiacs.forEach(z => {
+        (configData.zodiac[z]||[]).forEach(n => {
+          const num = n.padStart(2,'0');
+          reportBetData[num] = (reportBetData[num]||0) - amount;
+        });
       });
     });
   });
@@ -830,8 +897,9 @@ function deleteUserAction(name) { if (!confirm(`确定删除用户"${name}"及�
 function generateRiskTable() {
   const switcher = document.getElementById('riskReportSwitcher').value;
   let data;
-  if (switcher === 'total' || switcher === 'report') data = tableBetData;
-  else { const user = document.getElementById('viewUserSelect').value; data = userBetData[user] || {}; }
+  if (switcher === 'total') data = tableBetData;
+  else if (switcher === 'user') { const user = document.getElementById('viewUserSelect').value; data = userBetData[user] || {}; }
+  else data = reportBetData;
   const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
   let total = 0; const multiple = parseFloat(document.getElementById('multipleVal').value)||1;
   const rebateRate = parseFloat(document.getElementById('rebateRate').value)||0;
@@ -857,7 +925,7 @@ function generateReportTable() {
   const capInput = document.getElementById('reportCapInput');
   let capValue = parseFloat(capInput.value);
   if (isNaN(capValue) || capValue <= 0) capInput.value = '';
-  const data = tableBetData;
+  const data = reportBetData;
   const tbody = document.getElementById('reportTableBody'); tbody.innerHTML = '';
   const multiple = parseFloat(document.getElementById('reportMultipleVal').value)||1;
   const rebateRate = parseFloat(document.getElementById('reportRebateRate').value)||0;
@@ -875,11 +943,10 @@ function generateReportTable() {
     tbody.appendChild(tr);
   });
   document.getElementById('reportTotalBet').textContent = total; document.getElementById('reportTotalRebate').textContent = rebate;
-
   const infoDiv = document.getElementById('reportCapInfo');
   if (!isNaN(capValue) && capValue > 0) {
     const exceedList = [];
-    for(let num in tableBetData) { if (tableBetData[num] > capValue) exceedList.push({num, exceed: tableBetData[num] - capValue}); }
+    for(let num in data) { if (data[num] > capValue) exceedList.push({num, exceed: data[num] - capValue}); }
     if (exceedList.length > 0) {
       exceedList.sort((a,b) => a.exceed - b.exceed);
       let text = ''; let totalExceed = 0;
@@ -887,8 +954,8 @@ function generateReportTable() {
       text += `合计${totalExceed}`; infoDiv.innerHTML = text;
     } else { infoDiv.textContent = '无超出的号码'; }
   } else { infoDiv.textContent = ''; }
-  if (Object.keys(tableBetData).length > 0) {
-    const maxBet = Math.max(...Object.values(tableBetData));
+  if (Object.keys(data).length > 0) {
+    const maxBet = Math.max(...Object.values(data));
     capInput.placeholder = `当前最大: ${maxBet}`;
   }
 }
@@ -950,10 +1017,41 @@ async function showOrderRecord(filter='all'){
   const existing = document.getElementById('orderModal'); if (existing) existing.remove();
   document.body.insertAdjacentHTML('beforeend', html);
 }
+
+async function showReportOrderRecord(filter='all'){
+  const records = await getReportOrderRecords(); const users = getUsers();
+  const filtered = (filter === 'all') ? records : records.filter(r => r.user === filter);
+  let html = `<div class="modal-overlay" id="reportModal"><div class="modal-box"><div class="modal-header"><h3>上报数据</h3><button onclick="closeReportModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
+  html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <select id="reportRecordUserFilter" onchange="showReportOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
+      <option value="all" selected>全部用户</option>`;
+  users.forEach(u => html += `<option value="${u}">${u}</option>`);
+  html += `</select>
+    <button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
+    <button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
+    <button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
+  </div>`;
+  if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`;
+  else {
+    filtered.forEach(item => {
+      const timeStr = formatTimestampToCST(item.timestamp);
+      const userDisplay = item.user || '未知';
+      html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-user">用户：${userDisplay}</div><div class="order-time">${timeStr}</div></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`;
+    });
+  }
+  html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+  const existing = document.getElementById('reportModal'); if (existing) existing.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
 function closeOrderModal(){ const modal=document.getElementById('orderModal'); if(modal) modal.remove(); }
+function closeReportModal(){ const modal=document.getElementById('reportModal'); if(modal) modal.remove(); }
 function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true); }
 function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
+function checkAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=true); }
+function uncheckAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=false); }
 async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ alert('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
+async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ alert('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
 
 function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; }
 function cancelLastInput(){ const input=document.querySelector('.source-order-input'); input.value=input.value.substring(0,input.value.length-1); convertOrderText(); }
