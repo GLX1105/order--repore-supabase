@@ -868,18 +868,21 @@ function tokenizeAndJoin(content) {
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
   const configData = getAllConfigData();
   const validCategories = getAllValidCategories(configData);
-  const tokens = content.split(SEPARATORS).filter(t => t.trim()).map(t => t.trim()).map(t => {
+  const rawTokens = content.split(SEPARATORS).filter(t => t.trim()).map(t => t.trim());
+  const tokens = [];
+  rawTokens.forEach(t => {
     if (/^\d{1,2}$/.test(t)) {
       const num = parseInt(t);
-      if (num >= 1 && num <= 49) return t.length === 1 ? `0${t}` : t;
-    }
-    if (validCategories.has(t)) return t;
-    if (/^[\u4e00-\u9fa5]+$/.test(t)) {
+      if (num >= 1 && num <= 49) tokens.push(t.length === 1 ? `0${t}` : t);
+    } else if (validCategories.has(t)) {
+      tokens.push(t);
+    } else if (/^[\u4e00-\u9fa5]+$/.test(t)) {
       const chars = t.match(/[\u4e00-\u9fa5]/g) || [];
-      if (chars.every(c => validCategories.has(c))) return t;
+      if (chars.every(c => validCategories.has(c))) {
+        tokens.push(...chars); // 拆成单字
+      }
     }
-    return null;
-  }).filter(t => t !== null);
+  });
   return tokens.join('-');
 }
 
@@ -1008,7 +1011,32 @@ async function saveReportOrder(){
   document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
 }
 
-function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const isNumber = /^[\d\-]+$/.test(content); let items = []; if (isNumber) items = content.split('-').map(i=>i.trim()).filter(i=>i); else { if (categoryKeys.has(content)) items = [content]; else items = content.match(/[\u4e00-\u9fa5]/g) || []; } const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) numbers.push(item.padStart(2,'0')); else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) zodiacs.push(item); else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); } else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); } }); return { numbers, zodiacs, amount }; }
+function countItemsInLine(line, configData, categoryKeys) {
+  const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
+  const match = line.match(pattern);
+  if (!match) return { numbers:[], zodiacs:[], amount:0 };
+  let content = match[1];
+  const amount = parseInt(match[2])||0;
+  // 统一按 - 拆分，处理所有 token
+  const items = content.split('-').map(i=>i.trim()).filter(i=>i);
+  const numbers = [], zodiacs = [];
+  items.forEach(item => {
+    if (/^\d+$/.test(item)) {
+      numbers.push(item.padStart(2,'0'));
+    } else if (configData.shengxiaoAttr[item]) {
+      const zodiacList = configData.shengxiaoAttr[item] || [];
+      zodiacList.forEach(z=>zodiacs.push(z));
+    } else if (configData.zodiac[item]) {
+      zodiacs.push(item);
+    } else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) {
+      (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0')));
+    } else {
+      const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item];
+      if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0')));
+    }
+  });
+  return { numbers, zodiacs, amount };
+}
 
 function processCurrentOrder(input, user, isNormal, date = null) { const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const lines = input.split('\n').filter(l=>l.trim()); if (!userBetData[user]) userBetData[user] = {}; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; if (isNormal) { if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } } numbers.forEach(num => { if (isNormal) { userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; } else { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; } }); zodiacs.forEach(z => { if (isNormal) { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); } else { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); } }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); }
 
