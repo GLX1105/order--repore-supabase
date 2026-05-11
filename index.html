@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>港澳识别系统 - 手机版</title>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
 * {margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
 body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;position:relative;}
@@ -111,6 +112,8 @@ input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #d
 .btn-export:hover {background:#138a72;}
 .btn-import {background:#c0392b;color:white;}
 .btn-import:hover {background:#a93226;}
+.btn-screenshot {background:#2980b9;color:white;}
+.btn-screenshot:hover {background:#1f6ca8;}
 
 .recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;}
 .recognize-card .btn-group .btn {flex:1;}
@@ -158,6 +161,13 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
 #reportTable td:nth-child(5) {
     width:50px;
     text-align:center;
+}
+
+/* 表格行高亮样式 */
+tr.selected-row {
+    background-color: #dceeff !important;
+    font-weight: bold;
+    box-shadow: inset 0 0 5px rgba(52,152,219,0.5);
 }
 
 /* 毛玻璃弹窗 */
@@ -431,10 +441,10 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
               <div class="summary-item">总下注：<span id="totalBet">0</span></div>
               <div class="summary-item">返水%：<input type="number" id="rebateRate" class="small-input" value="4" min="0" max="100" step="0.1"></div>
               <div class="summary-item">返水：<span id="totalRebate">0</span></div>
-              <div class="summary-item">倍数：<input type="number" id="multipleVal" class="small-input" value="47" min="0.1" step="0.1"></div>
+              <div class="summary-item">倍数：<input type="number" id="multipleVal" class="small-input" value="47" min="0.1" step="0.1"><button class="btn btn-screenshot" onclick="screenshotTable('riskTable')" style="margin-left:4px;padding:2px 8px;font-size:12px;min-height:auto;">截图</button></div>
             </div>
             <div class="table-container">
-              <table id="riskTable"><thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th><th>排名</th></tr></thead><tbody id="tableBody"></tbody></table>
+              <table id="riskTable"><thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th><th>排名</th></tr></thead><tbody id="tableBody" onclick="handleTableRowClick(event)"></tbody></table>
             </div>
           </div>
 
@@ -443,10 +453,10 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
               <div class="summary-item">总下注：<span id="reportTotalBet">0</span></div>
               <div class="summary-item">返水%：<input type="number" id="reportRebateRate" class="small-input" value="4" min="0" max="100" step="0.1"></div>
               <div class="summary-item">返水：<span id="reportTotalRebate">0</span></div>
-              <div class="summary-item">倍数：<input type="number" id="reportMultipleVal" class="small-input" value="47" min="0.1" step="0.1"></div>
+              <div class="summary-item">倍数：<input type="number" id="reportMultipleVal" class="small-input" value="47" min="0.1" step="0.1"><button class="btn btn-screenshot" onclick="screenshotTable('reportTable')" style="margin-left:4px;padding:2px 8px;font-size:12px;min-height:auto;">截图</button></div>
             </div>
             <div class="table-container">
-              <table id="reportTable"><thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th><th>排名</th></tr></thead><tbody id="reportTableBody"></tbody></table>
+              <table id="reportTable"><thead><tr><th>号码</th><th>下注</th><th>风险</th><th>ID</th><th>排名</th></tr></thead><tbody id="reportTableBody" onclick="handleTableRowClick(event)"></tbody></table>
             </div>
           </div>
         </div>
@@ -1055,6 +1065,20 @@ function renderUserList() { const users = getUsers(); const c = document.getElem
 async function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { await alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
 async function deleteUserAction(name) { if (!(await confirm(`确定删除用户"${name}"及其数据吗？`))) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
 
+// 表格行点击高亮处理
+function handleTableRowClick(event) {
+    const td = event.target.closest('td');
+    if (!td) return;
+    const tr = td.closest('tr');
+    if (!tr) return;
+    // 移除同表格内其他行的高亮
+    const tbody = tr.parentElement;
+    const allRows = tbody.querySelectorAll('tr');
+    allRows.forEach(r => r.classList.remove('selected-row'));
+    // 为当前行添加高亮
+    tr.classList.add('selected-row');
+}
+
 function generateRiskTable() {
   const switcher = document.getElementById('riskReportSwitcher').value;
   let data;
@@ -1127,6 +1151,40 @@ function generateReportTable() {
 }
 
 async function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { await alert('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(async () => { await alert('已复制到剪贴板'); }).catch(async () => { await alert('复制失败，请手动复制'); }); }
+
+// 截图功能 - 直接复制到剪贴板，便于微信粘贴
+async function screenshotTable(tableId) {
+  const targetTable = document.getElementById(tableId);
+  if (!targetTable) {
+    await alert('未找到要截图的表格');
+    return;
+  }
+  try {
+    const canvas = await html2canvas(targetTable, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      logging: false
+    });
+    // 将canvas转为blob，然后复制到剪贴板
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        await alert('生成图片失败');
+        return;
+      }
+      try {
+        const item = new ClipboardItem({ 'image/png': blob });
+        await navigator.clipboard.write([item]);
+        await alert('截图已复制到剪贴板，可在微信等应用中粘贴');
+      } catch (err) {
+        console.error(err);
+        await alert('复制到剪贴板失败，请检查浏览器权限或重试');
+      }
+    }, 'image/png');
+  } catch (error) {
+    console.error(error);
+    await alert('截图失败，请重试');
+  }
+}
 
 function renderReportAmountTable() { const table = document.getElementById('reportAmountTable'); table.innerHTML = ''; const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))]; let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>金额</th>'; th+='</tr></thead>'; let tb='<tbody>'; for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const amt=reportAmountData[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${amt||''}</td>`; }else{tb+='<td></td><td></td>';} } tb+='</tr>'; } tb+='</tbody>'; table.innerHTML=th+tb; updateReportAmountTotal(); }
 
