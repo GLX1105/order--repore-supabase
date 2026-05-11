@@ -254,6 +254,13 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
 }
 .amount-stat-box span:first-child { color: #e67e22; }
 .amount-stat-box span:last-child { color: #d35400; }
+
+/* 替换预设专用样式 */
+.replace-preset-item {
+  display: flex; align-items: center; gap: 6px; padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+.replace-preset-item span { flex:1; font-size:13px; }
 </style>
 </head>
 <body>
@@ -266,6 +273,7 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
     <button class="btn btn-primary" onclick="showReportOrderRecord()">上报数据</button>
     <button class="btn btn-primary" onclick="showUserManager()">添加用户</button>
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
+    <button class="btn btn-primary" onclick="showReplacePreset()">替换预设</button>
     <button class="btn btn-export" onclick="exportData()">导出</button>
     <button class="btn btn-import" onclick="importData()">导入</button>
   </div>
@@ -821,11 +829,36 @@ function quickAddWithAmount(text, button) {
   convertOrderText();
 }
 
+// 获取替换预设数组
+function getReplacePresets() {
+  try {
+    return JSON.parse(localStorage.getItem('replacePresets') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+// 应用所有替换预设到文本
+function applyReplacePresets(text) {
+  const presets = getReplacePresets();
+  let result = text;
+  for (const preset of presets) {
+    if (preset.old && preset.new) {
+      // 使用全局替换，区分大小写
+      result = result.split(preset.old).join(preset.new);
+    }
+  }
+  return result;
+}
+
 function convertOrderText() {
-  const inputText = document.querySelector('.source-order-input').value.trim();
+  let inputText = document.querySelector('.source-order-input').value.trim();
+  // 应用替换预设
+  inputText = applyReplacePresets(inputText);
+  
   if (!inputText) { document.getElementById('orderResult').value = ''; updateOrderTotalDisplay(); return; }
   const lines = inputText.split('\n'); const resultLines = [];
-  const SEPARATORS = /[\s,，.。、+\-*，＊\/\\|]+/;
+  const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
   const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';
   const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*';
   const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
@@ -1189,6 +1222,79 @@ async function enableEditConfig(){ if((await prompt("输入修改密码："))===
 async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { await alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); await alert("保存成功"); }
 async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { await alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); await alert("已恢复默认"); }
 
+// ========== 替换预设功能 ==========
+function showReplacePreset() {
+  const presets = getReplacePresets();
+  let html = `<div class="modal-overlay" id="replacePresetModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>替换预设</h3>
+        <button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            <span style="align-self:center;">→</span>
+            <input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="presetList"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderPresetList();
+}
+
+function renderPresetList() {
+  const presets = getReplacePresets();
+  const container = document.getElementById('presetList');
+  if (!container) return;
+  if (presets.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>';
+    return;
+  }
+  container.innerHTML = presets.map((preset, index) => `
+    <div class="replace-preset-item">
+      <span>${preset.old} → ${preset.new}</span>
+      <button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
+    </div>
+  `).join('');
+}
+
+async function addReplacePreset() {
+  const oldText = document.getElementById('presetOld').value.trim();
+  const newText = document.getElementById('presetNew').value.trim();
+  if (!oldText || !newText) {
+    await alert('请输入原文字和替换文字');
+    return;
+  }
+  const presets = getReplacePresets();
+  // 检查是否已存在相同的旧文本
+  if (presets.some(p => p.old === oldText)) {
+    await alert('该原文字已有替换规则，请先删除旧规则再添加');
+    return;
+  }
+  presets.push({ old: oldText, new: newText });
+  localStorage.setItem('replacePresets', JSON.stringify(presets));
+  document.getElementById('presetOld').value = '';
+  document.getElementById('presetNew').value = '';
+  renderPresetList();
+}
+
+async function deleteReplacePreset(index) {
+  if (!(await confirm('确定删除该替换预设吗？'))) return;
+  const presets = getReplacePresets();
+  presets.splice(index, 1);
+  localStorage.setItem('replacePresets', JSON.stringify(presets));
+  renderPresetList();
+}
+
 document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
 document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
 document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
@@ -1204,7 +1310,8 @@ async function exportData() {
     const orders = await getOrderRecords();
     const reports = await getReportOrderRecords();
     const config = localStorage.getItem('customDataConfigObj');
-    const data = { orders, reports, config, exportTime: new Date().toISOString() };
+    const presets = localStorage.getItem('replacePresets');
+    const data = { orders, reports, config, presets, exportTime: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
@@ -1266,6 +1373,7 @@ async function importData() {
           if (!exist) await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0);
         }
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
+        if (data.presets) localStorage.setItem('replacePresets', data.presets);
         initDataConfig();
         await updateTableFromRecords();
         calculateStorageUsage();
