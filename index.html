@@ -309,7 +309,6 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap}
     <div class="database-modal-body">
       <div class="data-config-card">
         <div class="card-title">分类数据配置<span style="font-size:12px;color:#666">（可自定义）</span></div>
-        <!-- 以下完整保留数据库配置，与之前版本一致 -->
         <div class="config-section"><div class="config-section-title">十二生肖</div>
           <div class="config-item"><div class="config-label">鼠</div><div class="config-colon">：</div><input class="config-input" id="config_shu" value="07 19 31 43"></div>
           <div class="config-item"><div class="config-label">牛</div><div class="config-colon">：</div><input class="config-input" id="config_niu" value="06 18 30 42"></div>
@@ -324,7 +323,145 @@ td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap}
           <div class="config-item"><div class="config-label">狗</div><div class="config-colon">：</div><input class="config-input" id="config_gou" value="09 21 33 45"></div>
           <div class="config-item"><div class="config-label">猪</div><div class="config-colon">：</div><input class="config-input" id="config_zhu" value="08 20 32 44"></div>
         </div>
-        <!-- 其他配置项全部保留，此处省略展示节省空间，实际完整文件包含所有配置 -->
+        <div class="config-section"><div class="config-section-title">生肖属性</div>
+          <div class="config-item"><div class="config-label">家禽</div><div class="config-colon">：</div><input class="config-input" id="config_sx_jiaqin" value="牛 马 羊 鸡 狗 猪"></div>
+          <div class="config-item"><div class="config-label">野兽</div><div class="config-colon">：</div><input class="config-input" id="config_sx_yeshou" value="鼠 虎 兔 龙 蛇 猴"></div>
+          <div class="config-item"><div class="config-label">吉美</div><div class="config-colon">：</div><input class="config-input" id="config_sx_jimei" value="兔 龙 蛇 马 羊 鸡"></div>
+          <div class="config-item"><div class="config-label">凶丑</div><div class="config-colon">：</div><input class="config-input" id="config_sx_xiongchou" value="鼠 牛 虎 猴 狗 猪"></div>
+          <div class="config-item"><div class="config-label">阴性</div><div class="config-colon">：</div><input class="config-input" id="config_sx_yinxing" value="鼠 龙 蛇 马 狗 猪"></div>
+          <div class="config-item"><div class="config-label">阳性</div><div class="config-colon">：</div><input class="config-input" id="config_sx_yangxing" value="牛 虎 兔 羊 猴 鸡"></div>
+          <div class="config-item"><div class="config-label">天肖</div><div class="config-colon">：</div><input class="config-input" id="config_sx_tianxiao" value="兔 马 猴 猪 牛 龙"></div>
+          <div class="config-item"><div class="config-label">地肖</div><div class="config-colon">：</div><input class="config-input" id="config_sx_dixiao" value="蛇 羊 鸡 狗 鼠 虎"></div>
+          <div class="config-item"><div class="config-label">单笔</div><div class="config-colon">：</div><input class="config-input" id="config_sx_danbi" value="鼠 龙 马 蛇 鸡 猪"></div>
+          <div class="config-item"><div class="config-label">双笔</div><div class="config-colon">：</div><input class="config-input" id="config_sx_shuangbi" value="虎 猴 狗 兔 羊 牛"></div>
+          <div class="config-item"><div class="config-label">白边</div><div class="config-colon">：</div><input class="config-input" id="config_sx_baibian" value="鼠 牛 虎 鸡 狗 猪"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">五行配置</div>
+          <div class="config-item"><div class="config-label">金</div><div class="config-colon">：</div><input class="config-input" id="config_jin" value="04 05 12 13 26 27 34 35 42 43"></div>
+          <div class="config-item"><div class="config-label">木</div><div class="config-colon">：</div><input class="config-input" id="config_mu" value="08 09 16 17 24 25 38 39 46 47"></div>
+          <div class="config-item"><div class="config-label">水</div><div class="config-colon">：</div><input class="config-input" id="config_shui" value="01 14 15 22 23 30 31 44 45"></div>
+          <div class="config-item"><div class="config-label">火</div><div class="config-colon">：</div><input class="config-input" id="config_huo" value="02 03 10 11 18 19 32 33 40 41 48 49"></div>
+          <div class="config-item"><div class="config-label">土</div><div class="config-colon">：</div><input class="config-input" id="config_tu" value="06 07 20 21 28 29 36 37"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">波色配置</div>
+          <div class="config-item"><div class="config-label">红波</div><div class="config-colon">：</div><input class="config-input" id="config_hongbo" value="01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46"></div>
+          <div class="config-item"><div class="config-label">蓝波</div><div class="config-colon">：</div><input class="config-input" id="config_lanbo" value="03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48"></div>
+          <div class="config-item"><div class="config-label">绿波</div><div class="config-colon">：</div><input class="config-input" id="config_lvbo" value="05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">半波配置</div>
+          <div class="config-item"><div class="config-label">红双</div><div class="config-colon">：</div><input class="config-input" id="config_hongshuang" value="02 08 12 18 24 30 34 40 46"></div>
+          <div class="config-item"><div class="config-label">红单</div><div class="config-colon">：</div><input class="config-input" id="config_hongdan" value="01 07 13 19 23 29 35 45"></div>
+          <div class="config-item"><div class="config-label">蓝双</div><div class="config-colon">：</div><input class="config-input" id="config_lanshuang" value="04 10 14 20 26 36 42 48"></div>
+          <div class="config-item"><div class="config-label">蓝单</div><div class="config-colon">：</div><input class="config-input" id="config_landan" value="03 09 15 25 31 37 41 47"></div>
+          <div class="config-item"><div class="config-label">绿双</div><div class="config-colon">：</div><input class="config-input" id="config_lvshuang" value="06 16 22 28 32 38 44"></div>
+          <div class="config-item"><div class="config-label">绿单</div><div class="config-colon">：</div><input class="config-input" id="config_lvdan" value="05 11 17 21 27 33 39 43 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">单双属性</div>
+          <div class="config-item"><div class="config-label">单数</div><div class="config-colon">：</div><input class="config-input" id="config_danshu" value="01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label">双数</div><div class="config-colon">：</div><input class="config-input" id="config_shuangshu" value="02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">尾数属性</div>
+          <div class="config-item"><div class="config-label long-label">0尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_0" value="10 20 30 40"></div>
+          <div class="config-item"><div class="config-label long-label">1尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_1" value="01 11 21 31 41"></div>
+          <div class="config-item"><div class="config-label long-label">2尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_2" value="02 12 22 32 42"></div>
+          <div class="config-item"><div class="config-label long-label">3尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_3" value="03 13 23 33 43"></div>
+          <div class="config-item"><div class="config-label long-label">4尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_4" value="04 14 24 34 44"></div>
+          <div class="config-item"><div class="config-label long-label">5尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_5" value="05 15 25 35 45"></div>
+          <div class="config-item"><div class="config-label long-label">6尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_6" value="06 16 26 36 46"></div>
+          <div class="config-item"><div class="config-label long-label">7尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_7" value="07 17 27 37 47"></div>
+          <div class="config-item"><div class="config-label long-label">8尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_8" value="08 18 28 38 48"></div>
+          <div class="config-item"><div class="config-label long-label">9尾</div><div class="config-colon">：</div><input class="config-input" id="config_ws_9" value="09 19 29 39 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">大小单双</div>
+          <div class="config-item"><div class="config-label">大单</div><div class="config-colon">：</div><input class="config-input" id="config_dadan" value="25 27 29 31 33 35 37 39 41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label">大双</div><div class="config-colon">：</div><input class="config-input" id="config_dashuang" value="26 28 30 32 34 36 38 40 42 44 46 48"></div>
+          <div class="config-item"><div class="config-label">小单</div><div class="config-colon">：</div><input class="config-input" id="config_xiaodan" value="01 03 05 07 09 11 13 15 17 19 21 23"></div>
+          <div class="config-item"><div class="config-label">小双</div><div class="config-colon">：</div><input class="config-input" id="config_xiaoshuang" value="02 04 06 08 10 12 14 16 18 20 22 24"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">大小配置</div>
+          <div class="config-item"><div class="config-label">小</div><div class="config-colon">：</div><input class="config-input" id="config_dx_xiao" value="01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"></div>
+          <div class="config-item"><div class="config-label">大</div><div class="config-colon">：</div><input class="config-input" id="config_dx_da" value="25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">合数配置</div>
+          <div class="config-item"><div class="config-label long-label">01合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_01" value="01 10"></div>
+          <div class="config-item"><div class="config-label long-label">02合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_02" value="02 11 20"></div>
+          <div class="config-item"><div class="config-label long-label">03合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_03" value="03 12 21 30"></div>
+          <div class="config-item"><div class="config-label long-label">04合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_04" value="04 13 22 31 40"></div>
+          <div class="config-item"><div class="config-label long-label">05合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_05" value="05 14 23 32 41"></div>
+          <div class="config-item"><div class="config-label long-label">06合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_06" value="06 15 24 33 42"></div>
+          <div class="config-item"><div class="config-label long-label">07合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_07" value="07 16 25 34 43"></div>
+          <div class="config-item"><div class="config-label long-label">08合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_08" value="08 17 26 35 44"></div>
+          <div class="config-item"><div class="config-label long-label">09合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_09" value="09 18 27 36 45"></div>
+          <div class="config-item"><div class="config-label long-label">10合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_10" value="19 28 37 46"></div>
+          <div class="config-item"><div class="config-label long-label">11合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_11" value="29 38 47"></div>
+          <div class="config-item"><div class="config-label long-label">12合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_12" value="39 48"></div>
+          <div class="config-item"><div class="config-label long-label">13合</div><div class="config-colon">：</div><input class="config-input" id="config_hs_13" value="49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">头数配置</div>
+          <div class="config-item"><div class="config-label long-label">0头</div><div class="config-colon">：</div><input class="config-input" id="config_ts_0" value="01 02 03 04 05 06 07 08 09"></div>
+          <div class="config-item"><div class="config-label long-label">1头</div><div class="config-colon">：</div><input class="config-input" id="config_ts_1" value="10 11 12 13 14 15 16 17 18 19"></div>
+          <div class="config-item"><div class="config-label long-label">2头</div><div class="config-colon">：</div><input class="config-input" id="config_ts_2" value="20 21 22 23 24 25 26 27 28 29"></div>
+          <div class="config-item"><div class="config-label long-label">3头</div><div class="config-colon">：</div><input class="config-input" id="config_ts_3" value="30 31 32 33 34 35 36 37 38 39"></div>
+          <div class="config-item"><div class="config-label long-label">4头</div><div class="config-colon">：</div><input class="config-input" id="config_ts_4" value="40 41 42 43 44 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">门数配置</div>
+          <div class="config-item"><div class="config-label long-label">1门</div><div class="config-colon">：</div><input class="config-input" id="config_ms_1" value="01 02 03 04 05 06 07 08 09"></div>
+          <div class="config-item"><div class="config-label long-label">2门</div><div class="config-colon">：</div><input class="config-input" id="config_ms_2" value="10 11 12 13 14 15 16 17 18"></div>
+          <div class="config-item"><div class="config-label long-label">3门</div><div class="config-colon">：</div><input class="config-input" id="config_ms_3" value="19 20 21 22 23 24 25 26 27"></div>
+          <div class="config-item"><div class="config-label long-label">4门</div><div class="config-colon">：</div><input class="config-input" id="config_ms_4" value="28 29 30 31 32 33 34 35 36 37"></div>
+          <div class="config-item"><div class="config-label long-label">5门</div><div class="config-colon">：</div><input class="config-input" id="config_ms_5" value="38 39 40 41 42 43 44 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">段位配置</div>
+          <div class="config-item"><div class="config-label long-label">1段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_1" value="01 02 03 04 05 06 07"></div>
+          <div class="config-item"><div class="config-label long-label">2段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_2" value="08 09 10 11 12 13 14"></div>
+          <div class="config-item"><div class="config-label long-label">3段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_3" value="15 16 17 18 19 20 21"></div>
+          <div class="config-item"><div class="config-label long-label">4段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_4" value="22 23 24 25 26 27 28"></div>
+          <div class="config-item"><div class="config-label long-label">5段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_5" value="29 30 31 32 33 34 35"></div>
+          <div class="config-item"><div class="config-label long-label">6段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_6" value="36 37 38 39 40 41 42"></div>
+          <div class="config-item"><div class="config-label long-label">7段</div><div class="config-colon">：</div><input class="config-input" id="config_dw_7" value="43 44 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">合大&合小</div>
+          <div class="config-item"><div class="config-label">合小</div><div class="config-colon">：</div><input class="config-input" id="config_hdx_hexiao" value="01 02 03 04 05 06 10 11 12 13 14 15 20 21 22 23 24 30 31 32 33 40 41 42"></div>
+          <div class="config-item"><div class="config-label">合大</div><div class="config-colon">：</div><input class="config-input" id="config_hdx_heda" value="07 08 09 16 17 18 19 25 26 27 28 29 34 35 36 37 38 39 43 44 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">尾大&尾小</div>
+          <div class="config-item"><div class="config-label">尾小</div><div class="config-colon">：</div><input class="config-input" id="config_wdx_weixiao" value="01 02 03 04 10 11 12 13 14 20 21 22 23 24 30 31 32 33 34 40 41 42 43 44"></div>
+          <div class="config-item"><div class="config-label">尾大</div><div class="config-colon">：</div><input class="config-input" id="config_wdx_weida" value="05 06 07 08 09 15 16 17 18 19 25 26 27 28 29 35 36 37 38 39 45 46 47 48 49"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">半单双</div>
+          <div class="config-item"><div class="config-label">小单</div><div class="config-colon">：</div><input class="config-input" id="config_bds_xiaodan" value="01 03 05 07 09 11 13 15 17 19 21 23"></div>
+          <div class="config-item"><div class="config-label">小双</div><div class="config-colon">：</div><input class="config-input" id="config_bds_xiaoshuang" value="02 04 06 08 10 12 14 16 18 20 22 24"></div>
+          <div class="config-item"><div class="config-label">大单</div><div class="config-colon">：</div><input class="config-input" id="config_bds_dadan" value="25 27 29 31 33 35 37 39 41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label">大双</div><div class="config-colon">：</div><input class="config-input" id="config_bds_dashuang" value="26 28 30 32 34 36 38 40 42 44 46 48"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">合尾配置</div>
+          <div class="config-item"><div class="config-label long-label">0合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_0" value="19 28 37 46"></div>
+          <div class="config-item"><div class="config-label long-label">1合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_1" value="01 10 29 38 47"></div>
+          <div class="config-item"><div class="config-label long-label">2合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_2" value="02 11 20 39 48"></div>
+          <div class="config-item"><div class="config-label long-label">3合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_3" value="03 12 21 30 49"></div>
+          <div class="config-item"><div class="config-label long-label">4合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_4" value="04 13 22 31 40"></div>
+          <div class="config-item"><div class="config-label long-label">5合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_5" value="05 14 23 32 41"></div>
+          <div class="config-item"><div class="config-label long-label">6合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_6" value="06 15 24 33 42"></div>
+          <div class="config-item"><div class="config-label long-label">7合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_7" value="07 16 25 34 43"></div>
+          <div class="config-item"><div class="config-label long-label">8合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_8" value="08 17 26 35 44"></div>
+          <div class="config-item"><div class="config-label long-label">9合尾</div><div class="config-colon">：</div><input class="config-input" id="config_hw_9" value="09 18 27 36 45"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">合数单&双</div>
+          <div class="config-item"><div class="config-label long-label">合数单</div><div class="config-colon">：</div><input class="config-input" id="config_hsd_hsd" value="01 03 05 07 09 10 12 14 16 18 21 23 25 27 29 30 32 34 36 38 41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label long-label">合数双</div><div class="config-colon">：</div><input class="config-input" id="config_hsd_hss" value="02 04 06 08 11 13 15 17 19 20 22 24 26 28 31 33 35 37 39 40 42 44 46 48"></div>
+        </div>
+        <div class="config-section"><div class="config-section-title">头数单与双配置</div>
+          <div class="config-item"><div class="config-label long-label">0头单</div><div class="config-colon">：</div><input class="config-input" id="config_tds_0dan" value="01 03 05 07 09"></div>
+          <div class="config-item"><div class="config-label long-label">0头双</div><div class="config-colon">：</div><input class="config-input" id="config_tds_0shuang" value="02 04 06 08"></div>
+          <div class="config-item"><div class="config-label long-label">1头单</div><div class="config-colon">：</div><input class="config-input" id="config_tds_1dan" value="11 13 15 17 19"></div>
+          <div class="config-item"><div class="config-label long-label">1头双</div><div class="config-colon">：</div><input class="config-input" id="config_tds_1shuang" value="10 12 14 16 18"></div>
+          <div class="config-item"><div class="config-label long-label">2头单</div><div class="config-colon">：</div><input class="config-input" id="config_tds_2dan" value="21 23 25 27 29"></div>
+          <div class="config-item"><div class="config-label long-label">2头双</div><div class="config-colon">：</div><input class="config-input" id="config_tds_2shuang" value="20 22 24 26 28"></div>
+          <div class="config-item"><div class="config-label long-label">3头单</div><div class="config-colon">：</div><input class="config-input" id="config_tds_3dan" value="31 33 35 37 39"></div>
+          <div class="config-item"><div class="config-label long-label">3头双</div><div class="config-colon">：</div><input class="config-input" id="config_tds_3shuang" value="30 32 34 36 38"></div>
+          <div class="config-item"><div class="config-label long-label">4头单</div><div class="config-colon">：</div><input class="config-input" id="config_tds_4dan" value="41 43 45 47 49"></div>
+          <div class="config-item"><div class="config-label long-label">4头双</div><div class="config-colon">：</div><input class="config-input" id="config_tds_4shuang" value="40 42 44 46 48"></div>
+        </div>
         <div class="data-config-actions">
           <button class="config-btn" style="background:#007bff;color:#fff" onclick="enableEditConfig()">修改</button>
           <button class="config-btn" style="background:#6c757d;color:#fff" onclick="resetDataConfig()">默认</button>
@@ -379,7 +516,6 @@ async function generateCard(days) {
   const timestamp=Date.now();
   const signContent=`${days}-${randomCode}-${timestamp}`;
   const signature=await hmacSha256(signContent, SECRET_KEY);
-  // 取签名前16位缩短卡密长度
   const shortSig=signature.substring(0,16);
   return `CARD-${days}-${randomCode}-${timestamp}-${shortSig}`;
 }
@@ -402,7 +538,7 @@ async function activateCard(cardId) {
   return {success:true,expireTime:timestamp+days*86400000,cardId};
 }
 
-// 管理员本地记录（仅用于展示生成历史，不影响验证）
+// 管理员本地记录（仅用于展示生成历史）
 function getCards(){return JSON.parse(localStorage.getItem('cards')||'[]')}
 function saveCards(cards){localStorage.setItem('cards',JSON.stringify(cards))}
 
@@ -449,7 +585,7 @@ async function cardLogin(){
   else{document.getElementById('cardError').textContent=res.msg}
 }
 
-// 卡密管理（管理员）
+// 卡密管理
 function showCardManagement(){
   const cards=getCards();
   let listHtml=cards.map(c=>{
@@ -466,7 +602,6 @@ async function generateCardAction(btn){
   const days=await prompt('请输入有效期天数：','30');
   if(!days||isNaN(parseInt(days)))return;
   const cardId=await generateCard(parseInt(days));
-  // 保存生成记录到本地（可选）
   const cards=getCards();
   cards.push({id:cardId,days:parseInt(days),createTime:Date.now(),expireTime:Date.now()+parseInt(days)*86400000,used:false});
   saveCards(cards);
@@ -483,7 +618,7 @@ function initAuth(){
   }
 }
 
-// ===== 全局数据（与之前相同）=====
+// ===== 全局数据 =====
 let tableBetData={},userBetData={},reportBetData={},reportAmountData={};
 let numberCount={},zodiacCount={},numberAmountCount={},zodiacAmountCount={};
 const YEAR_ZODIAC_PASSWORD="150408";
@@ -495,7 +630,16 @@ const redNumbers=['01','02','07','08','12','13','18','19','23','24','29','30','3
 const blueNumbers=['03','04','09','10','14','15','20','25','26','31','36','37','41','42','47','48'];
 const greenNumbers=['05','06','11','16','17','21','22','27','28','32','33','38','39','43','44','49'];
 
-function getTodayCST(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Shanghai"})).toISOString().split("T")[0]}
+// ===== 修复后的中国时区当天日期函数 =====
+function getTodayCST() {
+  const now = new Date();
+  const shanghaiTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
+  const year = shanghaiTime.getFullYear();
+  const month = String(shanghaiTime.getMonth() + 1).padStart(2, '0');
+  const day = String(shanghaiTime.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function buildZodiacMap(startZodiac){const map={};const startIndex=zodiacOrder.indexOf(startZodiac);const idx=startIndex!==-1?startIndex:0;for(let i=1;i<=49;i++)map[i.toString().padStart(2,'0')]=zodiacOrder[(idx+i-1)%12];return map}
 
 async function changeStartZodiac(){
@@ -527,7 +671,6 @@ function initIndexedDB(){
   })
 }
 
-// 数据库操作函数（完整保留）
 async function getOrderRecords(){return new Promise(resolve=>{if(!db)resolve([]);const tx=db.transaction([STORE_NAME],'readonly');const store=tx.objectStore(STORE_NAME);const req=store.getAll();req.onsuccess=e=>resolve(e.target.result||[])})}
 async function getReportOrderRecords(){return new Promise(resolve=>{if(!db)resolve([]);const tx=db.transaction([REPORT_STORE_NAME],'readonly');const store=tx.objectStore(REPORT_STORE_NAME);const req=store.getAll();req.onsuccess=e=>resolve(e.target.result||[])})}
 async function saveOrderRecordToIDB(content,user,date){return new Promise(resolve=>{if(!db)resolve(false);const tx=db.transaction([STORE_NAME],'readwrite');const store=tx.objectStore(STORE_NAME);const record={id:Date.now(),content,user,date,timestamp:new Date().toISOString()};const req=store.add(record);req.onsuccess=()=>resolve(true)})}
@@ -553,10 +696,9 @@ async function resetTable(){if((await prompt("输入管理员密码：",""))!==A
 
 document.querySelectorAll('.category-btn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('active')));
 
-// 配置（完整保留）
+// 配置
 const DEFAULT_CONFIG={jin:'04 05 12 13 26 27 34 35 42 43',mu:'08 09 16 17 24 25 38 39 46 47',shui:'01 14 15 22 23 30 31 44 45',huo:'02 03 10 11 18 19 32 33 40 41 48 49',tu:'06 07 20 21 28 29 36 37',shu:'07 19 31 43',niu:'06 18 30 42',hu:'05 17 29 41',tu2:'04 16 28 40',long:'03 15 27 39',she:'02 14 26 38',ma:'01 13 25 37 49',yang:'12 24 36 48',hou:'11 23 35 47',ji:'10 22 34 46',gou:'09 21 33 45',zhu:'08 20 32 44',sx_jiaqin:'牛 马 羊 鸡 狗 猪',sx_yeshou:'鼠 虎 兔 龙 蛇 猴',sx_jimei:'兔 龙 蛇 马 羊 鸡',sx_xiongchou:'鼠 牛 虎 猴 狗 猪',sx_yinxing:'鼠 龙 蛇 马 狗 猪',sx_yangxing:'牛 虎 兔 羊 猴 鸡',sx_tianxiao:'兔 马 猴 猪 牛 龙',sx_dixiao:'蛇 羊 鸡 狗 鼠 虎',sx_danbi:'鼠 龙 马 蛇 鸡 猪',sx_shuangbi:'虎 猴 狗 兔 羊 牛',sx_baibian:'鼠 牛 虎 鸡 狗 猪',hongbo:'01 02 07 08 12 13 18 19 23 24 29 30 34 35 40 45 46',lanbo:'03 04 09 10 14 15 20 25 26 31 36 37 41 42 47 48',lvbo:'05 06 11 16 17 21 22 27 28 32 33 38 39 43 44 49',hongshuang:'02 08 12 18 24 30 34 40 46',hongdan:'01 07 13 19 23 29 35 45',lanshuang:'04 10 14 20 26 36 42 48',landan:'03 09 15 25 31 37 41 47',lvshuang:'06 16 22 28 32 38 44',lvdan:'05 11 17 21 27 33 39 43 49',danshu:'01 03 05 07 09 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49',shuangshu:'02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48',ws_0:'10 20 30 40',ws_1:'01 11 21 31 41',ws_2:'02 12 22 32 42',ws_3:'03 13 23 33 43',ws_4:'04 14 24 34 44',ws_5:'05 15 25 35 45',ws_6:'06 16 26 36 46',ws_7:'07 17 27 37 47',ws_8:'08 18 28 38 48',ws_9:'09 19 29 39 49',dadan:'25 27 29 31 33 35 37 39 41 43 45 47 49',dashuang:'26 28 30 32 34 36 38 40 42 44 46 48',xiaodan:'01 03 05 07 09 11 13 15 17 19 21 23',xiaoshuang:'02 04 06 08 10 12 14 16 18 20 22 24',dx_xiao:'01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24',dx_da:'25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49',hs_01:'01 10',hs_02:'02 11 20',hs_03:'03 12 21 30',hs_04:'04 13 22 31 40',hs_05:'05 14 23 32 41',hs_06:'06 15 24 33 42',hs_07:'07 16 25 34 43',hs_08:'08 17 26 35 44',hs_09:'09 18 27 36 45',hs_10:'19 28 37 46',hs_11:'29 38 47',hs_12:'39 48',hs_13:'49',ts_0:'01 02 03 04 05 06 07 08 09',ts_1:'10 11 12 13 14 15 16 17 18 19',ts_2:'20 21 22 23 24 25 26 27 28 29',ts_3:'30 31 32 33 34 35 36 37 38 39',ts_4:'40 41 42 43 44 45 46 47 48 49',ms_1:'01 02 03 04 05 06 07 08 09',ms_2:'10 11 12 13 14 15 16 17 18',ms_3:'19 20 21 22 23 24 25 26 27',ms_4:'28 29 30 31 32 33 34 35 36 37',ms_5:'38 39 40 41 42 43 44 45 46 47 48 49',dw_1:'01 02 03 04 05 06 07',dw_2:'08 09 10 11 12 13 14',dw_3:'15 16 17 18 19 20 21',dw_4:'22 23 24 25 26 27 28',dw_5:'29 30 31 32 33 34 35',dw_6:'36 37 38 39 40 41 42',dw_7:'43 44 45 46 47 48 49',hdx_hexiao:'01 02 03 04 05 06 10 11 12 13 14 15 20 21 22 23 24 30 31 32 33 40 41 42',hdx_heda:'07 08 09 16 17 18 19 25 26 27 28 29 34 35 36 37 38 39 43 44 45 46 47 48 49',wdx_weixiao:'01 02 03 04 10 11 12 13 14 20 21 22 23 24 30 31 32 33 34 40 41 42 43 44',wdx_weida:'05 06 07 08 09 15 16 17 18 19 25 26 27 28 29 35 36 37 38 39 45 46 47 48 49',bds_xiaodan:'01 03 05 07 09 11 13 15 17 19 21 23',bds_xiaoshuang:'02 04 06 08 10 12 14 16 18 20 22 24',bds_dadan:'25 27 29 31 33 35 37 39 41 43 45 47 49',bds_dashuang:'26 28 30 32 34 36 38 40 42 44 46 48',hw_0:'19 28 37 46',hw_1:'01 10 29 38 47',hw_2:'02 11 20 39 48',hw_3:'03 12 21 30 49',hw_4:'04 13 22 31 40',hw_5:'05 14 23 32 41',hw_6:'06 15 24 33 42',hw_7:'07 16 25 34 43',hw_8:'08 17 26 35 44',hw_9:'09 18 27 36 45',hsd_hsd:'01 03 05 07 09 10 12 14 16 18 21 23 25 27 29 30 32 34 36 38 41 43 45 47 49',hsd_hss:'02 04 06 08 11 13 15 17 19 20 22 24 26 28 31 33 35 37 39 40 42 44 46 48',tds_0dan:'01 03 05 07 09',tds_0shuang:'02 04 06 08',tds_1dan:'11 13 15 17 19',tds_1shuang:'10 12 14 16 18',tds_2dan:'21 23 25 27 29',tds_2shuang:'20 22 24 26 28',tds_3dan:'31 33 35 37 39',tds_3shuang:'30 32 34 36 38',tds_4dan:'41 43 45 47 49',tds_4shuang:'40 42 44 46 48'};
 
-// ===== 订单识别核心函数（完整保留）=====
 function quickAddWithAmount(text,button){const input=document.querySelector('.source-order-input');const lines=input.value.trim().split('\n').filter(l=>l.trim());const idx=lines.findIndex(l=>l.includes(text)&&(l.includes('各数')||l.includes('各号')));if(idx!==-1){lines.splice(idx,1);button.classList.remove('active')}else{lines.push(`${text} 各数`);button.classList.add('active')}input.value=lines.join('\n');convertOrderText()}
 
 function convertOrderText(){const inputText=document.querySelector('.source-order-input').value.trim();if(!inputText){document.getElementById('orderResult').value='';return}const lines=inputText.split('\n');const resultLines=[];const SEPARATORS=/[\s,，.。、+\-*＊\/\\|]+/;const AMOUNT_PREFIX='(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';const AMOUNT_SUFFIX='[元块咪斤#،。\\s]*';const IGNORE_PREFIXES=['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];lines.forEach(line=>{line=line.trim();if(!line)return;let cleanedLine=line;for(const prefix of IGNORE_PREFIXES)if(cleanedLine.startsWith(prefix))cleanedLine=cleanedLine.substring(prefix.length).trim();const orderPattern=new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`,'g');const orderMatches=cleanedLine.match(orderPattern);if(orderMatches&&orderMatches.length>0){let remainingLine=cleanedLine;orderMatches.forEach(orderMatch=>{const orderIndex=remainingLine.indexOf(orderMatch);if(orderIndex!==-1){const content=remainingLine.substring(0,orderIndex).trim();const amountMatch=orderMatch.match(/(\d+)/);if(amountMatch){const amount=amountMatch[1];if(content){const isNumber=/^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content);if(isNumber){const numbers=content.split(SEPARATORS).filter(i=>i).map(n=>{n=n.trim();const num=parseInt(n);if(num>=1&&num<=49)return n.length===1?`0${n}`:n;return null}).filter(n=>n);if(numbers.length>0)resultLines.push(`${numbers.join('-')} 各数 ${amount}`)}else{const items=content.split(SEPARATORS).filter(i=>i);const configData=getAllConfigData();const validCategories=getAllValidCategories(configData);const validItems=items.filter(item=>{if(validCategories.has(item))return true;if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){const z=item.match(/[\u4e00-\u9fa5]/g)||[];return z.every(z=>validCategories.has(z))}return false});if(validItems.length>0)resultLines.push(`${validItems.join('')} 各数 ${amount}`)}}remainingLine=remainingLine.substring(orderIndex+orderMatch.length)}}});if(remainingLine.trim()){const remaining=remainingLine.trim();const configData=getAllConfigData();const validCategories=getAllValidCategories(configData);const items=remaining.split(SEPARATORS).filter(i=>i);const validItems=items.filter(i=>validCategories.has(i));if(validItems.length>0)resultLines.push(`${validItems.join('')} 各数 0`)}}else{const pattern=new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`);const match=cleanedLine.match(pattern);if(match){let content=match[1].trim();const amount=match[2];const isNumber=/^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content);if(isNumber){const numbers=content.split(SEPARATORS).filter(i=>i).map(n=>{n=n.trim();const num=parseInt(n);if(num>=1&&num<=49)return n.length===1?`0${n}`:n;return null}).filter(n=>n);if(numbers.length>0)resultLines.push(`${numbers.join('-')} 各数 ${amount}`)}else{const items=content.split(SEPARATORS).filter(i=>i);const configData=getAllConfigData();const validCategories=getAllValidCategories(configData);const validItems=items.filter(i=>{if(validCategories.has(i))return true;if(i.length>1&&/^[\u4e00-\u9fa5]+$/.test(i)){const z=i.match(/[\u4e00-\u9fa5]/g)||[];return z.every(z=>validCategories.has(z))}return false});if(validItems.length>0)resultLines.push(`${validItems.join('')} 各数 ${amount}`)}}else{const singlePattern=new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`);const singleMatch=cleanedLine.match(singlePattern);if(singleMatch){let number=singleMatch[1].trim();const num=singleMatch[2];if(parseInt(number)>=1&&parseInt(number)<=49){number=number.length===1?`0${number}`:number;resultLines.push(`${number} 各数 ${num}`)}}else{const configData=getAllConfigData();const validCategories=getAllValidCategories(configData);const items=cleanedLine.split(SEPARATORS).filter(i=>i);const validItems=items.filter(i=>validCategories.has(i));if(validItems.length>0)resultLines.push(`${validItems.join('')} 各数 0`)}}}});document.getElementById('orderResult').value=resultLines.join('\n')}
