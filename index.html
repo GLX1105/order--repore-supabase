@@ -737,7 +737,7 @@ let zodiacWeightedTotal = 0;    // 生肖形式下注加权总金额
 const PASSWORD = "891105";
 const YEAR_ZODIAC_PASSWORD = "150408";
 const DB_NAME = 'OrderDatabase';
-const DB_VERSION = 3; // 更新版本号以支持新字段
+const DB_VERSION = 3;
 const STORE_NAME = 'orders';
 const REPORT_STORE_NAME = 'report_orders';
 let db = null;
@@ -748,10 +748,10 @@ const redNumbers = ['01','02','07','08','12','13','18','19','23','24','29','30',
 const blueNumbers = ['03','04','09','10','14','15','20','25','26','31','36','37','41','42','47','48'];
 const greenNumbers = ['05','06','11','16','17','21','22','27','28','32','33','38','39','43','44','49'];
 
-// 修复：基于 UTC+8 偏移获取中国时区当天日期
+// 基于 UTC+8 偏移获取中国时区当天日期
 function getTodayCST() {
   const now = new Date();
-  const offset = 8 * 60; // 中国时区 UTC+8 分钟偏移
+  const offset = 8 * 60;
   const localTime = now.getTime() + (now.getTimezoneOffset() + offset) * 60000;
   const cstDate = new Date(localTime);
   const y = cstDate.getFullYear();
@@ -857,18 +857,35 @@ function applyReplacePresets(text) {
   let result = text;
   for (const preset of presets) {
     if (preset.old && preset.new) {
-      // 使用全局替换，区分大小写
       result = result.split(preset.old).join(preset.new);
     }
   }
   return result;
 }
 
+// 统一 token 处理：将 content 按分隔符拆分，并过滤出有效的数字、生肖、分类词，用 - 连接
+function tokenizeAndJoin(content) {
+  const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
+  const configData = getAllConfigData();
+  const validCategories = getAllValidCategories(configData);
+  const tokens = content.split(SEPARATORS).filter(t => t.trim()).map(t => t.trim()).map(t => {
+    if (/^\d{1,2}$/.test(t)) {
+      const num = parseInt(t);
+      if (num >= 1 && num <= 49) return t.length === 1 ? `0${t}` : t;
+    }
+    if (validCategories.has(t)) return t;
+    if (/^[\u4e00-\u9fa5]+$/.test(t)) {
+      const chars = t.match(/[\u4e00-\u9fa5]/g) || [];
+      if (chars.every(c => validCategories.has(c))) return t;
+    }
+    return null;
+  }).filter(t => t !== null);
+  return tokens.join('-');
+}
+
 function convertOrderText() {
   let inputText = document.querySelector('.source-order-input').value.trim();
-  // 应用替换预设
   inputText = applyReplacePresets(inputText);
-  
   if (!inputText) { document.getElementById('orderResult').value = ''; updateOrderTotalDisplay(); return; }
   const lines = inputText.split('\n'); const resultLines = [];
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
@@ -876,10 +893,9 @@ function convertOrderText() {
   const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*';
   const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
 
-  // 强化中文数字转阿拉伯数字
   function cnToNum(s) {
     const map = { '零':0, '一':1, '二':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9, '十':10, '百':100, '千':1000 };
-    let sum = 0, tmp = 0, num = 0;
+    let sum = 0, tmp = 0;
     for (let ch of s) {
       const val = map[ch];
       if (val === 10 || val === 100 || val === 1000) {
@@ -901,8 +917,6 @@ function convertOrderText() {
     if (!line) return;
     let cleanedLine = line;
     for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim();
-
-    // 匹配中文金额并替换为数字
     cleanedLine = cleanedLine.replace(/([一二三四五六七八九十百千]+)/g, (match) => cnToNum(match));
 
     const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g');
@@ -917,24 +931,8 @@ function convertOrderText() {
           if (amountMatch) {
             const amount = amountMatch[1];
             if (content) {
-              const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content);
-              if (isNumber) {
-                const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n);
-                if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`);
-              } else {
-                const items = content.split(SEPARATORS).filter(i=>i);
-                const configData = getAllConfigData();
-                const validCategories = getAllValidCategories(configData);
-                const validItems = items.filter(item => {
-                  if(validCategories.has(item)) return true;
-                  if(item.length>1&&/^[\u4e00-\u9fa5]+$/.test(item)){
-                    const z=item.match(/[\u4e00-\u9fa5]/g)||[];
-                    return z.every(z=>validCategories.has(z));
-                  }
-                  return false;
-                });
-                if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`);
-              }
+              const joined = tokenizeAndJoin(content);
+              if (joined) resultLines.push(`${joined} 各数 ${amount}`);
             }
             remainingLine = remainingLine.substring(orderIndex + orderMatch.length);
           }
@@ -942,28 +940,16 @@ function convertOrderText() {
       });
       if (remainingLine.trim()) {
         const remaining = remainingLine.trim();
-        const configData = getAllConfigData();
-        const validCategories = getAllValidCategories(configData);
-        const items = remaining.split(SEPARATORS).filter(i=>i);
-        const validItems = items.filter(i=>validCategories.has(i));
-        if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`);
+        const joined = tokenizeAndJoin(remaining);
+        if (joined) resultLines.push(`${joined} 各数 0`);
       }
     } else {
       const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`);
       const match = cleanedLine.match(pattern);
       if (match) {
         let content = match[1].trim(); const amount = match[2];
-        const isNumber = /^[\d\s,،.。、+\-*＊\/\\|]+$/.test(content);
-        if (isNumber) {
-          const numbers = content.split(SEPARATORS).filter(i=>i).map(n=>{ n=n.trim(); const num=parseInt(n); if(num>=1&&num<=49) return n.length===1?`0${n}`:n; return null; }).filter(n=>n);
-          if (numbers.length > 0) resultLines.push(`${numbers.join('-')} 各数 ${amount}`);
-        } else {
-          const items = content.split(SEPARATORS).filter(i=>i);
-          const configData = getAllConfigData();
-          const validCategories = getAllValidCategories(configData);
-          const validItems = items.filter(i=>{ if(validCategories.has(i)) return true; return false; });
-          if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 ${amount}`);
-        }
+        const joined = tokenizeAndJoin(content);
+        if (joined) resultLines.push(`${joined} 各数 ${amount}`);
       } else {
         const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`);
         const singleMatch = cleanedLine.match(singlePattern);
@@ -974,11 +960,8 @@ function convertOrderText() {
             resultLines.push(`${number} 各数 ${num}`);
           }
         } else {
-          const configData = getAllConfigData();
-          const validCategories = getAllValidCategories(configData);
-          const items = cleanedLine.split(SEPARATORS).filter(i=>i);
-          const validItems = items.filter(i=>validCategories.has(i));
-          if (validItems.length > 0) resultLines.push(`${validItems.join('')} 各数 0`);
+          const joined = tokenizeAndJoin(cleanedLine);
+          if (joined) resultLines.push(`${joined} 各数 0`);
         }
       }
     }
@@ -1074,11 +1057,9 @@ function handleTableRowClick(event) {
     if (!td) return;
     const tr = td.closest('tr');
     if (!tr) return;
-    // 移除同表格内其他行的高亮
     const tbody = tr.parentElement;
     const allRows = tbody.querySelectorAll('tr');
     allRows.forEach(r => r.classList.remove('selected-row'));
-    // 为当前行添加高亮
     tr.classList.add('selected-row');
 }
 
@@ -1158,35 +1139,15 @@ async function copyReportCapText() { const infoDiv = document.getElementById('re
 // 截图功能 - 直接复制到剪贴板，便于微信粘贴
 async function screenshotTable(tableId) {
   const targetTable = document.getElementById(tableId);
-  if (!targetTable) {
-    await alert('未找到要截图的表格');
-    return;
-  }
+  if (!targetTable) { await alert('未找到要截图的表格'); return; }
   try {
-    const canvas = await html2canvas(targetTable, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      logging: false
-    });
-    // 将canvas转为blob，然后复制到剪贴板
+    const canvas = await html2canvas(targetTable, { backgroundColor: '#ffffff', scale: 2, logging: false });
     canvas.toBlob(async (blob) => {
-      if (!blob) {
-        await alert('生成图片失败');
-        return;
-      }
-      try {
-        const item = new ClipboardItem({ 'image/png': blob });
-        await navigator.clipboard.write([item]);
-        await alert('截图已复制到剪贴板，可在微信等应用中粘贴');
-      } catch (err) {
-        console.error(err);
-        await alert('复制到剪贴板失败，请检查浏览器权限或重试');
-      }
+      if (!blob) { await alert('生成图片失败'); return; }
+      try { const item = new ClipboardItem({ 'image/png': blob }); await navigator.clipboard.write([item]); await alert('截图已复制到剪贴板，可在微信等应用中粘贴'); }
+      catch (err) { console.error(err); await alert('复制到剪贴板失败，请检查浏览器权限或重试'); }
     }, 'image/png');
-  } catch (error) {
-    console.error(error);
-    await alert('截图失败，请重试');
-  }
+  } catch (error) { console.error(error); await alert('截图失败，请重试'); }
 }
 
 function renderReportAmountTable() { const table = document.getElementById('reportAmountTable'); table.innerHTML = ''; const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))]; let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>金额</th>'; th+='</tr></thead>'; let tb='<tbody>'; for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const amt=reportAmountData[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${amt||''}</td>`; }else{tb+='<td></td><td></td>';} } tb+='</tr>'; } tb+='</tbody>'; table.innerHTML=th+tb; updateReportAmountTotal(); }
@@ -1198,16 +1159,11 @@ function formatTimestampToCST(isoString) { const date = new Date(isoString); ret
 
 // ========== 对奖系统（精准高亮） ==========
 function getNumberListForCategory(catName, configData) {
-  // 返回该分类对应的号码数字数组（补零String）
   const nums = [];
-  // 生肖属性（列表）
   if (configData.shengxiaoAttr[catName]) {
     const zodiacs = configData.shengxiaoAttr[catName];
-    zodiacs.forEach(z => {
-      if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2, '0')));
-    });
+    zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2, '0'))); });
   }
-  // 普通分类（号码直接映射）
   const direct = configData.wuxing[catName] || configData.bose[catName] || configData.banbo[catName] ||
     configData.danshuang[catName] || configData.weishu[catName] || configData.daxiaodanshuang[catName] ||
     configData.daxiao[catName] || configData.heshu[catName] || configData.toushu[catName] ||
@@ -1215,53 +1171,36 @@ function getNumberListForCategory(catName, configData) {
     configData.weidaweixiao[catName] || configData.hewei[catName] || configData.heshudanshuang[catName] ||
     configData.toushuDanshuang[catName];
   if (direct) nums.push(...direct.map(n => n.toString().padStart(2, '0')));
-  // 生肖本身号码
   if (configData.zodiac[catName]) nums.push(...configData.zodiac[catName].map(n => n.toString().padStart(2, '0')));
   return [...new Set(nums)];
 }
 
 function isTokenMatching(token, targetNum, configData) {
   const target = targetNum.padStart(2, '0');
-  // 数字token直接匹配
-  if (/^\d{1,2}$/.test(token)) {
-    return token.padStart(2, '0') === target;
-  }
-  // 分类token：检查该分类是否包含目标号码
+  if (/^\d{1,2}$/.test(token)) return token.padStart(2, '0') === target;
   const validCategories = getAllValidCategories(configData);
   if (validCategories.has(token)) {
     const nums = getNumberListForCategory(token, configData);
     return nums.includes(target);
   }
-  // 可能是复合分类如“红单”等已被validCategories包含
   return false;
 }
 
 function highlightContent(content, targetNum, configData) {
   if (!targetNum) return content;
   const target = targetNum.padStart(2, '0');
-  // 将content按“-”和空格分割，保留分隔符
   const parts = [];
   let temp = '';
   for (const ch of content) {
-    if (ch === '-' || ch === ' ') {
-      if (temp) parts.push(temp);
-      parts.push(ch);
-      temp = '';
-    } else {
-      temp += ch;
-    }
+    if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); parts.push(ch); temp = ''; }
+    else { temp += ch; }
   }
   if (temp) parts.push(temp);
-
   const result = parts.map(part => {
     if (part === '-' || part === ' ') return part;
-    // 判断单个token是否匹配
-    if (isTokenMatching(part, targetNum, configData)) {
-      return `<span class="highlight-number">${part}</span>`;
-    }
+    if (isTokenMatching(part, targetNum, configData)) return `<span class="highlight-number">${part}</span>`;
     return part;
   }).join('');
-
   return result;
 }
 
@@ -1273,22 +1212,15 @@ function orderContainsTarget(content, targetNum, configData) {
     const match = line.match(/^(.+?)\s+各数\s+(\d+)$/);
     if (!match) continue;
     const cont = match[1];
-    // 扫描每一个token
     const parts = [];
     let temp = '';
     for (const ch of cont) {
-      if (ch === '-' || ch === ' ') {
-        if (temp) parts.push(temp);
-        temp = '';
-      } else {
-        temp += ch;
-      }
+      if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); temp = ''; }
+      else { temp += ch; }
     }
     if (temp) parts.push(temp);
     for (const part of parts) {
-      if (part !== '-' && part !== ' ' && isTokenMatching(part, targetNum, configData)) {
-        return true;
-      }
+      if (part !== '-' && part !== ' ' && isTokenMatching(part, targetNum, configData)) return true;
     }
   }
   return false;
@@ -1299,42 +1231,23 @@ async function applyPrizeFilter() {
   const prizeInput = document.getElementById('prizeNumberInput');
   const userFilter = document.getElementById('recordUserFilter');
   if (!dateInput || !prizeInput || !userFilter) return;
-
   const selectedDate = dateInput.value;
   const prizeNum = prizeInput.value.trim();
   const userVal = userFilter.value;
-
   const records = await getOrderRecords();
   let filtered = userVal === 'all' ? records : records.filter(r => r.user === userVal);
-  if (selectedDate) {
-    filtered = filtered.filter(r => r.date === selectedDate);
-  }
-
+  if (selectedDate) filtered = filtered.filter(r => r.date === selectedDate);
   const configData = getAllConfigData();
   let finalList = [];
-  if (prizeNum) {
-    for (const item of filtered) {
-      if (orderContainsTarget(item.content, prizeNum, configData)) {
-        finalList.push(item);
-      }
-    }
-  } else {
-    finalList = filtered;
-  }
-
+  if (prizeNum) { for (const item of filtered) { if (orderContainsTarget(item.content, prizeNum, configData)) finalList.push(item); } }
+  else { finalList = filtered; }
   const container = document.getElementById('orderListContainer');
   if (!container) return;
-
-  if (finalList.length === 0) {
-    container.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">暂无匹配订单</div>';
-    return;
-  }
-
+  if (finalList.length === 0) { container.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">暂无匹配订单</div>'; return; }
   container.innerHTML = finalList.map(item => {
     const timeStr = formatTimestampToCST(item.timestamp);
     const userDisplay = item.user || '未知';
     const totalAmt = item.totalAmount || 0;
-    // 对每一行进行高亮
     const lines = item.content.split('\n');
     const highlightedLines = lines.map(line => {
       const m = line.match(/^(.+?)\s+各数\s+(\d+)$/);
@@ -1343,16 +1256,7 @@ async function applyPrizeFilter() {
       const hlContent = highlightContent(cont, prizeNum, configData);
       return `${hlContent} 各数 ${amt}`;
     }).join('<br>');
-    return `
-    <div class="order-item">
-      <input type="checkbox" class="order-check" data-id="${item.id}">
-      <div class="order-content">${highlightedLines}</div>
-      <div class="order-info">
-        <span class="order-total" style="color:#000;">合计：${totalAmt}</span>
-        <span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span>
-      </div>
-      <button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button>
-    </div>`;
+    return `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${highlightedLines}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
   }).join('');
 }
 
@@ -1373,7 +1277,6 @@ async function showOrderRecord(filter='all'){
     <span>对奖：</span><input type="text" id="prizeNumberInput" placeholder="" maxlength="2" oninput="applyPrizeFilter()" style="padding:4px;border-radius:4px;border:1px solid #ccc;width:50px;">
     </div>`;
     html += `<div id="orderListContainer">`;
-    // 初始加载不应用对奖，但应用日期和用户
     const selectedDate = today;
     const userVal = filter;
     const dateFiltered = records.filter(r => r.date === selectedDate);
@@ -1384,15 +1287,7 @@ async function showOrderRecord(filter='all'){
         const timeStr = formatTimestampToCST(item.timestamp);
         const userDisplay = item.user || '未知';
         const totalAmt = item.totalAmount || 0;
-        html += `<div class="order-item">
-          <input type="checkbox" class="order-check" data-id="${item.id}">
-          <div class="order-content">${item.content.replace(/\n/g,'<br>')}</div>
-          <div class="order-info">
-            <span class="order-total" style="color:#000;">合计：${totalAmt}</span>
-            <span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span>
-          </div>
-          <button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button>
-        </div>`;
+        html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
       });
     }
     html += `</div></div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
@@ -1418,15 +1313,7 @@ async function showReportOrderRecord(filter='all'){
         const timeStr = formatTimestampToCST(item.timestamp);
         const userDisplay = item.user || '未知';
         const totalAmt = item.totalAmount || 0;
-        html += `<div class="order-item">
-          <input type="checkbox" class="report-order-check" data-id="${item.id}">
-          <div class="order-content">${item.content.replace(/\n/g,'<br>')}</div>
-          <div class="order-info">
-            <span class="order-total" style="color:#000;">合计：${totalAmt}</span>
-            <span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span>
-          </div>
-          <button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button>
-        </div>`;
+        html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`;
       });
     }
     html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
@@ -1457,68 +1344,29 @@ async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWOR
 // ========== 替换预设功能 ==========
 function showReplacePreset() {
   const presets = getReplacePresets();
-  let html = `<div class="modal-overlay" id="replacePresetModal">
-    <div class="modal-box" style="max-width:500px;">
-      <div class="modal-header">
-        <h3>替换预设</h3>
-        <button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-            <span style="align-self:center;">→</span>
-            <input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-          </div>
-          <button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
-        </div>
-        <div id="presetList"></div>
-      </div>
-      <div class="modal-footer">
-        <button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
-      </div>
-    </div>
-  </div>`;
+  let html = `<div class="modal-overlay" id="replacePresetModal"><div class="modal-box" style="max-width:500px;"><div class="modal-header"><h3>替换预设</h3><button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><div style="display:flex; gap:6px; margin-bottom:8px;"><input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;"><span style="align-self:center;">→</span><input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;"></div><button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button></div><div id="presetList"></div></div><div class="modal-footer"><button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   renderPresetList();
 }
-
 function renderPresetList() {
   const presets = getReplacePresets();
   const container = document.getElementById('presetList');
   if (!container) return;
-  if (presets.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>';
-    return;
-  }
-  container.innerHTML = presets.map((preset, index) => `
-    <div class="replace-preset-item">
-      <span>${preset.old} → ${preset.new}</span>
-      <button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
-    </div>
-  `).join('');
+  if (presets.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>'; return; }
+  container.innerHTML = presets.map((preset, index) => `<div class="replace-preset-item"><span>${preset.old} → ${preset.new}</span><button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
 }
-
 async function addReplacePreset() {
   const oldText = document.getElementById('presetOld').value.trim();
   const newText = document.getElementById('presetNew').value.trim();
-  if (!oldText || !newText) {
-    await alert('请输入原文字和替换文字');
-    return;
-  }
+  if (!oldText || !newText) { await alert('请输入原文字和替换文字'); return; }
   const presets = getReplacePresets();
-  // 检查是否已存在相同的旧文本
-  if (presets.some(p => p.old === oldText)) {
-    await alert('该原文字已有替换规则，请先删除旧规则再添加');
-    return;
-  }
+  if (presets.some(p => p.old === oldText)) { await alert('该原文字已有替换规则，请先删除旧规则再添加'); return; }
   presets.push({ old: oldText, new: newText });
   localStorage.setItem('replacePresets', JSON.stringify(presets));
   document.getElementById('presetOld').value = '';
   document.getElementById('presetNew').value = '';
   renderPresetList();
 }
-
 async function deleteReplacePreset(index) {
   if (!(await confirm('确定删除该替换预设吗？'))) return;
   const presets = getReplacePresets();
@@ -1553,57 +1401,29 @@ async function exportData() {
 
 async function importData() {
   const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.style.display = 'none';
+  input.type = 'file'; input.accept = '.json'; input.style.display = 'none';
   document.body.appendChild(input);
-
   input.onchange = async (e) => {
     const file = e.target.files[0];
-    if (!file) {
-      document.body.removeChild(input);
-      return;
-    }
+    if (!file) { document.body.removeChild(input); return; }
     const reader = new FileReader();
     reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data.orders || !data.reports) { await alert('无效的数据格式'); document.body.removeChild(input); return; }
-
         const existingOrders = await getOrderRecords();
         const existingReports = await getReportOrderRecords();
         let skipOrders = 0, newOrders = 0;
-        for (const rec of data.orders) {
-          const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) skipOrders++;
-          else newOrders++;
-        }
+        for (const rec of data.orders) { const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (exist) skipOrders++; else newOrders++; }
         let skipReports = 0, newReports = 0;
-        for (const rec of data.reports) {
-          const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (exist) skipReports++;
-          else newReports++;
-        }
+        for (const rec of data.reports) { const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (exist) skipReports++; else newReports++; }
         const totalNew = newOrders + newReports;
-        if (totalNew === 0) {
-          await alert(`没有新记录可导入。\n当前数据库已有下单记录 ${existingOrders.length} 条，上报记录 ${existingReports.length} 条。`);
-          document.body.removeChild(input);
-          return;
-        }
+        if (totalNew === 0) { await alert(`没有新记录可导入。\n当前数据库已有下单记录 ${existingOrders.length} 条，上报记录 ${existingReports.length} 条。`); document.body.removeChild(input); return; }
         const message = `当前数据库已有：\n下单记录 ${existingOrders.length} 条\n上报记录 ${existingReports.length} 条\n\n导入文件包含：\n下单记录 ${data.orders.length} 条（重复 ${skipOrders} 条，新增 ${newOrders} 条）\n上报记录 ${data.reports.length} 条（重复 ${skipReports} 条，新增 ${newReports} 条）\n\n是否导入新增的 ${totalNew} 条记录？`;
         const confirmed = await confirm(message);
-        if (!confirmed) {
-          document.body.removeChild(input);
-          return;
-        }
-        for (const rec of data.orders) {
-          const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (!exist) await saveOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0);
-        }
-        for (const rec of data.reports) {
-          const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user);
-          if (!exist) await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0);
-        }
+        if (!confirmed) { document.body.removeChild(input); return; }
+        for (const rec of data.orders) { const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (!exist) await saveOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0); }
+        for (const rec of data.reports) { const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (!exist) await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0); }
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
         if (data.presets) localStorage.setItem('replacePresets', data.presets);
         initDataConfig();
@@ -1616,11 +1436,7 @@ async function importData() {
     reader.onerror = async () => { await alert('文件读取失败'); document.body.removeChild(input); };
     reader.readAsText(file);
   };
-
-  input.addEventListener('cancel', () => {
-    document.body.removeChild(input);
-  });
-
+  input.addEventListener('cancel', () => { document.body.removeChild(input); });
   input.click();
 }
 
