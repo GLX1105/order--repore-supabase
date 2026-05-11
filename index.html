@@ -28,8 +28,8 @@ body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;positi
     #riskTable, #reportTable {min-width:100%!important;width:100%!important;font-size:11px!important;}
     #riskTable th,#riskTable td,#reportTable th,#reportTable td {padding:6px 3px!important;font-size:11px!important;white-space:nowrap!important;}
     #riskTable th:nth-child(1),#riskTable td:nth-child(1),#reportTable th:nth-child(1),#reportTable td:nth-child(1) {width:60px!important;}
-    #riskTable th:nth-child(2),#riskTable td:nth-child(2),#reportTable th:nth-child(2),#reportTable td:nth-child(2) {width:65px!important;text-align:right!important;}
-    #riskTable th:nth-child(3),#riskTable td:nth-child(3),#reportTable th:nth-child(3),#reportTable td:nth-child(3) {width:65px!important;text-align:right!important;}
+    #riskTable th:nth-child(2),#riskTable td:nth-child(2),#reportTable th:nth-child(2),#reportTable td:nth-child(2) {width:65px!important;text-align:center!important;}
+    #riskTable th:nth-child(3),#riskTable td:nth-child(3),#reportTable th:nth-child(3),#reportTable td:nth-child(3) {width:65px!important;text-align:center!important;}
     #riskTable th:nth-child(4),#riskTable td:nth-child(4),#reportTable th:nth-child(4),#reportTable td:nth-child(4) {width:50px!important;text-align:center!important;}
     #riskTable th:nth-child(5),#riskTable td:nth-child(5),#reportTable th:nth-child(5),#reportTable td:nth-child(5) {width:50px!important;text-align:center!important;}
     .data-config-card {padding:8px!important;order:3;}
@@ -271,6 +271,9 @@ tr.selected-row {
   border-bottom: 1px solid #eee;
 }
 .replace-preset-item span { flex:1; font-size:13px; }
+
+/* 对奖高亮样式 */
+.highlight-number { color: red; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -1193,17 +1196,188 @@ function renderAmountFrequencyCards() { const numTable = document.getElementById
 
 function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
 
+// ========== 对奖系统（精准高亮） ==========
+function getNumberListForCategory(catName, configData) {
+  // 返回该分类对应的号码数字数组（补零String）
+  const nums = [];
+  // 生肖属性（列表）
+  if (configData.shengxiaoAttr[catName]) {
+    const zodiacs = configData.shengxiaoAttr[catName];
+    zodiacs.forEach(z => {
+      if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2, '0')));
+    });
+  }
+  // 普通分类（号码直接映射）
+  const direct = configData.wuxing[catName] || configData.bose[catName] || configData.banbo[catName] ||
+    configData.danshuang[catName] || configData.weishu[catName] || configData.daxiaodanshuang[catName] ||
+    configData.daxiao[catName] || configData.heshu[catName] || configData.toushu[catName] ||
+    configData.menshu[catName] || configData.duanwei[catName] || configData.hedahexiao[catName] ||
+    configData.weidaweixiao[catName] || configData.hewei[catName] || configData.heshudanshuang[catName] ||
+    configData.toushuDanshuang[catName];
+  if (direct) nums.push(...direct.map(n => n.toString().padStart(2, '0')));
+  // 生肖本身号码
+  if (configData.zodiac[catName]) nums.push(...configData.zodiac[catName].map(n => n.toString().padStart(2, '0')));
+  return [...new Set(nums)];
+}
+
+function isTokenMatching(token, targetNum, configData) {
+  const target = targetNum.padStart(2, '0');
+  // 数字token直接匹配
+  if (/^\d{1,2}$/.test(token)) {
+    return token.padStart(2, '0') === target;
+  }
+  // 分类token：检查该分类是否包含目标号码
+  const validCategories = getAllValidCategories(configData);
+  if (validCategories.has(token)) {
+    const nums = getNumberListForCategory(token, configData);
+    return nums.includes(target);
+  }
+  // 可能是复合分类如“红单”等已被validCategories包含
+  return false;
+}
+
+function highlightContent(content, targetNum, configData) {
+  if (!targetNum) return content;
+  const target = targetNum.padStart(2, '0');
+  // 将content按“-”和空格分割，保留分隔符
+  const parts = [];
+  let temp = '';
+  for (const ch of content) {
+    if (ch === '-' || ch === ' ') {
+      if (temp) parts.push(temp);
+      parts.push(ch);
+      temp = '';
+    } else {
+      temp += ch;
+    }
+  }
+  if (temp) parts.push(temp);
+
+  const result = parts.map(part => {
+    if (part === '-' || part === ' ') return part;
+    // 判断单个token是否匹配
+    if (isTokenMatching(part, targetNum, configData)) {
+      return `<span class="highlight-number">${part}</span>`;
+    }
+    return part;
+  }).join('');
+
+  return result;
+}
+
+function orderContainsTarget(content, targetNum, configData) {
+  if (!targetNum) return true;
+  const target = targetNum.padStart(2, '0');
+  const lines = content.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^(.+?)\s+各数\s+(\d+)$/);
+    if (!match) continue;
+    const cont = match[1];
+    // 扫描每一个token
+    const parts = [];
+    let temp = '';
+    for (const ch of cont) {
+      if (ch === '-' || ch === ' ') {
+        if (temp) parts.push(temp);
+        temp = '';
+      } else {
+        temp += ch;
+      }
+    }
+    if (temp) parts.push(temp);
+    for (const part of parts) {
+      if (part !== '-' && part !== ' ' && isTokenMatching(part, targetNum, configData)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+async function applyPrizeFilter() {
+  const dateInput = document.getElementById('recordDateFilter');
+  const prizeInput = document.getElementById('prizeNumberInput');
+  const userFilter = document.getElementById('recordUserFilter');
+  if (!dateInput || !prizeInput || !userFilter) return;
+
+  const selectedDate = dateInput.value;
+  const prizeNum = prizeInput.value.trim();
+  const userVal = userFilter.value;
+
+  const records = await getOrderRecords();
+  let filtered = userVal === 'all' ? records : records.filter(r => r.user === userVal);
+  if (selectedDate) {
+    filtered = filtered.filter(r => r.date === selectedDate);
+  }
+
+  const configData = getAllConfigData();
+  let finalList = [];
+  if (prizeNum) {
+    for (const item of filtered) {
+      if (orderContainsTarget(item.content, prizeNum, configData)) {
+        finalList.push(item);
+      }
+    }
+  } else {
+    finalList = filtered;
+  }
+
+  const container = document.getElementById('orderListContainer');
+  if (!container) return;
+
+  if (finalList.length === 0) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">暂无匹配订单</div>';
+    return;
+  }
+
+  container.innerHTML = finalList.map(item => {
+    const timeStr = formatTimestampToCST(item.timestamp);
+    const userDisplay = item.user || '未知';
+    const totalAmt = item.totalAmount || 0;
+    // 对每一行进行高亮
+    const lines = item.content.split('\n');
+    const highlightedLines = lines.map(line => {
+      const m = line.match(/^(.+?)\s+各数\s+(\d+)$/);
+      if (!m) return line;
+      const cont = m[1], amt = m[2];
+      const hlContent = highlightContent(cont, prizeNum, configData);
+      return `${hlContent} 各数 ${amt}`;
+    }).join('<br>');
+    return `
+    <div class="order-item">
+      <input type="checkbox" class="order-check" data-id="${item.id}">
+      <div class="order-content">${highlightedLines}</div>
+      <div class="order-info">
+        <span class="order-total" style="color:#000;">合计：${totalAmt}</span>
+        <span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span>
+      </div>
+      <button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button>
+    </div>`;
+  }).join('');
+}
+
 async function showOrderRecord(filter='all'){
   try {
     const records = await getOrderRecords();
     const users = getUsers();
-    const filterDate = document.getElementById('filterDate').value;
-    const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records;
-    const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter);
+    const today = getTodayCST();
     let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box" style="max-width:700px;"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
-    html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="recordUserFilter" onchange="showOrderRecord(this.value)" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter === 'all' ? 'selected' : ''}>全部用户</option>`;
+    html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <select id="recordUserFilter" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter === 'all' ? 'selected' : ''}>全部用户</option>`;
     users.forEach(u => html += `<option value="${u}" ${u === filter ? 'selected' : ''}>${u}</option>`);
-    html += `</select><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`;
+    html += `</select>
+    <button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
+    <button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
+    <button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button>
+    <span style="margin-left:auto;">日期：</span><input type="date" id="recordDateFilter" value="${today}" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;width:140px;">
+    <span>对奖：</span><input type="text" id="prizeNumberInput" placeholder="" maxlength="2" oninput="applyPrizeFilter()" style="padding:4px;border-radius:4px;border:1px solid #ccc;width:50px;">
+    </div>`;
+    html += `<div id="orderListContainer">`;
+    // 初始加载不应用对奖，但应用日期和用户
+    const selectedDate = today;
+    const userVal = filter;
+    const dateFiltered = records.filter(r => r.date === selectedDate);
+    const filtered = (userVal === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === userVal);
     if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`;
     else {
       filtered.forEach(item => {
@@ -1221,7 +1395,7 @@ async function showOrderRecord(filter='all'){
         </div>`;
       });
     }
-    html += `</div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+    html += `</div></div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
     const existing = document.getElementById('orderModal'); if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', html);
   } catch (e) { await alert('加载订单记录失败'); }
