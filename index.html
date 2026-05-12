@@ -56,7 +56,6 @@ body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;positi
 }
 /* ================= 手机端适配 END ================= */
 
-/* 美化所有下拉选择框 */
 select {
     padding: 4px 24px 4px 8px!important;
     border: 1px solid #ccc!important;
@@ -71,9 +70,49 @@ select {
     vertical-align: middle;
 }
 
-.navbar {background:#1a1a2e;padding:10px 15px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);flex-wrap:wrap;}
-.navbar-title {color:white;font-size:20px;font-weight:bold;}
-.navbar-actions {display:flex;gap:8px;flex-wrap:wrap;}
+.navbar {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0 0 20px 20px;
+}
+.navbar-title {
+    color: #ecf0f1;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.navbar-actions {display:flex;gap:10px;flex-wrap:wrap;}
+.navbar-actions .btn {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    color: #ecf0f1;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 25px;
+    padding: 8px 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+.navbar-actions .btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    color: #fff;
+}
+.navbar-actions .btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
 .container {width:100%;max-width:1400px;margin:0 auto;padding:10px;display:flex;flex-direction:row;gap:15px;align-items:flex-start;}
 .recognize-wrap {flex:1;min-width:0;display:flex;flex-direction:column;gap:15px;}
 .risk-report-area {flex:0 0 420px;position:sticky;top:10px;}
@@ -83,39 +122,29 @@ select {
 .card-title {
   font-size:16px; font-weight:bold; color:#333; margin-bottom:12px; padding:10px 12px 8px;
   border-bottom:2px solid #e0e0e0; display:flex; align-items:center; flex-wrap:wrap; gap:6px;
-  background-color: #e3f2fd; /* 清新单一颜色 */
-  border-radius: 10px 10px 0 0;
+  background-color: #e3f2fd; border-radius: 10px 10px 0 0;
 }
 .year-zodiac-area {display:flex;align-items:center;gap:6px;font-size:13px;font-weight:normal;}
 .year-zodiac-area select {padding:3px 6px;border-radius:4px;border:1px solid #ccc;font-size:13px;background:#fff;}
 .summary-row {display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;font-weight:bold;color:#222;gap:6px;flex-wrap:wrap;}
 .summary-item {padding:5px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #eee;display:flex;align-items:center;gap:5px;}
 input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #ddd;border-radius:3px;text-align:center;font-size:12px;}
-.btn {padding:8px 12px;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:bold;min-height:36px;transition:all 0.25s ease;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.btn {padding:8px 12px;border:none;border-radius:25px;cursor:pointer;font-size:14px;font-weight:bold;min-height:36px;transition:all 0.25s ease;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 .btn:hover {transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
 .btn:active {transform:translateY(1px);box-shadow:0 1px 2px rgba(0,0,0,0.1);}
-.btn-recognize {background:#3498db;color:white;}
-.btn-recognize:hover {background:#2980b9;}
-.btn-save-order {background:#f39c12;color:white;}
-.btn-save-order:hover {background:#e67e22;}
-.btn-clear,.btn-cancel {background:#95a5a6;color:white;}
-.btn-clear:hover,.btn-cancel:hover {background:#7f8c8d;}
-.btn-reset {background:#e74c3c;color:white;}
-.btn-reset:hover {background:#c0392b;}
-.btn-paste {background:#2ecc71;color:white;}
-.btn-paste:hover {background:#27ae60;}
-.btn-report {background:#e67e22;color:white;}
-.btn-report:hover {background:#d35400;}
-.btn-copy {background:#8e44ad;color:white;}
-.btn-copy:hover {background:#732d91;}
-.btn-export {background:#16a085;color:white;}
-.btn-export:hover {background:#138a72;}
-.btn-import {background:#c0392b;color:white;}
-.btn-import:hover {background:#a93226;}
-.btn-screenshot {background:#2980b9;color:white;}
-.btn-screenshot:hover {background:#1f6ca8;}
 
-.recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;}
+.btn-paste {background:#2ecc71;color:white;}
+.btn-save-order {background:#f39c12;color:white;}
+.btn-report {background:#e67e22;color:white;}
+.btn-clear {background:#95a5a6;color:white;}
+.btn-cancel {background:#9b59b6;color:white;}
+.btn-prefix {background:#3498db;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+.btn-suffix {background:#1abc9c;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+.btn-amount-prefix {background:#e67e22;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+.btn-remove-sep {background:#7f8c8d;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+.btn-replace-sep {background:#8e44ad;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+
+.recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;}
 .recognize-card .btn-group .btn {flex:1;}
 .btn-group {margin-top:12px;display:flex;flex-direction:column;gap:8px;}
 @media (min-width:500px) {.btn-group {flex-direction:row;flex-wrap:wrap;gap:6px;}}
@@ -141,36 +170,15 @@ input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #d
 
 .table-container {width:100%;overflow-x:auto;}
 table {width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
-th {
-  background: #f0f0f0;
-  font-weight: bold;
-  color: #1a1a2e;
-  padding: 5px 6px;
-  border: 1px solid #ddd;
-  white-space: nowrap;
-}
+th {background: #f0f0f0; font-weight: bold; color: #1a1a2e; padding: 5px 6px; border: 1px solid #ddd; white-space: nowrap;}
 td {border:1px solid #ddd;padding:5px 6px;text-align:center;white-space:nowrap;}
 .red-text {color:#ff0000!important;font-weight:bold;}
 .blue-text {color:#0000ff!important;font-weight:bold;}
 .green-text {color:#008000!important;font-weight:bold;}
 
-/* 风险表排名列宽与ID列一致 */
-#riskTable th:nth-child(5),
-#riskTable td:nth-child(5),
-#reportTable th:nth-child(5),
-#reportTable td:nth-child(5) {
-    width:50px;
-    text-align:center;
-}
+#riskTable th:nth-child(5),#riskTable td:nth-child(5),#reportTable th:nth-child(5),#reportTable td:nth-child(5) {width:50px;text-align:center;}
+tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-shadow: inset 0 0 5px rgba(52,152,219,0.5);}
 
-/* 表格行高亮样式 */
-tr.selected-row {
-    background-color: #dceeff !important;
-    font-weight: bold;
-    box-shadow: inset 0 0 5px rgba(52,152,219,0.5);
-}
-
-/* 毛玻璃弹窗 */
 .modal-overlay {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;}
 @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
 .modal-box {background:rgba(255,255,255,0.85); backdrop-filter:blur(15px); width:90%;max-width:700px;border-radius:16px;overflow:hidden;max-height:80vh;display:flex;flex-direction:column;animation:slideDown 0.25s ease;box-shadow:0 20px 40px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.5);}
@@ -190,9 +198,7 @@ tr.selected-row {
 .order-input-container {display:flex;width:100%;height:280px;border:1px solid #ddd;}
 .input-column,.result-column {flex:1;display:flex;flex-direction:column;}
 .box-label {font-size:12px;color:#666;padding:3px 8px;background:#fafafa;border-bottom:1px solid #eee;}
-.source-order-input {
-  flex:1; border:none; border-right:1px solid #ddd; padding:8px; resize:none; font-size:13px; outline:none;
-}
+.source-order-input {flex:1; border:none; border-right:1px solid #ddd; padding:8px; resize:none; font-size:13px; outline:none;}
 .result-area-new {flex:1;}
 .result-content {width:100%;height:100%;border:none;padding:8px;resize:none;font-size:13px;outline:none;}
 
@@ -218,7 +224,6 @@ tr.selected-row {
 .black-text {color:#000000!important;font-weight:normal;}
 .range-input {width:70px;padding:2px 4px;font-size:11px;border:1px solid #ccc;border-radius:3px;}
 
-/* 自定义弹窗样式 */
 .custom-dialog-overlay {
   position: fixed; top:0; left:0; width:100%; height:100%;
   background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
@@ -232,47 +237,23 @@ tr.selected-row {
   border: 1px solid rgba(255,255,255,0.4);
   text-align: center; animation: slideDown 0.25s ease;
 }
-.custom-dialog-title {
-  font-size: 18px; font-weight: bold; margin-bottom: 15px; color:#1a1a2e;
-}
-.custom-dialog-message {
-  font-size: 15px; color:#333; margin-bottom: 20px; line-height: 1.5;
-}
-.custom-dialog-input {
-  width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;
-  font-size: 16px; margin-bottom: 20px; outline: none;
-  background: rgba(255,255,255,0.9);
-}
-.custom-dialog-buttons {
-  display: flex; gap: 10px; justify-content: center;
-}
-.custom-dialog-btn {
-  padding: 10px 25px; border: none; border-radius: 25px; font-size: 16px;
-  font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 80px;
-}
+.custom-dialog-title {font-size: 18px; font-weight: bold; margin-bottom: 15px; color:#1a1a2e;}
+.custom-dialog-message {font-size: 15px; color:#333; margin-bottom: 20px; line-height: 1.5;}
+.custom-dialog-input {width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; margin-bottom: 20px; outline: none; background: rgba(255,255,255,0.9);}
+.custom-dialog-buttons {display: flex; gap: 10px; justify-content: center;}
+.custom-dialog-btn {padding: 10px 25px; border: none; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; min-width: 80px;}
 .custom-dialog-btn.confirm { background: #3498db; color: #fff; }
 .custom-dialog-btn.confirm:hover { background: #2980b9; }
 .custom-dialog-btn.cancel { background: #bdc3c7; color: #fff; }
 .custom-dialog-btn.cancel:hover { background: #95a5a6; }
 
-/* 金额小框样式 */
-.amount-stat-box {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; background: #fff3cd; border: 1px solid #ffc107;
-  border-radius: 4px; font-size: 12px; font-weight: bold; color: #333;
-  margin-left: 6px; white-space: nowrap;
-}
+.amount-stat-box {display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 12px; font-weight: bold; color: #333; margin-left: 6px; white-space: nowrap;}
 .amount-stat-box span:first-child { color: #e67e22; }
 .amount-stat-box span:last-child { color: #d35400; }
 
-/* 替换预设/分类缩写专用样式 */
-.replace-preset-item {
-  display: flex; align-items: center; gap: 6px; padding: 4px 0;
-  border-bottom: 1px solid #eee;
-}
+.replace-preset-item {display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #eee;}
 .replace-preset-item span { flex:1; font-size:13px; }
 
-/* 对奖高亮样式 */
 .highlight-number { color: red; font-weight: bold; }
 </style>
 </head>
@@ -288,7 +269,6 @@ tr.selected-row {
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
     <button class="btn btn-primary" onclick="showReplacePreset()">替换预设</button>
     <button class="btn btn-primary" onclick="showCategoryAliases()">分类缩写</button>
-    <button class="btn btn-primary" onclick="showPrefixManager()">前缀</button>
     <button class="btn btn-export" onclick="exportData()">导出</button>
     <button class="btn btn-import" onclick="importData()">导入</button>
   </div>
@@ -323,6 +303,11 @@ tr.selected-row {
           <button class="btn btn-report" onclick="saveReportOrder()">上报</button>
           <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
           <button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
+          <button class="btn btn-prefix" onclick="showPrefixManager()">前缀</button>
+          <button class="btn btn-suffix" onclick="showSuffixManager()">后缀</button>
+          <button class="btn btn-amount-prefix" onclick="showAmountSuffixManager()">金额后缀</button>
+          <button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button>
+          <button class="btn btn-replace-sep" onclick="replaceSeparators()">换分隔</button>
         </div>
       </div>
 
@@ -693,13 +678,9 @@ function showCustomDialog({ title = '提示', message = '', type = 'alert', defa
     };
 
     confirmBtn.onclick = () => {
-      if (type === 'prompt') {
-        close(inputEl.value);
-      } else if (type === 'confirm') {
-        close(true);
-      } else {
-        close(undefined);
-      }
+      if (type === 'prompt') { close(inputEl.value); }
+      else if (type === 'confirm') { close(true); }
+      else { close(undefined); }
     };
 
     if (cancelBtn) {
@@ -711,9 +692,7 @@ function showCustomDialog({ title = '提示', message = '', type = 'alert', defa
     }
 
     if (inputEl) {
-      inputEl.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') confirmBtn.click();
-      });
+      inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') confirmBtn.click(); });
       inputEl.focus();
     }
   });
@@ -733,8 +712,8 @@ let reportBetData = {};
 let reportAmountData = {};
 let numberCount = {}, zodiacCount = {}, numberAmountCount = {}, zodiacAmountCount = {};
 
-let numberOrderTotal = 0;       // 号码/分类形式下注总金额（号码个数×金额）
-let zodiacWeightedTotal = 0;    // 生肖形式下注加权总金额
+let numberOrderTotal = 0;       
+let zodiacWeightedTotal = 0;    
 
 const PASSWORD = "891105";
 const YEAR_ZODIAC_PASSWORD = "150408";
@@ -750,7 +729,6 @@ const redNumbers = ['01','02','07','08','12','13','18','19','23','24','29','30',
 const blueNumbers = ['03','04','09','10','14','15','20','25','26','31','36','37','41','42','47','48'];
 const greenNumbers = ['05','06','11','16','17','21','22','27','28','32','33','38','39','43','44','49'];
 
-// 基于 UTC+8 偏移获取中国时区当天日期
 function getTodayCST() {
   const now = new Date();
   const offset = 8 * 60;
@@ -770,7 +748,186 @@ function buildZodiacMap(startZodiac) {
   return map;
 }
 
-async function changeStartZodiac() {
+async function changeStartZodiac() { ... }
+
+function switchRiskReport() { ... }
+
+function initIndexedDB() { ... }
+
+async function getOrderRecords() { ... }
+async function getReportOrderRecords() { ... }
+async function saveOrderRecordToIDB(content, user, date, totalAmount = 0) { ... }
+async function saveReportOrderRecordToIDB(content, user, date, totalAmount = 0) { ... }
+async function deleteOrderRecordFromIDB(id) { ... }
+async function deleteReportOrderRecordFromIDB(id) { ... }
+async function batchDeleteOrderRecordFromIDB(ids) { ... }
+async function batchDeleteReportOrderRecordFromIDB(ids) { ... }
+async function clearAllOrderRecordsFromIDB() { ... }
+async function clearAllReportOrderRecordsFromIDB() { ... }
+
+async function calculateStorageUsage() { ... }
+async function showDatabase() { ... }
+function hideDatabase() { ... }
+
+async function saveOrderRecord(content, user, date, totalAmount) { ... }
+async function saveReportOrderRecord(content, user, date, totalAmount) { ... }
+async function deleteOrderRecord(id) { ... }
+async function deleteReportOrderRecord(id) { ... }
+async function batchDeleteOrderRecord(ids) { ... }
+async function batchDeleteReportOrderRecord(ids) { ... }
+async function resetTable() { ... }
+
+document.querySelectorAll('.category-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
+
+const DEFAULT_CONFIG = { ... };
+
+function quickAddWithAmount(text, button) { ... }
+
+// 获取各种配置
+function getReplacePresets() { try { return JSON.parse(localStorage.getItem('replacePresets') || '[]'); } catch (e) { return []; } }
+function getCategoryAliases() { try { return JSON.parse(localStorage.getItem('categoryAliases') || '[]'); } catch (e) { return []; } }
+function getCustomPrefixes() { try { return JSON.parse(localStorage.getItem('customPrefixes') || '[]'); } catch (e) { return []; } }
+function getCustomSuffixes() { try { return JSON.parse(localStorage.getItem('customSuffixes') || '[]'); } catch (e) { return []; } }
+function getCustomAmountSuffixes() { try { return JSON.parse(localStorage.getItem('customAmountSuffixes') || '[]'); } catch (e) { return []; } }
+
+// 去分隔
+function removeSeparators() { ... }
+
+// 统一替换分隔符为 -
+function replaceSeparators() { ... }
+
+// 金额后缀管理弹窗
+function showAmountSuffixManager() { ... }
+function renderAmountSuffixList() { ... }
+async function addAmountSuffix() { ... }
+async function deleteAmountSuffix(index) { ... }
+
+// 后缀管理
+function showSuffixManager() { ... }
+function renderSuffixList() { ... }
+async function addSuffix() { ... }
+async function deleteSuffix(index) { ... }
+
+// 前缀管理
+function showPrefixManager() { ... }
+function renderPrefixList() { ... }
+async function addPrefix() { ... }
+async function deletePrefix(index) { ... }
+
+// 分类缩写管理
+function showCategoryAliases() { ... }
+function renderAliasList() { ... }
+async function addCategoryAlias() { ... }
+async function deleteCategoryAlias(index) { ... }
+
+// 替换预设
+function showReplacePreset() { ... }
+function renderPresetList() { ... }
+async function addReplacePreset() { ... }
+async function deleteReplacePreset(index) { ... }
+
+// 应用分类别名和替换预设
+function applyCategoryAliases(text) { ... }
+function applyReplacePresets(text) { ... }
+
+// 语义转换
+async function semanticReplace() { ... }
+
+// 核心分词
+function tokenizeAndJoin(content) { ... }
+
+function convertOrderText() { ... }
+
+function getAllValidCategories(configData) { ... }
+
+async function saveOrder() { ... }
+async function saveReportOrder() { ... }
+
+function countItemsInLine(line, configData, categoryKeys) { ... }
+
+function processCurrentOrder(input, user, isNormal, date = null) { ... }
+
+async function updateTableFromRecords() { ... }
+
+function updateOrderTotalDisplay() { ... }
+function computeCurrentOrderTotal() { ... }
+function updateAmountDisplays() { ... }
+function updateReportAmountTotal() { ... }
+
+function getAllConfigData() { ... }
+
+function getUsers() { ... }
+function saveUsers(users) { ... }
+function addUser(name) { ... }
+async function deleteUser(name) { ... }
+function rebuildTotal() { ... }
+function refreshAll() { ... }
+function updateSelects() { ... }
+
+function showUserManager() { ... }
+function renderUserList() { ... }
+async function addUserAction() { ... }
+async function deleteUserAction(name) { ... }
+
+function handleTableRowClick(event) { ... }
+
+function generateRiskTable() { ... }
+function applyReportCap() { ... }
+function generateReportTable() { ... }
+async function copyReportCapText() { ... }
+
+async function screenshotTable(tableId) { ... }
+
+function renderReportAmountTable() { ... }
+function renderFrequencyCards() { ... }
+function renderAmountFrequencyCards() { ... }
+
+function formatTimestampToCST(isoString) { ... }
+function getUserColor(username) { ... }
+
+// 对奖系统
+function getNumberListForCategory(catName, configData) { ... }
+function isTokenMatching(token, targetNum, configData) { ... }
+function highlightContent(content, targetNum, configData) { ... }
+function orderContainsTarget(content, targetNum, configData) { ... }
+
+async function applyPrizeFilter() { ... }
+
+async function showOrderRecord(filter='all') { ... }
+async function showReportOrderRecord(filter='all') { ... }
+function closeOrderModal() { ... }
+function closeReportModal() { ... }
+function checkAll() { ... }
+function uncheckAll() { ... }
+function checkAllReport() { ... }
+function uncheckAllReport() { ... }
+async function deleteChecked() { ... }
+async function deleteCheckedReport() { ... }
+
+function clearAllInput() { ... }
+async function pasteOrder() { ... }
+
+function lockAllInputs() { ... }
+function unlockAllInputs() { ... }
+function initDataConfig() { ... }
+async function enableEditConfig() { ... }
+async function saveDataConfig() { ... }
+async function resetDataConfig() { ... }
+
+async function exportData() { ... }
+async function importData() { ... }
+
+document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
+document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
+document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
+document.getElementById('reportMultipleVal').addEventListener('input', generateReportTable);
+document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
+document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
+
+window.onload = async function changeStartZodiac() {
   const select = document.getElementById('startZodiacSelect');
   const newZodiac = select.value;
   const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
@@ -844,60 +1001,316 @@ function quickAddWithAmount(text, button) {
   convertOrderText();
 }
 
-// 获取通用替换预设数组
-function getReplacePresets() {
-  try {
-    return JSON.parse(localStorage.getItem('replacePresets') || '[]');
-  } catch (e) {
-    return [];
-  }
+// 获取各种配置
+function getReplacePresets() { try { return JSON.parse(localStorage.getItem('replacePresets') || '[]'); } catch (e) { return []; } }
+function getCategoryAliases() { try { return JSON.parse(localStorage.getItem('categoryAliases') || '[]'); } catch (e) { return []; } }
+function getCustomPrefixes() { try { return JSON.parse(localStorage.getItem('customPrefixes') || '[]'); } catch (e) { return []; } }
+function getCustomSuffixes() { try { return JSON.parse(localStorage.getItem('customSuffixes') || '[]'); } catch (e) { return []; } }
+function getCustomAmountSuffixes() { try { return JSON.parse(localStorage.getItem('customAmountSuffixes') || '[]'); } catch (e) { return []; } }
+
+// 去分隔
+function removeSeparators() {
+    const textarea = document.querySelector('.source-order-input');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start === end) { alert('请先选择文本'); return; }
+    const selected = textarea.value.substring(start, end);
+    const cleaned = selected.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
+    textarea.value = textarea.value.substring(0, start) + cleaned + textarea.value.substring(end);
+    convertOrderText();
 }
 
-// 获取分类缩写映射数组
-function getCategoryAliases() {
-  try {
-    return JSON.parse(localStorage.getItem('categoryAliases') || '[]');
-  } catch (e) {
-    return [];
-  }
+// 统一替换分隔符为 -
+function replaceSeparators() {
+    const textarea = document.querySelector('.source-order-input');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start === end) { alert('请先选择文本'); return; }
+    const selected = textarea.value.substring(start, end);
+    const replaced = selected.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '-');
+    textarea.value = textarea.value.substring(0, start) + replaced + textarea.value.substring(end);
+    convertOrderText();
 }
 
-// 获取自定义前缀数组
-function getCustomPrefixes() {
-  try {
-    return JSON.parse(localStorage.getItem('customPrefixes') || '[]');
-  } catch (e) {
-    return [];
-  }
+// 金额后缀管理弹窗
+function showAmountSuffixManager() {
+    const suffixes = getCustomAmountSuffixes();
+    let html = `<div class="modal-overlay" id="amountSuffixModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-header"><h3>金额后缀管理</h3><button onclick="document.getElementById('amountSuffixModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+            <div class="modal-body">
+                <div style="margin-bottom:12px;display:flex;gap:6px;">
+                    <input type="text" id="newAmountSuffix" placeholder="新增后缀(如米、斤)" style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;">
+                    <button onclick="addAmountSuffix()" style="padding:6px 12px;background:#e67e22;color:#fff;border:none;border-radius:4px;">添加</button>
+                </div>
+                <div id="amountSuffixList"></div>
+            </div>
+            <div class="modal-footer"><button onclick="document.getElementById('amountSuffixModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    renderAmountSuffixList();
+}
+function renderAmountSuffixList() {
+    const suffixes = getCustomAmountSuffixes();
+    const container = document.getElementById('amountSuffixList');
+    if (!container) return;
+    if (suffixes.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无自定义金额后缀</div>'; return; }
+    container.innerHTML = suffixes.map((s, i) => `<div class="replace-preset-item"><span>${s}</span><button onclick="deleteAmountSuffix(${i})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+}
+async function addAmountSuffix() {
+    const val = document.getElementById('newAmountSuffix').value.trim();
+    if (!val) { await alert('请输入后缀'); return; }
+    const suffixes = getCustomAmountSuffixes();
+    if (suffixes.includes(val)) { await alert('已存在'); return; }
+    suffixes.push(val);
+    localStorage.setItem('customAmountSuffixes', JSON.stringify(suffixes));
+    document.getElementById('newAmountSuffix').value = '';
+    renderAmountSuffixList();
+}
+async function deleteAmountSuffix(index) {
+    if (!(await confirm('确定删除？'))) return;
+    const suffixes = getCustomAmountSuffixes();
+    suffixes.splice(index, 1);
+    localStorage.setItem('customAmountSuffixes', JSON.stringify(suffixes));
+    renderAmountSuffixList();
 }
 
-// 应用分类缩写替换（按长度降序，避免短词覆盖长词）
+// 后缀管理
+function showSuffixManager() {
+    const suffixes = getCustomSuffixes();
+    let html = `<div class="modal-overlay" id="suffixModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-header"><h3>后缀管理</h3><button onclick="document.getElementById('suffixModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+            <div class="modal-body">
+                <div style="margin-bottom:12px;display:flex;gap:6px;">
+                    <input type="text" id="newSuffix" placeholder="新增行尾忽略词" style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;">
+                    <button onclick="addSuffix()" style="padding:6px 12px;background:#1abc9c;color:#fff;border:none;border-radius:4px;">添加</button>
+                </div>
+                <div id="suffixList"></div>
+            </div>
+            <div class="modal-footer"><button onclick="document.getElementById('suffixModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    renderSuffixList();
+}
+function renderSuffixList() {
+    const suffixes = getCustomSuffixes();
+    const container = document.getElementById('suffixList');
+    if (!container) return;
+    if (suffixes.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无自定义后缀</div>'; return; }
+    container.innerHTML = suffixes.map((s, i) => `<div class="replace-preset-item"><span>${s}</span><button onclick="deleteSuffix(${i})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+}
+async function addSuffix() {
+    const val = document.getElementById('newSuffix').value.trim();
+    if (!val) { await alert('请输入后缀'); return; }
+    const suffixes = getCustomSuffixes();
+    if (suffixes.includes(val)) { await alert('已存在'); return; }
+    suffixes.push(val);
+    localStorage.setItem('customSuffixes', JSON.stringify(suffixes));
+    document.getElementById('newSuffix').value = '';
+    renderSuffixList();
+}
+async function deleteSuffix(index) {
+    if (!(await confirm('确定删除？'))) return;
+    const suffixes = getCustomSuffixes();
+    suffixes.splice(index, 1);
+    localStorage.setItem('customSuffixes', JSON.stringify(suffixes));
+    renderSuffixList();
+}
+
+// 前缀管理
+function showPrefixManager() {
+    const prefixes = getCustomPrefixes();
+    let html = `<div class="modal-overlay" id="prefixModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-header"><h3>前缀管理</h3><button onclick="document.getElementById('prefixModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+            <div class="modal-body">
+                <div style="margin-bottom:12px;display:flex;gap:6px;">
+                    <input type="text" id="newPrefix" placeholder="新增行首忽略词" style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;">
+                    <button onclick="addPrefix()" style="padding:6px 12px;background:#3498db;color:#fff;border:none;border-radius:4px;">添加</button>
+                </div>
+                <div id="prefixList"></div>
+            </div>
+            <div class="modal-footer"><button onclick="document.getElementById('prefixModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    renderPrefixList();
+}
+function renderPrefixList() {
+    const prefixes = getCustomPrefixes();
+    const container = document.getElementById('prefixList');
+    if (!container) return;
+    if (prefixes.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无自定义前缀</div>'; return; }
+    container.innerHTML = prefixes.map((p, i) => `<div class="replace-preset-item"><span>${p}</span><button onclick="deletePrefix(${i})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+}
+async function addPrefix() {
+    const val = document.getElementById('newPrefix').value.trim();
+    if (!val) { await alert('请输入前缀'); return; }
+    const prefixes = getCustomPrefixes();
+    if (prefixes.includes(val)) { await alert('已存在'); return; }
+    prefixes.push(val);
+    localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
+    document.getElementById('newPrefix').value = '';
+    renderPrefixList();
+}
+async function deletePrefix(index) {
+    if (!(await confirm('确定删除？'))) return;
+    const prefixes = getCustomPrefixes();
+    prefixes.splice(index, 1);
+    localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
+    renderPrefixList();
+}
+
+// 分类缩写管理
+function showCategoryAliases() {
+  const aliases = getCategoryAliases();
+  let html = `<div class="modal-overlay" id="categoryAliasModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header"><h3>分类缩写</h3><button onclick="document.getElementById('categoryAliasModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="aliasOld" placeholder="缩写（如 红蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            <span style="align-self:center;">→</span>
+            <input type="text" id="aliasNew" placeholder="正规分类（如 红波-蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addCategoryAlias()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="aliasList"></div>
+      </div>
+      <div class="modal-footer"><button onclick="document.getElementById('categoryAliasModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderAliasList();
+}
+function renderAliasList() {
+  const aliases = getCategoryAliases();
+  const container = document.getElementById('aliasList');
+  if (!container) return;
+  if (aliases.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无分类缩写</div>'; return; }
+  container.innerHTML = aliases.map((item, index) => `<div class="replace-preset-item"><span>${item.alias} → ${item.target}</span><button onclick="deleteCategoryAlias(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+}
+async function addCategoryAlias() {
+  const alias = document.getElementById('aliasOld').value.trim();
+  const target = document.getElementById('aliasNew').value.trim();
+  if (!alias || !target) { await alert('请输入缩写和目标分类'); return; }
+  const aliases = getCategoryAliases();
+  if (aliases.some(a => a.alias === alias)) { await alert('该缩写已存在，请先删除旧规则再添加'); return; }
+  aliases.push({ alias, target });
+  aliases.sort((a,b) => b.alias.length - a.alias.length);
+  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
+  document.getElementById('aliasOld').value = '';
+  document.getElementById('aliasNew').value = '';
+  renderAliasList();
+}
+async function deleteCategoryAlias(index) {
+  if (!(await confirm('确定删除该缩写吗？'))) return;
+  const aliases = getCategoryAliases();
+  aliases.splice(index, 1);
+  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
+  renderAliasList();
+}
+
+// 替换预设
+function showReplacePreset() {
+  const presets = getReplacePresets();
+  let html = `<div class="modal-overlay" id="replacePresetModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header"><h3>替换预设</h3><button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            <span style="align-self:center;">→</span>
+            <input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="presetList"></div>
+      </div>
+      <div class="modal-footer"><button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderPresetList();
+}
+function renderPresetList() {
+  const presets = getReplacePresets();
+  const container = document.getElementById('presetList');
+  if (!container) return;
+  if (presets.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>'; return; }
+  container.innerHTML = presets.map((preset, index) => `<div class="replace-preset-item"><span>${preset.old} → ${preset.new}</span><button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+}
+async function addReplacePreset() {
+  const oldText = document.getElementById('presetOld').value.trim();
+  const newText = document.getElementById('presetNew').value.trim();
+  if (!oldText || !newText) { await alert('请输入原文字和替换文字'); return; }
+  const presets = getReplacePresets();
+  if (presets.some(p => p.old === oldText)) { await alert('该原文字已有替换规则，请先删除旧规则再添加'); return; }
+  presets.push({ old: oldText, new: newText });
+  localStorage.setItem('replacePresets', JSON.stringify(presets));
+  document.getElementById('presetOld').value = '';
+  document.getElementById('presetNew').value = '';
+  renderPresetList();
+}
+async function deleteReplacePreset(index) {
+  if (!(await confirm('确定删除该替换预设吗？'))) return;
+  const presets = getReplacePresets();
+  presets.splice(index, 1);
+  localStorage.setItem('replacePresets', JSON.stringify(presets));
+  renderPresetList();
+}
+
+// 应用分类别名和替换预设
 function applyCategoryAliases(text) {
   const aliases = getCategoryAliases();
   if (!aliases.length) return text;
   const sorted = [...aliases].sort((a, b) => b.alias.length - a.alias.length);
   let result = text;
-  for (const item of sorted) {
-    if (item.alias && item.target) {
-      result = result.split(item.alias).join(item.target);
-    }
-  }
+  for (const item of sorted) { if (item.alias && item.target) { result = result.split(item.alias).join(item.target); } }
   return result;
 }
-
-// 应用通用替换预设
 function applyReplacePresets(text) {
   const presets = getReplacePresets();
   let result = text;
-  for (const preset of presets) {
-    if (preset.old && preset.new) {
-      result = result.split(preset.old).join(preset.new);
-    }
-  }
+  for (const preset of presets) { if (preset.old && preset.new) { result = result.split(preset.old).join(preset.new); } }
   return result;
 }
 
-// 统一 token 处理：将 content 按分隔符拆分，并过滤出有效的数字、生肖、分类词，用 - 连接
+// 语义转换
+async function semanticReplace() {
+    const textarea = document.querySelector('.source-order-input');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start === end) { await alert('请先选择要转换的文本'); return; }
+    const selectedText = textarea.value.substring(start, end);
+    const configData = getAllConfigData();
+    const validCategories = getAllValidCategories(configData);
+    const tokens = selectedText.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t => t.trim());
+    const matchedCategories = tokens.filter(t => validCategories.has(t));
+    if (matchedCategories.length === 0) { await alert('未在选中文本中识别到有效分类'); return; }
+    let numberSets = matchedCategories.map(cat => {
+        let nums = [];
+        if (configData.shengxiaoAttr[cat]) { const zodiacs = configData.shengxiaoAttr[cat]; zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2,'0'))); }); }
+        const direct = configData.wuxing[cat] || configData.bose[cat] || configData.banbo[cat] || configData.danshuang[cat] || configData.weishu[cat] || configData.daxiaodanshuang[cat] || configData.daxiao[cat] || configData.heshu[cat] || configData.toushu[cat] || configData.menshu[cat] || configData.duanwei[cat] || configData.hedahexiao[cat] || configData.weidaweixiao[cat] || configData.hewei[cat] || configData.heshudanshuang[cat] || configData.toushuDanshuang[cat];
+        if (direct) nums.push(...direct.map(n => n.toString().padStart(2,'0')));
+        if (configData.zodiac[cat]) nums.push(...configData.zodiac[cat].map(n => n.toString().padStart(2,'0')));
+        return new Set(nums);
+    });
+    let intersection = numberSets[0];
+    for (let i = 1; i < numberSets.length; i++) { intersection = new Set([...intersection].filter(x => numberSets[i].has(x))); }
+    const resultNumbers = [...intersection].sort((a,b) => parseInt(a)-parseInt(b));
+    if (resultNumbers.length === 0) { await alert('所选分类没有共同号码'); return; }
+    const resultStr = resultNumbers.join('-');
+    const confirmed = await confirm(`转换结果：${resultStr}\n是否替换选中文本？`);
+    if (confirmed) { textarea.value = textarea.value.substring(0, start) + resultStr + textarea.value.substring(end); convertOrderText(); }
+}
+
+// 核心分词
 function tokenizeAndJoin(content) {
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
   const configData = getAllConfigData();
@@ -907,23 +1320,11 @@ function tokenizeAndJoin(content) {
   rawTokens.forEach(t => {
     const tailMatch = t.match(/^(\d{2,})尾$/);
     const headMatch = t.match(/^(\d{2,})头$/);
-    if (tailMatch) {
-      const digits = tailMatch[1].split('').map(d => d + '尾');
-      tokens.push(...digits);
-    } else if (headMatch) {
-      const digits = headMatch[1].split('').map(d => d + '头');
-      tokens.push(...digits);
-    } else if (/^\d{1,2}$/.test(t)) {
-      const num = parseInt(t);
-      if (num >= 1 && num <= 49) tokens.push(t.length === 1 ? '0' + t : t);
-    } else if (validCategories.has(t)) {
-      tokens.push(t);
-    } else if (/^[\u4e00-\u9fa5]+$/.test(t)) {
-      const chars = t.match(/[\u4e00-\u9fa5]/g) || [];
-      if (chars.every(c => validCategories.has(c))) {
-        tokens.push(...chars);
-      }
-    }
+    if (tailMatch) { const digits = tailMatch[1].split('').map(d => d + '尾'); tokens.push(...digits); }
+    else if (headMatch) { const digits = headMatch[1].split('').map(d => d + '头'); tokens.push(...digits); }
+    else if (/^\d{1,2}$/.test(t)) { const num = parseInt(t); if (num >= 1 && num <= 49) tokens.push(t.length === 1 ? '0' + t : t); }
+    else if (validCategories.has(t)) { tokens.push(t); }
+    else if (/^[\u4e00-\u9fa5]+$/.test(t)) { const chars = t.match(/[\u4e00-\u9fa5]/g) || []; if (chars.every(c => validCategories.has(c))) { tokens.push(...chars); } }
   });
   return tokens.join('-');
 }
@@ -932,46 +1333,32 @@ function convertOrderText() {
   let inputText = document.querySelector('.source-order-input').value.trim();
   inputText = applyCategoryAliases(inputText);
   inputText = applyReplacePresets(inputText);
-  
   if (!inputText) { document.getElementById('orderResult').value = ''; updateOrderTotalDisplay(); return; }
   const lines = inputText.split('\n'); const resultLines = [];
-  const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
   const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';
-  const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*';
   const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
   const customPrefixes = getCustomPrefixes();
   const allPrefixes = [...IGNORE_PREFIXES, ...customPrefixes];
+  const customSuffixes = getCustomSuffixes();
+  const baseSuffixes = '元块咪斤#،。\\s';
+  const customAmountSuffixes = getCustomAmountSuffixes();
+  const allAmountChars = [...new Set([...baseSuffixes.split(''), ...customAmountSuffixes])].join('');
+  const AMOUNT_SUFFIX = `[${allAmountChars}]*`;
 
   function cnToNum(s) {
     const map = { '零':0, '一':1, '二':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9, '十':10, '百':100, '千':1000 };
     let sum = 0, tmp = 0;
-    for (let ch of s) {
-      const val = map[ch];
-      if (val === 10 || val === 100 || val === 1000) {
-        if (tmp === 0) tmp = 1;
-        tmp *= val;
-        sum += tmp;
-        tmp = 0;
-      } else if (val !== undefined) {
-        if (tmp > 0) { sum += tmp; tmp = 0; }
-        tmp = val;
-      }
-    }
-    sum += tmp;
-    return sum;
+    for (let ch of s) { const val = map[ch]; if (val === 10 || val === 100 || val === 1000) { if (tmp === 0) tmp = 1; tmp *= val; sum += tmp; tmp = 0; } else if (val !== undefined) { if (tmp > 0) { sum += tmp; tmp = 0; } tmp = val; } }
+    sum += tmp; return sum;
   }
 
   lines.forEach(line => {
     line = line.trim();
     if (!line) return;
     let cleanedLine = line;
-    for (const prefix of allPrefixes) {
-        if (cleanedLine.startsWith(prefix)) {
-            cleanedLine = cleanedLine.substring(prefix.length).trim();
-        }
-    }
+    for (const prefix of allPrefixes) { if (cleanedLine.startsWith(prefix)) { cleanedLine = cleanedLine.substring(prefix.length).trim(); } }
+    for (const suffix of customSuffixes) { if (cleanedLine.endsWith(suffix)) { cleanedLine = cleanedLine.slice(0, -suffix.length).trim(); } }
     cleanedLine = cleanedLine.replace(/([一二三四五六七八九十百千]+)/g, (match) => cnToNum(match));
-
     const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g');
     const orderMatches = cleanedLine.match(orderPattern);
     if (orderMatches && orderMatches.length > 0) {
@@ -983,39 +1370,21 @@ function convertOrderText() {
           const amountMatch = orderMatch.match(/(\d+)/);
           if (amountMatch) {
             const amount = amountMatch[1];
-            if (content) {
-              const joined = tokenizeAndJoin(content);
-              if (joined) resultLines.push(`${joined} 各数 ${amount}`);
-            }
+            if (content) { const joined = tokenizeAndJoin(content); if (joined) resultLines.push(`${joined} 各数 ${amount}`); }
             remainingLine = remainingLine.substring(orderIndex + orderMatch.length);
           }
         }
       });
-      if (remainingLine.trim()) {
-        const remaining = remainingLine.trim();
-        const joined = tokenizeAndJoin(remaining);
-        if (joined) resultLines.push(`${joined} 各数 0`);
-      }
+      if (remainingLine.trim()) { const joined = tokenizeAndJoin(remainingLine.trim()); if (joined) resultLines.push(`${joined} 各数 0`); }
     } else {
       const pattern = new RegExp(`^(.+?)${AMOUNT_PREFIX}(\\d+)$`);
       const match = cleanedLine.match(pattern);
-      if (match) {
-        let content = match[1].trim(); const amount = match[2];
-        const joined = tokenizeAndJoin(content);
-        if (joined) resultLines.push(`${joined} 各数 ${amount}`);
-      } else {
+      if (match) { const joined = tokenizeAndJoin(match[1].trim()); if (joined) resultLines.push(`${joined} 各数 ${match[2]}`); }
+      else {
         const singlePattern = new RegExp(`(\\d+)(?:号|${AMOUNT_PREFIX})(\\d+)$`);
         const singleMatch = cleanedLine.match(singlePattern);
-        if (singleMatch) {
-          let number = singleMatch[1].trim(); const num = singleMatch[2];
-          if (parseInt(number) >= 1 && parseInt(number) <= 49) {
-            number = number.length===1?`0${number}`:number;
-            resultLines.push(`${number} 各数 ${num}`);
-          }
-        } else {
-          const joined = tokenizeAndJoin(cleanedLine);
-          if (joined) resultLines.push(`${joined} 各数 0`);
-        }
+        if (singleMatch) { let number = singleMatch[1].trim(); if (parseInt(number) >= 1 && parseInt(number) <= 49) { number = number.length===1?`0${number}`:number; resultLines.push(`${number} 各数 ${singleMatch[2]}`); } }
+        else { const joined = tokenizeAndJoin(cleanedLine); if (joined) resultLines.push(`${joined} 各数 0`); }
       }
     }
   });
@@ -1024,52 +1393,6 @@ function convertOrderText() {
 }
 
 function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
-
-// 语义转换功能
-async function semanticReplace() {
-    const textarea = document.querySelector('.source-order-input');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    if (start === end) {
-        await alert('请先选择要转换的文本');
-        return;
-    }
-    const selectedText = textarea.value.substring(start, end);
-    const configData = getAllConfigData();
-    const validCategories = getAllValidCategories(configData);
-    const tokens = selectedText.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t => t.trim());
-    const matchedCategories = tokens.filter(t => validCategories.has(t));
-    if (matchedCategories.length === 0) {
-        await alert('未在选中文本中识别到有效分类');
-        return;
-    }
-    let numberSets = matchedCategories.map(cat => {
-        let nums = [];
-        if (configData.shengxiaoAttr[cat]) {
-            const zodiacs = configData.shengxiaoAttr[cat];
-            zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2,'0'))); });
-        }
-        const direct = configData.wuxing[cat] || configData.bose[cat] || configData.banbo[cat] || configData.danshuang[cat] || configData.weishu[cat] || configData.daxiaodanshuang[cat] || configData.daxiao[cat] || configData.heshu[cat] || configData.toushu[cat] || configData.menshu[cat] || configData.duanwei[cat] || configData.hedahexiao[cat] || configData.weidaweixiao[cat] || configData.hewei[cat] || configData.heshudanshuang[cat] || configData.toushuDanshuang[cat];
-        if (direct) nums.push(...direct.map(n => n.toString().padStart(2,'0')));
-        if (configData.zodiac[cat]) nums.push(...configData.zodiac[cat].map(n => n.toString().padStart(2,'0')));
-        return new Set(nums);
-    });
-    let intersection = numberSets[0];
-    for (let i = 1; i < numberSets.length; i++) {
-        intersection = new Set([...intersection].filter(x => numberSets[i].has(x)));
-    }
-    const resultNumbers = [...intersection].sort((a,b) => parseInt(a)-parseInt(b));
-    if (resultNumbers.length === 0) {
-        await alert('所选分类没有共同号码');
-        return;
-    }
-    const resultStr = resultNumbers.join('-');
-    const confirmed = await confirm(`转换结果：${resultStr}\n是否替换选中文本？`);
-    if (confirmed) {
-        textarea.value = textarea.value.substring(0, start) + resultStr + textarea.value.substring(end);
-        convertOrderText();
-    }
-}
 
 async function saveOrder(){
   const user = document.getElementById('orderUserSelect').value;
@@ -1107,7 +1430,22 @@ async function saveReportOrder(){
   document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
 }
 
-function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const items = content.split('-').map(i=>i.trim()).filter(i=>i); const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) { numbers.push(item.padStart(2,'0')); } else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) { zodiacs.push(item); } else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); } else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); } }); return { numbers, zodiacs, amount }; }
+function countItemsInLine(line, configData, categoryKeys) {
+  const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
+  const match = line.match(pattern);
+  if (!match) return { numbers:[], zodiacs:[], amount:0 };
+  let content = match[1]; const amount = parseInt(match[2])||0;
+  const items = content.split('-').map(i=>i.trim()).filter(i=>i);
+  const numbers = [], zodiacs = [];
+  items.forEach(item => {
+    if (/^\d+$/.test(item)) { numbers.push(item.padStart(2,'0')); }
+    else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); }
+    else if (configData.zodiac[item]) { zodiacs.push(item); }
+    else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); }
+    else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); }
+  });
+  return { numbers, zodiacs, amount };
+}
 
 function processCurrentOrder(input, user, isNormal, date = null) { const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const lines = input.split('\n').filter(l=>l.trim()); if (!userBetData[user]) userBetData[user] = {}; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; if (isNormal) { if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } } numbers.forEach(num => { if (isNormal) { userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; } else { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; } }); zodiacs.forEach(z => { if (isNormal) { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); } else { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); } }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); }
 
@@ -1115,21 +1453,7 @@ async function updateTableFromRecords() { try { const filterDate = document.getE
 
 function updateOrderTotalDisplay() { const resultText = document.getElementById('orderResult').value.trim(); const box = document.getElementById('orderTotalAmountBox'); const span = document.getElementById('orderTotalAmount'); if (!resultText) { box.style.display = 'none'; return; } const lines = resultText.split('\n'); const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); let total = 0; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); let numCount = numbers.length; zodiacs.forEach(z => { const zNums = configData.zodiac[z] || []; numCount += zNums.length; }); if (numCount > 0) { total += numCount * amount; } }); span.textContent = total; box.style.display = 'inline-flex'; }
 
-function computeCurrentOrderTotal() {
-  const resultText = document.getElementById('orderResult').value.trim();
-  if (!resultText) return 0;
-  const lines = resultText.split('\n');
-  const configData = getAllConfigData();
-  const categoryKeys = getAllValidCategories(configData);
-  let total = 0;
-  lines.forEach(line => {
-    const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys);
-    let numCount = numbers.length;
-    zodiacs.forEach(z => { const zNums = configData.zodiac[z] || []; numCount += zNums.length; });
-    if (numCount > 0) total += numCount * amount;
-  });
-  return total;
-}
+function computeCurrentOrderTotal() { const resultText = document.getElementById('orderResult').value.trim(); if (!resultText) return 0; const lines = resultText.split('\n'); const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); let total = 0; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); let numCount = numbers.length; zodiacs.forEach(z => { const zNums = configData.zodiac[z] || []; numCount += zNums.length; }); if (numCount > 0) total += numCount * amount; }); return total; }
 
 function updateAmountDisplays() { const numBox = document.getElementById('numberTotalBox'); const zodBox = document.getElementById('zodiacTotalBox'); if (numberOrderTotal > 0) { document.getElementById('numberTotalAmount').textContent = numberOrderTotal; numBox.style.display = 'inline-flex'; } else { numBox.style.display = 'none'; } if (zodiacWeightedTotal > 0) { document.getElementById('zodiacTotalAmount').textContent = zodiacWeightedTotal; zodBox.style.display = 'inline-flex'; } else { zodBox.style.display = 'none'; } }
 
@@ -1150,12 +1474,9 @@ function renderUserList() { const users = getUsers(); const c = document.getElem
 async function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { await alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
 async function deleteUserAction(name) { if (!(await confirm(`确定删除用户"${name}"及其数据吗？`))) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
 
-// 表格行点击高亮处理
 function handleTableRowClick(event) {
-    const td = event.target.closest('td');
-    if (!td) return;
-    const tr = td.closest('tr');
-    if (!tr) return;
+    const td = event.target.closest('td'); if (!td) return;
+    const tr = td.closest('tr'); if (!tr) return;
     const tbody = tr.parentElement;
     const allRows = tbody.querySelectorAll('tr');
     allRows.forEach(r => r.classList.remove('selected-row'));
@@ -1235,7 +1556,6 @@ function generateReportTable() {
 
 async function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { await alert('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(async () => { await alert('已复制到剪贴板'); }).catch(async () => { await alert('复制失败，请手动复制'); }); }
 
-// 截图功能 - 直接复制到剪贴板，便于微信粘贴
 async function screenshotTable(tableId) {
   const targetTable = document.getElementById(tableId);
   if (!targetTable) { await alert('未找到要截图的表格'); return; }
@@ -1256,29 +1576,18 @@ function renderAmountFrequencyCards() { const numTable = document.getElementById
 
 function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
 
-// 用户颜色生成函数
 function getUserColor(username) {
   let hash = 0;
-  for (let i = 0; i < username.length; i++) {
-    hash = username.charCodeAt(i) + ((hash << 5) - hash);
-  }
+  for (let i = 0; i < username.length; i++) { hash = username.charCodeAt(i) + ((hash << 5) - hash); }
   const hue = (hash % 360 + 360) % 360;
   return `hsl(${hue}, 70%, 45%)`;
 }
 
-// ========== 对奖系统（精准高亮） ==========
+// 对奖系统
 function getNumberListForCategory(catName, configData) {
   const nums = [];
-  if (configData.shengxiaoAttr[catName]) {
-    const zodiacs = configData.shengxiaoAttr[catName];
-    zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2, '0'))); });
-  }
-  const direct = configData.wuxing[catName] || configData.bose[catName] || configData.banbo[catName] ||
-    configData.danshuang[catName] || configData.weishu[catName] || configData.daxiaodanshuang[catName] ||
-    configData.daxiao[catName] || configData.heshu[catName] || configData.toushu[catName] ||
-    configData.menshu[catName] || configData.duanwei[catName] || configData.hedahexiao[catName] ||
-    configData.weidaweixiao[catName] || configData.hewei[catName] || configData.heshudanshuang[catName] ||
-    configData.toushuDanshuang[catName];
+  if (configData.shengxiaoAttr[catName]) { const zodiacs = configData.shengxiaoAttr[catName]; zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2, '0'))); }); }
+  const direct = configData.wuxing[catName] || configData.bose[catName] || configData.banbo[catName] || configData.danshuang[catName] || configData.weishu[catName] || configData.daxiaodanshuang[catName] || configData.daxiao[catName] || configData.heshu[catName] || configData.toushu[catName] || configData.menshu[catName] || configData.duanwei[catName] || configData.hedahexiao[catName] || configData.weidaweixiao[catName] || configData.hewei[catName] || configData.heshudanshuang[catName] || configData.toushuDanshuang[catName];
   if (direct) nums.push(...direct.map(n => n.toString().padStart(2, '0')));
   if (configData.zodiac[catName]) nums.push(...configData.zodiac[catName].map(n => n.toString().padStart(2, '0')));
   return [...new Set(nums)];
@@ -1288,28 +1597,17 @@ function isTokenMatching(token, targetNum, configData) {
   const target = targetNum.padStart(2, '0');
   if (/^\d{1,2}$/.test(token)) return token.padStart(2, '0') === target;
   const validCategories = getAllValidCategories(configData);
-  if (validCategories.has(token)) {
-    const nums = getNumberListForCategory(token, configData);
-    return nums.includes(target);
-  }
+  if (validCategories.has(token)) { const nums = getNumberListForCategory(token, configData); return nums.includes(target); }
   return false;
 }
 
 function highlightContent(content, targetNum, configData) {
   if (!targetNum) return content;
   const target = targetNum.padStart(2, '0');
-  const parts = [];
-  let temp = '';
-  for (const ch of content) {
-    if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); parts.push(ch); temp = ''; }
-    else { temp += ch; }
-  }
+  const parts = []; let temp = '';
+  for (const ch of content) { if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); parts.push(ch); temp = ''; } else { temp += ch; } }
   if (temp) parts.push(temp);
-  const result = parts.map(part => {
-    if (part === '-' || part === ' ') return part;
-    if (isTokenMatching(part, targetNum, configData)) return `<span class="highlight-number">${part}</span>`;
-    return part;
-  }).join('');
+  const result = parts.map(part => { if (part === '-' || part === ' ') return part; if (isTokenMatching(part, targetNum, configData)) return `<span class="highlight-number">${part}</span>`; return part; }).join('');
   return result;
 }
 
@@ -1320,29 +1618,18 @@ function orderContainsTarget(content, targetNum, configData) {
   for (const line of lines) {
     const match = line.match(/^(.+?)\s+各数\s+(\d+)$/);
     if (!match) continue;
-    const cont = match[1];
-    const parts = [];
-    let temp = '';
-    for (const ch of cont) {
-      if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); temp = ''; }
-      else { temp += ch; }
-    }
+    const cont = match[1]; const parts = []; let temp = '';
+    for (const ch of cont) { if (ch === '-' || ch === ' ') { if (temp) parts.push(temp); temp = ''; } else { temp += ch; } }
     if (temp) parts.push(temp);
-    for (const part of parts) {
-      if (part !== '-' && part !== ' ' && isTokenMatching(part, targetNum, configData)) return true;
-    }
+    for (const part of parts) { if (part !== '-' && part !== ' ' && isTokenMatching(part, targetNum, configData)) return true; }
   }
   return false;
 }
 
 async function applyPrizeFilter() {
-  const dateInput = document.getElementById('recordDateFilter');
-  const prizeInput = document.getElementById('prizeNumberInput');
-  const userFilter = document.getElementById('recordUserFilter');
+  const dateInput = document.getElementById('recordDateFilter'); const prizeInput = document.getElementById('prizeNumberInput'); const userFilter = document.getElementById('recordUserFilter');
   if (!dateInput || !prizeInput || !userFilter) return;
-  const selectedDate = dateInput.value;
-  const prizeNum = prizeInput.value.trim();
-  const userVal = userFilter.value;
+  const selectedDate = dateInput.value; const prizeNum = prizeInput.value.trim(); const userVal = userFilter.value;
   const records = await getOrderRecords();
   let filtered = userVal === 'all' ? records : records.filter(r => r.user === userVal);
   if (selectedDate) filtered = filtered.filter(r => r.date === selectedDate);
@@ -1354,27 +1641,16 @@ async function applyPrizeFilter() {
   if (!container) return;
   if (finalList.length === 0) { container.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">暂无匹配订单</div>'; return; }
   container.innerHTML = finalList.map(item => {
-    const timeStr = formatTimestampToCST(item.timestamp);
-    const userDisplay = item.user || '未知';
-    const color = getUserColor(userDisplay);
-    const totalAmt = item.totalAmount || 0;
+    const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; const color = getUserColor(userDisplay); const totalAmt = item.totalAmount || 0;
     const lines = item.content.split('\n');
-    const highlightedLines = lines.map(line => {
-      const m = line.match(/^(.+?)\s+各数\s+(\d+)$/);
-      if (!m) return line;
-      const cont = m[1], amt = m[2];
-      const hlContent = highlightContent(cont, prizeNum, configData);
-      return `${hlContent} 各数 ${amt}`;
-    }).join('<br>');
+    const highlightedLines = lines.map(line => { const m = line.match(/^(.+?)\s+各数\s+(\d+)$/); if (!m) return line; const cont = m[1], amt = m[2]; const hlContent = highlightContent(cont, prizeNum, configData); return `${hlContent} 各数 ${amt}`; }).join('<br>');
     return `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${highlightedLines}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:${color};">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
   }).join('');
 }
 
 async function showOrderRecord(filter='all'){
   try {
-    const records = await getOrderRecords();
-    const users = getUsers();
-    const today = getTodayCST();
+    const records = await getOrderRecords(); const users = getUsers(); const today = getTodayCST();
     let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box" style="max-width:700px;"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
     html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
     <select id="recordUserFilter" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter==='all'?'selected':''}>全部用户</option>`;
@@ -1387,20 +1663,11 @@ async function showOrderRecord(filter='all'){
     <span>对奖：</span><input type="text" id="prizeNumberInput" placeholder="" maxlength="2" oninput="applyPrizeFilter()" style="padding:4px;border-radius:4px;border:1px solid #ccc;width:50px;">
     </div>`;
     html += `<div id="orderListContainer">`;
-    const selectedDate = today;
-    const userVal = filter;
+    const selectedDate = today; const userVal = filter;
     const dateFiltered = records.filter(r => r.date === selectedDate);
     const filtered = (userVal === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === userVal);
     if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无订单记录</div>`;
-    else {
-      filtered.forEach(item => {
-        const timeStr = formatTimestampToCST(item.timestamp);
-        const userDisplay = item.user || '未知';
-        const color = getUserColor(userDisplay);
-        const totalAmt = item.totalAmount || 0;
-        html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:${color};">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
-      });
-    }
+    else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; const color = getUserColor(userDisplay); const totalAmt = item.totalAmount || 0; html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:${color};">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`; }); }
     html += `</div></div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
     const existing = document.getElementById('orderModal'); if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', html);
@@ -1409,8 +1676,7 @@ async function showOrderRecord(filter='all'){
 
 async function showReportOrderRecord(filter='all'){
   try {
-    const records = await getReportOrderRecords();
-    const users = getUsers();
+    const records = await getReportOrderRecords(); const users = getUsers();
     const filterDate = document.getElementById('filterDate').value;
     const dateFiltered = filterDate ? records.filter(r => r.date === filterDate) : records;
     const filtered = (filter === 'all') ? dateFiltered : dateFiltered.filter(r => r.user === filter);
@@ -1419,14 +1685,7 @@ async function showReportOrderRecord(filter='all'){
     users.forEach(u => html += `<option value="${u}" ${u === filter ? 'selected' : ''}>${u}</option>`);
     html += `</select><button onclick="checkAllReport()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAllReport()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteCheckedReport()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button></div>`;
     if (filtered.length === 0) html += `<div style="padding:20px;text-align:center;color:#666;">暂无上报记录</div>`;
-    else {
-      filtered.forEach(item => {
-        const timeStr = formatTimestampToCST(item.timestamp);
-        const userDisplay = item.user || '未知';
-        const totalAmt = item.totalAmount || 0;
-        html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`;
-      });
-    }
+    else { filtered.forEach(item => { const timeStr = formatTimestampToCST(item.timestamp); const userDisplay = item.user || '未知'; const totalAmt = item.totalAmount || 0; html += `<div class="order-item"><input type="checkbox" class="report-order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteReportOrderRecord(${item.id})">删除</button></div>`; }); }
     html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
     const existing = document.getElementById('reportModal'); if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', html);
@@ -1451,238 +1710,13 @@ async function enableEditConfig(){ if((await prompt("输入修改密码："))===
 async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { await alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); await alert("保存成功"); }
 async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { await alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); await alert("已恢复默认"); }
 
-// ========== 分类缩写管理 ==========
-function showCategoryAliases() {
-  const aliases = getCategoryAliases();
-  let html = `<div class="modal-overlay" id="categoryAliasModal">
-    <div class="modal-box" style="max-width:500px;">
-      <div class="modal-header">
-        <h3>分类缩写</h3>
-        <button onclick="document.getElementById('categoryAliasModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <input type="text" id="aliasOld" placeholder="缩写（如 红蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-            <span style="align-self:center;">→</span>
-            <input type="text" id="aliasNew" placeholder="正规分类（如 红波-蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-          </div>
-          <button onclick="addCategoryAlias()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
-        </div>
-        <div id="aliasList"></div>
-      </div>
-      <div class="modal-footer">
-        <button onclick="document.getElementById('categoryAliasModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
-      </div>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  renderAliasList();
-}
-
-function renderAliasList() {
-  const aliases = getCategoryAliases();
-  const container = document.getElementById('aliasList');
-  if (!container) return;
-  if (aliases.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无分类缩写</div>';
-    return;
-  }
-  container.innerHTML = aliases.map((item, index) => `
-    <div class="replace-preset-item">
-      <span>${item.alias} → ${item.target}</span>
-      <button onclick="deleteCategoryAlias(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
-    </div>
-  `).join('');
-}
-
-async function addCategoryAlias() {
-  const alias = document.getElementById('aliasOld').value.trim();
-  const target = document.getElementById('aliasNew').value.trim();
-  if (!alias || !target) {
-    await alert('请输入缩写和目标分类');
-    return;
-  }
-  const aliases = getCategoryAliases();
-  if (aliases.some(a => a.alias === alias)) {
-    await alert('该缩写已存在，请先删除旧规则再添加');
-    return;
-  }
-  aliases.push({ alias, target });
-  aliases.sort((a,b) => b.alias.length - a.alias.length);
-  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
-  document.getElementById('aliasOld').value = '';
-  document.getElementById('aliasNew').value = '';
-  renderAliasList();
-}
-
-async function deleteCategoryAlias(index) {
-  if (!(await confirm('确定删除该缩写吗？'))) return;
-  const aliases = getCategoryAliases();
-  aliases.splice(index, 1);
-  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
-  renderAliasList();
-}
-
-// ========== 前缀管理 ==========
-function showPrefixManager() {
-  const prefixes = getCustomPrefixes();
-  let html = `<div class="modal-overlay" id="prefixModal">
-    <div class="modal-box" style="max-width:500px;">
-      <div class="modal-header">
-        <h3>前缀管理</h3>
-        <button onclick="document.getElementById('prefixModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <input type="text" id="newPrefixInput" placeholder="新增前缀" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-          </div>
-          <button onclick="addPrefix()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
-        </div>
-        <div id="prefixList"></div>
-      </div>
-      <div class="modal-footer">
-        <button onclick="document.getElementById('prefixModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
-      </div>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  renderPrefixList();
-}
-
-function renderPrefixList() {
-  const prefixes = getCustomPrefixes();
-  const container = document.getElementById('prefixList');
-  if (!container) return;
-  if (prefixes.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无自定义前缀</div>';
-    return;
-  }
-  container.innerHTML = prefixes.map((prefix, index) => `
-    <div class="replace-preset-item">
-      <span>${prefix}</span>
-      <button onclick="deletePrefix(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
-    </div>
-  `).join('');
-}
-
-async function addPrefix() {
-  const newPrefix = document.getElementById('newPrefixInput').value.trim();
-  if (!newPrefix) {
-    await alert('请输入要添加的前缀');
-    return;
-  }
-  const prefixes = getCustomPrefixes();
-  if (prefixes.includes(newPrefix)) {
-    await alert('该前缀已存在');
-    return;
-  }
-  prefixes.push(newPrefix);
-  localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
-  document.getElementById('newPrefixInput').value = '';
-  renderPrefixList();
-}
-
-async function deletePrefix(index) {
-  if (!(await confirm('确定删除该前缀吗？'))) return;
-  const prefixes = getCustomPrefixes();
-  prefixes.splice(index, 1);
-  localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
-  renderPrefixList();
-}
-
-// ========== 替换预设功能（保留） ==========
-function showReplacePreset() {
-  const presets = getReplacePresets();
-  let html = `<div class="modal-overlay" id="replacePresetModal">
-    <div class="modal-box" style="max-width:500px;">
-      <div class="modal-header">
-        <h3>替换预设</h3>
-        <button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-            <span style="align-self:center;">→</span>
-            <input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-          </div>
-          <button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
-        </div>
-        <div id="presetList"></div>
-      </div>
-      <div class="modal-footer">
-        <button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
-      </div>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-  renderPresetList();
-}
-
-function renderPresetList() {
-  const presets = getReplacePresets();
-  const container = document.getElementById('presetList');
-  if (!container) return;
-  if (presets.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>';
-    return;
-  }
-  container.innerHTML = presets.map((preset, index) => `
-    <div class="replace-preset-item">
-      <span>${preset.old} → ${preset.new}</span>
-      <button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
-    </div>
-  `).join('');
-}
-
-async function addReplacePreset() {
-  const oldText = document.getElementById('presetOld').value.trim();
-  const newText = document.getElementById('presetNew').value.trim();
-  if (!oldText || !newText) {
-    await alert('请输入原文字和替换文字');
-    return;
-  }
-  const presets = getReplacePresets();
-  if (presets.some(p => p.old === oldText)) {
-    await alert('该原文字已有替换规则，请先删除旧规则再添加');
-    return;
-  }
-  presets.push({ old: oldText, new: newText });
-  localStorage.setItem('replacePresets', JSON.stringify(presets));
-  document.getElementById('presetOld').value = '';
-  document.getElementById('presetNew').value = '';
-  renderPresetList();
-}
-
-async function deleteReplacePreset(index) {
-  if (!(await confirm('确定删除该替换预设吗？'))) return;
-  const presets = getReplacePresets();
-  presets.splice(index, 1);
-  localStorage.setItem('replacePresets', JSON.stringify(presets));
-  renderPresetList();
-}
-
-document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
-document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
-document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
-document.getElementById('reportMultipleVal').addEventListener('input', generateReportTable);
-document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
-document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
-
 async function exportData() {
   try {
-    const orders = await getOrderRecords();
-    const reports = await getReportOrderRecords();
-    const config = localStorage.getItem('customDataConfigObj');
-    const presets = localStorage.getItem('replacePresets');
-    const aliases = localStorage.getItem('categoryAliases');
-    const prefixes = localStorage.getItem('customPrefixes');
-    const data = { orders, reports, config, presets, aliases, prefixes, exportTime: new Date().toISOString() };
+    const orders = await getOrderRecords(); const reports = await getReportOrderRecords();
+    const config = localStorage.getItem('customDataConfigObj'); const presets = localStorage.getItem('replacePresets');
+    const aliases = localStorage.getItem('categoryAliases'); const prefixes = localStorage.getItem('customPrefixes');
+    const suffixes = localStorage.getItem('customSuffixes'); const amountSuffixes = localStorage.getItem('customAmountSuffixes');
+    const data = { orders, reports, config, presets, aliases, prefixes, suffixes, amountSuffixes, exportTime: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
@@ -1702,9 +1736,7 @@ async function importData() {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data.orders || !data.reports) { await alert('无效的数据格式'); document.body.removeChild(input); return; }
-
-        const existingOrders = await getOrderRecords();
-        const existingReports = await getReportOrderRecords();
+        const existingOrders = await getOrderRecords(); const existingReports = await getReportOrderRecords();
         let skipOrders = 0, newOrders = 0;
         for (const rec of data.orders) { const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (exist) skipOrders++; else newOrders++; }
         let skipReports = 0, newReports = 0;
@@ -1720,9 +1752,9 @@ async function importData() {
         if (data.presets) localStorage.setItem('replacePresets', data.presets);
         if (data.aliases) localStorage.setItem('categoryAliases', data.aliases);
         if (data.prefixes) localStorage.setItem('customPrefixes', data.prefixes);
-        initDataConfig();
-        await updateTableFromRecords();
-        calculateStorageUsage();
+        if (data.suffixes) localStorage.setItem('customSuffixes', data.suffixes);
+        if (data.amountSuffixes) localStorage.setItem('customAmountSuffixes', data.amountSuffixes);
+        initDataConfig(); await updateTableFromRecords(); calculateStorageUsage();
         await alert(`成功导入 ${totalNew} 条新记录。`);
         document.body.removeChild(input);
       } catch (err) { await alert('导入失败，请检查文件格式'); document.body.removeChild(input); }
@@ -1733,6 +1765,16 @@ async function importData() {
   input.addEventListener('cancel', () => { document.body.removeChild(input); });
   input.click();
 }
+
+document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
+document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
+document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
+document.getElementById('reportMultipleVal').addEventListener('input', generateReportTable);
+document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
+document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
+document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
 
 window.onload = async () => {
   await initIndexedDB();
