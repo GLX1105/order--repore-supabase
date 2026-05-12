@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>港澳识别系统 - 手机版</title>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js">
+</script>
 <style>
 * {margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
 body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;position:relative;}
@@ -255,6 +256,16 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
 .replace-preset-item span { flex:1; font-size:13px; }
 
 .highlight-number { color: red; font-weight: bold; }
+
+/* toast 轻提示 */
+.toast-message {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.75); color: #fff; padding: 10px 24px;
+  border-radius: 25px; font-size: 14px; z-index: 99999;
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast-message.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -281,6 +292,9 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
           订单输入
           <select id="orderUserSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;"></select>
           <input type="date" id="orderDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;margin-left:8px;">
+          <button class="btn btn-prefix" onclick="showPrefixManager()" style="margin-left:auto;">前缀</button>
+          <button class="btn btn-suffix" onclick="showSuffixManager()">后缀</button>
+          <button class="btn btn-amount-prefix" onclick="showAmountSuffixManager()">金额后缀</button>
           <div class="amount-stat-box" id="orderTotalAmountBox" style="display:none;">
             <span>合计：</span><span id="orderTotalAmount">0</span>
           </div>
@@ -303,9 +317,6 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
           <button class="btn btn-report" onclick="saveReportOrder()">上报</button>
           <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
           <button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
-          <button class="btn btn-prefix" onclick="showPrefixManager()">前缀</button>
-          <button class="btn btn-suffix" onclick="showSuffixManager()">后缀</button>
-          <button class="btn btn-amount-prefix" onclick="showAmountSuffixManager()">金额后缀</button>
           <button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button>
           <button class="btn btn-replace-sep" onclick="replaceSeparators()">换分隔</button>
         </div>
@@ -698,6 +709,19 @@ function showCustomDialog({ title = '提示', message = '', type = 'alert', defa
   });
 }
 
+// 轻提示 toast 功能
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast-message';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.classList.add('show'); });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => { document.body.removeChild(toast); }, 300);
+  }, 1000);
+}
+
 async function customAlert(message) { await showCustomDialog({ title: '提示', message, type: 'alert' }); }
 async function customConfirm(message) { return await showCustomDialog({ title: '请确认', message, type: 'confirm' }); }
 async function customPrompt(message, defaultValue = '') { return await showCustomDialog({ title: '请输入', message, type: 'prompt', defaultValue }); }
@@ -828,13 +852,12 @@ function getCategoryAliases() { try { return JSON.parse(localStorage.getItem('ca
 function getCustomPrefixes() { try { return JSON.parse(localStorage.getItem('customPrefixes') || '[]'); } catch (e) { return []; } }
 function getCustomSuffixes() { try { return JSON.parse(localStorage.getItem('customSuffixes') || '[]'); } catch (e) { return []; } }
 function getCustomAmountSuffixes() { try { return JSON.parse(localStorage.getItem('customAmountSuffixes') || '[]'); } catch (e) { return []; } }
-
 // 去分隔
 function removeSeparators() {
     const textarea = document.querySelector('.source-order-input');
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    if (start === end) { alert('请先选择文本'); return; }
+    if (start === end) { showToast('请先选择文本'); return; }
     const selected = textarea.value.substring(start, end);
     const cleaned = selected.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
     textarea.value = textarea.value.substring(0, start) + cleaned + textarea.value.substring(end);
@@ -846,7 +869,7 @@ function replaceSeparators() {
     const textarea = document.querySelector('.source-order-input');
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    if (start === end) { alert('请先选择文本'); return; }
+    if (start === end) { showToast('请先选择文本'); return; }
     const selected = textarea.value.substring(start, end);
     const replaced = selected.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '-');
     textarea.value = textarea.value.substring(0, start) + replaced + textarea.value.substring(end);
@@ -881,9 +904,9 @@ function renderAmountSuffixList() {
 }
 async function addAmountSuffix() {
     const val = document.getElementById('newAmountSuffix').value.trim();
-    if (!val) { await alert('请输入后缀'); return; }
+    if (!val) { showToast('请输入后缀'); return; }
     const suffixes = getCustomAmountSuffixes();
-    if (suffixes.includes(val)) { await alert('已存在'); return; }
+    if (suffixes.includes(val)) { showToast('已存在'); return; }
     suffixes.push(val);
     localStorage.setItem('customAmountSuffixes', JSON.stringify(suffixes));
     document.getElementById('newAmountSuffix').value = '';
@@ -925,9 +948,9 @@ function renderSuffixList() {
 }
 async function addSuffix() {
     const val = document.getElementById('newSuffix').value.trim();
-    if (!val) { await alert('请输入后缀'); return; }
+    if (!val) { showToast('请输入后缀'); return; }
     const suffixes = getCustomSuffixes();
-    if (suffixes.includes(val)) { await alert('已存在'); return; }
+    if (suffixes.includes(val)) { showToast('已存在'); return; }
     suffixes.push(val);
     localStorage.setItem('customSuffixes', JSON.stringify(suffixes));
     document.getElementById('newSuffix').value = '';
@@ -969,9 +992,9 @@ function renderPrefixList() {
 }
 async function addPrefix() {
     const val = document.getElementById('newPrefix').value.trim();
-    if (!val) { await alert('请输入前缀'); return; }
+    if (!val) { showToast('请输入前缀'); return; }
     const prefixes = getCustomPrefixes();
-    if (prefixes.includes(val)) { await alert('已存在'); return; }
+    if (prefixes.includes(val)) { showToast('已存在'); return; }
     prefixes.push(val);
     localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
     document.getElementById('newPrefix').value = '';
@@ -1018,9 +1041,9 @@ function renderAliasList() {
 async function addCategoryAlias() {
   const alias = document.getElementById('aliasOld').value.trim();
   const target = document.getElementById('aliasNew').value.trim();
-  if (!alias || !target) { await alert('请输入缩写和目标分类'); return; }
+  if (!alias || !target) { showToast('请输入缩写和目标分类'); return; }
   const aliases = getCategoryAliases();
-  if (aliases.some(a => a.alias === alias)) { await alert('该缩写已存在，请先删除旧规则再添加'); return; }
+  if (aliases.some(a => a.alias === alias)) { showToast('该缩写已存在，请先删除旧规则再添加'); return; }
   aliases.push({ alias, target });
   aliases.sort((a,b) => b.alias.length - a.alias.length);
   localStorage.setItem('categoryAliases', JSON.stringify(aliases));
@@ -1069,9 +1092,9 @@ function renderPresetList() {
 async function addReplacePreset() {
   const oldText = document.getElementById('presetOld').value.trim();
   const newText = document.getElementById('presetNew').value.trim();
-  if (!oldText || !newText) { await alert('请输入原文字和替换文字'); return; }
+  if (!oldText || !newText) { showToast('请输入原文字和替换文字'); return; }
   const presets = getReplacePresets();
-  if (presets.some(p => p.old === oldText)) { await alert('该原文字已有替换规则，请先删除旧规则再添加'); return; }
+  if (presets.some(p => p.old === oldText)) { showToast('该原文字已有替换规则，请先删除旧规则再添加'); return; }
   presets.push({ old: oldText, new: newText });
   localStorage.setItem('replacePresets', JSON.stringify(presets));
   document.getElementById('presetOld').value = '';
@@ -1107,13 +1130,13 @@ async function semanticReplace() {
     const textarea = document.querySelector('.source-order-input');
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    if (start === end) { await alert('请先选择要转换的文本'); return; }
+    if (start === end) { showToast('请先选择要转换的文本'); return; }
     const selectedText = textarea.value.substring(start, end);
     const configData = getAllConfigData();
     const validCategories = getAllValidCategories(configData);
     const tokens = selectedText.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t => t.trim());
     const matchedCategories = tokens.filter(t => validCategories.has(t));
-    if (matchedCategories.length === 0) { await alert('未在选中文本中识别到有效分类'); return; }
+    if (matchedCategories.length === 0) { showToast('未在选中文本中识别到有效分类'); return; }
     let numberSets = matchedCategories.map(cat => {
         let nums = [];
         if (configData.shengxiaoAttr[cat]) { const zodiacs = configData.shengxiaoAttr[cat]; zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2,'0'))); }); }
@@ -1125,7 +1148,7 @@ async function semanticReplace() {
     let intersection = numberSets[0];
     for (let i = 1; i < numberSets.length; i++) { intersection = new Set([...intersection].filter(x => numberSets[i].has(x))); }
     const resultNumbers = [...intersection].sort((a,b) => parseInt(a)-parseInt(b));
-    if (resultNumbers.length === 0) { await alert('所选分类没有共同号码'); return; }
+    if (resultNumbers.length === 0) { showToast('所选分类没有共同号码'); return; }
     const resultStr = resultNumbers.join('-');
     const confirmed = await confirm(`转换结果：${resultStr}\n是否替换选中文本？`);
     if (confirmed) { textarea.value = textarea.value.substring(0, start) + resultStr + textarea.value.substring(end); convertOrderText(); }
@@ -1212,15 +1235,16 @@ function convertOrderText() {
   document.getElementById('orderResult').value = resultLines.join('\n');
   updateOrderTotalDisplay();
 }
-    function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
+
+function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
 async function saveOrder(){
   const user = document.getElementById('orderUserSelect').value;
-  if (!user) { await alert('请先添加用户并选择'); return; }
+  if (!user) { showToast('请先添加用户并选择'); return; }
   let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim();
   if(!input) return;
   const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; });
-  if(!validLines.length) { await alert('订单无效，需有号码或生肖且金额>0'); return; }
+  if(!validLines.length) { showToast('订单无效，需有号码或生肖且金额>0'); return; }
   const content = validLines.join('\n');
   const date = document.getElementById('orderDate').value || getTodayCST();
   const totalAmount = computeCurrentOrderTotal();
@@ -1234,11 +1258,11 @@ async function saveOrder(){
 
 async function saveReportOrder(){
   const user = document.getElementById('orderUserSelect').value;
-  if (!user) { await alert('请先添加用户并选择'); return; }
+  if (!user) { showToast('请先添加用户并选择'); return; }
   let input = document.getElementById('orderResult').value.trim() || document.querySelector('.source-order-input').value.trim();
   if(!input) return;
   const validLines = input.split('\n').filter(l=>{ const m=l.match(/各数\s+(\d+)/); return m && parseInt(m[1])>0; });
-  if(!validLines.length) { await alert('订单无效，需有号码或生肖且金额>0'); return; }
+  if(!validLines.length) { showToast('订单无效，需有号码或生肖且金额>0'); return; }
   const content = validLines.join('\n');
   const date = document.getElementById('orderDate').value || getTodayCST();
   const totalAmount = computeCurrentOrderTotal();
@@ -1283,7 +1307,7 @@ function getAllConfigData() { const configData = { zodiac:{}, shengxiaoAttr:{}, 
 
 function getUsers() { return JSON.parse(localStorage.getItem('users') || '[]'); }
 function saveUsers(users) { localStorage.setItem('users', JSON.stringify(users)); }
-function addUser(name) { const users = getUsers(); if (users.includes(name)) { alert('用户已存在'); return false; } users.push(name); saveUsers(users); return true; }
+function addUser(name) { const users = getUsers(); if (users.includes(name)) { showToast('用户已存在'); return false; } users.push(name); saveUsers(users); return true; }
 async function deleteUser(name) { let users = getUsers(); users = users.filter(u => u !== name); saveUsers(users); if (userBetData[name]) delete userBetData[name]; rebuildTotal(); refreshAll(); }
 function rebuildTotal() { tableBetData = {}; for (const u in userBetData) for (const n in userBetData[u]) tableBetData[n] = (tableBetData[n]||0) + userBetData[u][n]; }
 function refreshAll() { updateSelects(); updateTableFromRecords(); }
@@ -1291,7 +1315,7 @@ function updateSelects() { const users = getUsers(); const orderSel = document.g
 
 function showUserManager() { let html = `<div class="modal-overlay" id="userModal"><div class="modal-box" style="max-width:400px;"><div class="modal-header"><h3>管理用户</h3><button onclick="document.getElementById('userModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><input type="text" id="newUserName" placeholder="用户名" style="padding:6px;width:200px;border:1px solid #ccc;border-radius:4px;"> <button onclick="addUserAction()" style="padding:6px 12px;">添加</button></div><div id="userList"></div></div></div></div>`; document.body.insertAdjacentHTML('beforeend', html); renderUserList(); }
 function renderUserList() { const users = getUsers(); const c = document.getElementById('userList'); if (!c) return; c.innerHTML = ''; users.forEach(u => { const d = document.createElement('div'); d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px'; d.style.marginBottom='4px'; d.innerHTML = `<span style="flex:1;">${u}</span><button onclick="deleteUserAction('${u}')" style="background:#e74c3c;color:#fff;border:none;padding:2px 8px;border-radius:3px;">删除</button>`; c.appendChild(d); }); }
-async function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { await alert('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
+async function addUserAction() { const n = document.getElementById('newUserName').value.trim(); if (!n) { showToast('输入用户名'); return; } if (addUser(n)) { renderUserList(); updateSelects(); } }
 async function deleteUserAction(name) { if (!(await confirm(`确定删除用户"${name}"及其数据吗？`))) return; deleteUser(name); refreshAll(); if (document.getElementById('userModal')) renderUserList(); }
 
 function handleTableRowClick(event) {
@@ -1302,7 +1326,8 @@ function handleTableRowClick(event) {
     allRows.forEach(r => r.classList.remove('selected-row'));
     tr.classList.add('selected-row');
 }
-    function generateRiskTable() {
+
+function generateRiskTable() {
   const switcher = document.getElementById('riskReportSwitcher').value;
   let data;
   if (switcher === 'total') data = tableBetData;
@@ -1373,19 +1398,19 @@ function generateReportTable() {
   if (Object.keys(data).length > 0) { const maxBet = Math.max(...Object.values(data)); capInput.placeholder = `当前最大: ${maxBet}`; }
 }
 
-async function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { await alert('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(async () => { await alert('已复制到剪贴板'); }).catch(async () => { await alert('复制失败，请手动复制'); }); }
+async function copyReportCapText() { const infoDiv = document.getElementById('reportCapInfo'); const text = infoDiv.innerText || infoDiv.textContent; if (!text || text === '无超出的号码') { showToast('没有可复制的文本'); return; } navigator.clipboard.writeText(text).then(() => { showToast('已复制到剪贴板'); }).catch(() => { showToast('复制失败，请手动复制'); }); }
 
 async function screenshotTable(tableId) {
   const targetTable = document.getElementById(tableId);
-  if (!targetTable) { await alert('未找到要截图的表格'); return; }
+  if (!targetTable) { showToast('未找到要截图的表格'); return; }
   try {
     const canvas = await html2canvas(targetTable, { backgroundColor: '#ffffff', scale: 2, logging: false });
     canvas.toBlob(async (blob) => {
-      if (!blob) { await alert('生成图片失败'); return; }
-      try { const item = new ClipboardItem({ 'image/png': blob }); await navigator.clipboard.write([item]); await alert('截图已复制到剪贴板，可在微信等应用中粘贴'); }
-      catch (err) { console.error(err); await alert('复制到剪贴板失败，请检查浏览器权限或重试'); }
+      if (!blob) { showToast('生成图片失败'); return; }
+      try { const item = new ClipboardItem({ 'image/png': blob }); await navigator.clipboard.write([item]); showToast('截图已复制到剪贴板'); }
+      catch (err) { showToast('复制失败，请检查浏览器权限'); }
     }, 'image/png');
-  } catch (error) { console.error(error); await alert('截图失败，请重试'); }
+  } catch (error) { showToast('截图失败，请重试'); }
 }
 
 function renderReportAmountTable() { const table = document.getElementById('reportAmountTable'); table.innerHTML = ''; const cols = [Array.from({length:10},(_,i)=>(i+1).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+11).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+21).toString().padStart(2,'0')),Array.from({length:10},(_,i)=>(i+31).toString().padStart(2,'0')),Array.from({length:9},(_,i)=>(i+41).toString().padStart(2,'0'))]; let th='<thead><tr>'; for(let c=0;c<5;c++) th+='<th>号码</th><th>金额</th>'; th+='</tr></thead>'; let tb='<tbody>'; for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const num=cols[c][r]||''; if(num){ const amt=reportAmountData[num]||0; const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); tb+=`<td class="${cls}">${num}</td><td class="black-text">${amt||''}</td>`; }else{tb+='<td></td><td></td>';} } tb+='</tr>'; } tb+='</tbody>'; table.innerHTML=th+tb; updateReportAmountTotal(); }
@@ -1490,7 +1515,7 @@ async function showOrderRecord(filter='all'){
     html += `</div></div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
     const existing = document.getElementById('orderModal'); if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', html);
-  } catch (e) { await alert('加载订单记录失败'); }
+  } catch (e) { showToast('加载订单记录失败'); }
 }
 
 async function showReportOrderRecord(filter='all'){
@@ -1508,7 +1533,7 @@ async function showReportOrderRecord(filter='all'){
     html += `</div><div class="modal-footer"><button onclick="closeReportModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
     const existing = document.getElementById('reportModal'); if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', html);
-  } catch (e) { await alert('加载上报数据失败'); }
+  } catch (e) { showToast('加载上报数据失败'); }
 }
 function closeOrderModal(){ const modal=document.getElementById('orderModal'); if(modal) modal.remove(); }
 function closeReportModal(){ const modal=document.getElementById('reportModal'); if(modal) modal.remove(); }
@@ -1516,18 +1541,18 @@ function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.ch
 function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
 function checkAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=true); }
 function uncheckAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=false); }
-async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ await alert('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
-async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ await alert('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
+async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ showToast('请先选择要删除的订单'); return; } await batchDeleteOrderRecord(ids); }
+async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ showToast('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
 
 function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; updateOrderTotalDisplay(); }
-async function pasteOrder() { try { const text = await navigator.clipboard.readText(); if (text) { const input = document.querySelector('.source-order-input'); input.value = text; convertOrderText(); } } catch (err) { await alert('无法访问剪贴板，请手动粘贴或检查浏览器权限。'); } }
+async function pasteOrder() { try { const text = await navigator.clipboard.readText(); if (text) { const input = document.querySelector('.source-order-input'); input.value = text; convertOrderText(); } } catch (err) { showToast('无法访问剪贴板，请手动粘贴或检查浏览器权限。'); } }
 
 function lockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=true); }
 function unlockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=false); }
 function initDataConfig(){ let cfg = DEFAULT_CONFIG; try { const saved = localStorage.getItem('customDataConfigObj'); if(saved) cfg = {...DEFAULT_CONFIG,...JSON.parse(saved)}; } catch(e) {} Object.keys(cfg).forEach(key=>{ const el=document.getElementById(`config_${key}`); if(el) el.value=cfg[key]; }); lockAllInputs(); }
-async function enableEditConfig(){ if((await prompt("输入修改密码："))===PASSWORD){ unlockAllInputs(); await alert("解锁成功"); } else await alert("密码错误"); }
-async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { await alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); await alert("保存成功"); }
-async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { await alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); await alert("已恢复默认"); }
+async function enableEditConfig(){ if((await prompt("输入修改密码："))===PASSWORD){ unlockAllInputs(); showToast("解锁成功"); } else showToast("密码错误"); }
+async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { showToast("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); showToast("保存成功"); }
+async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { showToast("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); showToast("已恢复默认"); }
 
 async function exportData() {
   try {
@@ -1540,7 +1565,7 @@ async function exportData() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
     URL.revokeObjectURL(url);
-  } catch (e) { await alert('导出失败'); }
+  } catch (e) { showToast('导出失败'); }
 }
 
 async function importData() {
@@ -1554,14 +1579,14 @@ async function importData() {
     reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (!data.orders || !data.reports) { await alert('无效的数据格式'); document.body.removeChild(input); return; }
+        if (!data.orders || !data.reports) { showToast('无效的数据格式'); document.body.removeChild(input); return; }
         const existingOrders = await getOrderRecords(); const existingReports = await getReportOrderRecords();
         let skipOrders = 0, newOrders = 0;
         for (const rec of data.orders) { const exist = existingOrders.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (exist) skipOrders++; else newOrders++; }
         let skipReports = 0, newReports = 0;
         for (const rec of data.reports) { const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (exist) skipReports++; else newReports++; }
         const totalNew = newOrders + newReports;
-        if (totalNew === 0) { await alert(`没有新记录可导入。\n当前数据库已有下单记录 ${existingOrders.length} 条，上报记录 ${existingReports.length} 条。`); document.body.removeChild(input); return; }
+        if (totalNew === 0) { showToast(`没有新记录可导入。\n当前数据库已有下单记录 ${existingOrders.length} 条，上报记录 ${existingReports.length} 条。`); document.body.removeChild(input); return; }
         const message = `当前数据库已有：\n下单记录 ${existingOrders.length} 条\n上报记录 ${existingReports.length} 条\n\n导入文件包含：\n下单记录 ${data.orders.length} 条（重复 ${skipOrders} 条，新增 ${newOrders} 条）\n上报记录 ${data.reports.length} 条（重复 ${skipReports} 条，新增 ${newReports} 条）\n\n是否导入新增的 ${totalNew} 条记录？`;
         const confirmed = await confirm(message);
         if (!confirmed) { document.body.removeChild(input); return; }
@@ -1574,11 +1599,11 @@ async function importData() {
         if (data.suffixes) localStorage.setItem('customSuffixes', data.suffixes);
         if (data.amountSuffixes) localStorage.setItem('customAmountSuffixes', data.amountSuffixes);
         initDataConfig(); await updateTableFromRecords(); calculateStorageUsage();
-        await alert(`成功导入 ${totalNew} 条新记录。`);
+        showToast(`成功导入 ${totalNew} 条新记录。`);
         document.body.removeChild(input);
-      } catch (err) { await alert('导入失败，请检查文件格式'); document.body.removeChild(input); }
+      } catch (err) { showToast('导入失败，请检查文件格式'); document.body.removeChild(input); }
     };
-    reader.onerror = async () => { await alert('文件读取失败'); document.body.removeChild(input); };
+    reader.onerror = async () => { showToast('文件读取失败'); document.body.removeChild(input); };
     reader.readAsText(file);
   };
   input.addEventListener('cancel', () => { document.body.removeChild(input); });
