@@ -288,6 +288,7 @@ tr.selected-row {
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
     <button class="btn btn-primary" onclick="showReplacePreset()">替换预设</button>
     <button class="btn btn-primary" onclick="showCategoryAliases()">分类缩写</button>
+    <button class="btn btn-primary" onclick="showPrefixManager()">前缀</button>
     <button class="btn btn-export" onclick="exportData()">导出</button>
     <button class="btn btn-import" onclick="importData()">导入</button>
   </div>
@@ -321,7 +322,7 @@ tr.selected-row {
           <button class="btn btn-save-order" onclick="saveOrder()">保存下单</button>
           <button class="btn btn-report" onclick="saveReportOrder()">上报</button>
           <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
-          <button class="btn btn-cancel" onclick="cancelLastInput()">撤销</button>
+          <button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
         </div>
       </div>
 
@@ -861,6 +862,15 @@ function getCategoryAliases() {
   }
 }
 
+// 获取自定义前缀数组
+function getCustomPrefixes() {
+  try {
+    return JSON.parse(localStorage.getItem('customPrefixes') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
 // 应用分类缩写替换（按长度降序，避免短词覆盖长词）
 function applyCategoryAliases(text) {
   const aliases = getCategoryAliases();
@@ -929,6 +939,8 @@ function convertOrderText() {
   const AMOUNT_PREFIX = '(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';
   const AMOUNT_SUFFIX = '[元块咪斤#،。\\s]*';
   const IGNORE_PREFIXES = ['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
+  const customPrefixes = getCustomPrefixes();
+  const allPrefixes = [...IGNORE_PREFIXES, ...customPrefixes];
 
   function cnToNum(s) {
     const map = { '零':0, '一':1, '二':2, '三':3, '四':4, '五':5, '六':6, '七':7, '八':8, '九':9, '十':10, '百':100, '千':1000 };
@@ -953,7 +965,11 @@ function convertOrderText() {
     line = line.trim();
     if (!line) return;
     let cleanedLine = line;
-    for (const prefix of IGNORE_PREFIXES) if (cleanedLine.startsWith(prefix)) cleanedLine = cleanedLine.substring(prefix.length).trim();
+    for (const prefix of allPrefixes) {
+        if (cleanedLine.startsWith(prefix)) {
+            cleanedLine = cleanedLine.substring(prefix.length).trim();
+        }
+    }
     cleanedLine = cleanedLine.replace(/([一二三四五六七八九十百千]+)/g, (match) => cnToNum(match));
 
     const orderPattern = new RegExp(`(${AMOUNT_PREFIX}\\d+${AMOUNT_SUFFIX})`, 'g');
@@ -1009,6 +1025,52 @@ function convertOrderText() {
 
 function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
+// 语义转换功能
+async function semanticReplace() {
+    const textarea = document.querySelector('.source-order-input');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start === end) {
+        await alert('请先选择要转换的文本');
+        return;
+    }
+    const selectedText = textarea.value.substring(start, end);
+    const configData = getAllConfigData();
+    const validCategories = getAllValidCategories(configData);
+    const tokens = selectedText.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t => t.trim());
+    const matchedCategories = tokens.filter(t => validCategories.has(t));
+    if (matchedCategories.length === 0) {
+        await alert('未在选中文本中识别到有效分类');
+        return;
+    }
+    let numberSets = matchedCategories.map(cat => {
+        let nums = [];
+        if (configData.shengxiaoAttr[cat]) {
+            const zodiacs = configData.shengxiaoAttr[cat];
+            zodiacs.forEach(z => { if (configData.zodiac[z]) nums.push(...configData.zodiac[z].map(n => n.toString().padStart(2,'0'))); });
+        }
+        const direct = configData.wuxing[cat] || configData.bose[cat] || configData.banbo[cat] || configData.danshuang[cat] || configData.weishu[cat] || configData.daxiaodanshuang[cat] || configData.daxiao[cat] || configData.heshu[cat] || configData.toushu[cat] || configData.menshu[cat] || configData.duanwei[cat] || configData.hedahexiao[cat] || configData.weidaweixiao[cat] || configData.hewei[cat] || configData.heshudanshuang[cat] || configData.toushuDanshuang[cat];
+        if (direct) nums.push(...direct.map(n => n.toString().padStart(2,'0')));
+        if (configData.zodiac[cat]) nums.push(...configData.zodiac[cat].map(n => n.toString().padStart(2,'0')));
+        return new Set(nums);
+    });
+    let intersection = numberSets[0];
+    for (let i = 1; i < numberSets.length; i++) {
+        intersection = new Set([...intersection].filter(x => numberSets[i].has(x)));
+    }
+    const resultNumbers = [...intersection].sort((a,b) => parseInt(a)-parseInt(b));
+    if (resultNumbers.length === 0) {
+        await alert('所选分类没有共同号码');
+        return;
+    }
+    const resultStr = resultNumbers.join('-');
+    const confirmed = await confirm(`转换结果：${resultStr}\n是否替换选中文本？`);
+    if (confirmed) {
+        textarea.value = textarea.value.substring(0, start) + resultStr + textarea.value.substring(end);
+        convertOrderText();
+    }
+}
+
 async function saveOrder(){
   const user = document.getElementById('orderUserSelect').value;
   if (!user) { await alert('请先添加用户并选择'); return; }
@@ -1045,31 +1107,7 @@ async function saveReportOrder(){
   document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
 }
 
-function countItemsInLine(line, configData, categoryKeys) {
-  const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
-  const match = line.match(pattern);
-  if (!match) return { numbers:[], zodiacs:[], amount:0 };
-  let content = match[1];
-  const amount = parseInt(match[2])||0;
-  const items = content.split('-').map(i=>i.trim()).filter(i=>i);
-  const numbers = [], zodiacs = [];
-  items.forEach(item => {
-    if (/^\d+$/.test(item)) {
-      numbers.push(item.padStart(2,'0'));
-    } else if (configData.shengxiaoAttr[item]) {
-      const zodiacList = configData.shengxiaoAttr[item] || [];
-      zodiacList.forEach(z=>zodiacs.push(z));
-    } else if (configData.zodiac[item]) {
-      zodiacs.push(item);
-    } else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) {
-      (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0')));
-    } else {
-      const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item];
-      if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0')));
-    }
-  });
-  return { numbers, zodiacs, amount };
-}
+function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const items = content.split('-').map(i=>i.trim()).filter(i=>i); const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) { numbers.push(item.padStart(2,'0')); } else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) { zodiacs.push(item); } else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); } else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); } }); return { numbers, zodiacs, amount }; }
 
 function processCurrentOrder(input, user, isNormal, date = null) { const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const lines = input.split('\n').filter(l=>l.trim()); if (!userBetData[user]) userBetData[user] = {}; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; if (isNormal) { if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } } numbers.forEach(num => { if (isNormal) { userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; } else { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; } }); zodiacs.forEach(z => { if (isNormal) { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); } else { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); } }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); }
 
@@ -1404,7 +1442,6 @@ async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-
 async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){ await alert('请先选择要删除的上报订单'); return; } await batchDeleteReportOrderRecord(ids); }
 
 function clearAllInput(){ document.querySelector('.source-order-input').value=''; document.getElementById('orderResult').value=''; updateOrderTotalDisplay(); }
-function cancelLastInput(){ const input=document.querySelector('.source-order-input'); input.value=input.value.substring(0,input.value.length-1); convertOrderText(); }
 async function pasteOrder() { try { const text = await navigator.clipboard.readText(); if (text) { const input = document.querySelector('.source-order-input'); input.value = text; convertOrderText(); } } catch (err) { await alert('无法访问剪贴板，请手动粘贴或检查浏览器权限。'); } }
 
 function lockAllInputs(){ document.querySelectorAll('.config-input').forEach(el=>el.disabled=true); }
@@ -1485,6 +1522,74 @@ async function deleteCategoryAlias(index) {
   aliases.splice(index, 1);
   localStorage.setItem('categoryAliases', JSON.stringify(aliases));
   renderAliasList();
+}
+
+// ========== 前缀管理 ==========
+function showPrefixManager() {
+  const prefixes = getCustomPrefixes();
+  let html = `<div class="modal-overlay" id="prefixModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>前缀管理</h3>
+        <button onclick="document.getElementById('prefixModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="newPrefixInput" placeholder="新增前缀" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addPrefix()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="prefixList"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('prefixModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderPrefixList();
+}
+
+function renderPrefixList() {
+  const prefixes = getCustomPrefixes();
+  const container = document.getElementById('prefixList');
+  if (!container) return;
+  if (prefixes.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无自定义前缀</div>';
+    return;
+  }
+  container.innerHTML = prefixes.map((prefix, index) => `
+    <div class="replace-preset-item">
+      <span>${prefix}</span>
+      <button onclick="deletePrefix(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
+    </div>
+  `).join('');
+}
+
+async function addPrefix() {
+  const newPrefix = document.getElementById('newPrefixInput').value.trim();
+  if (!newPrefix) {
+    await alert('请输入要添加的前缀');
+    return;
+  }
+  const prefixes = getCustomPrefixes();
+  if (prefixes.includes(newPrefix)) {
+    await alert('该前缀已存在');
+    return;
+  }
+  prefixes.push(newPrefix);
+  localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
+  document.getElementById('newPrefixInput').value = '';
+  renderPrefixList();
+}
+
+async function deletePrefix(index) {
+  if (!(await confirm('确定删除该前缀吗？'))) return;
+  const prefixes = getCustomPrefixes();
+  prefixes.splice(index, 1);
+  localStorage.setItem('customPrefixes', JSON.stringify(prefixes));
+  renderPrefixList();
 }
 
 // ========== 替换预设功能（保留） ==========
@@ -1576,7 +1681,8 @@ async function exportData() {
     const config = localStorage.getItem('customDataConfigObj');
     const presets = localStorage.getItem('replacePresets');
     const aliases = localStorage.getItem('categoryAliases');
-    const data = { orders, reports, config, presets, aliases, exportTime: new Date().toISOString() };
+    const prefixes = localStorage.getItem('customPrefixes');
+    const data = { orders, reports, config, presets, aliases, prefixes, exportTime: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
@@ -1613,6 +1719,7 @@ async function importData() {
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
         if (data.presets) localStorage.setItem('replacePresets', data.presets);
         if (data.aliases) localStorage.setItem('categoryAliases', data.aliases);
+        if (data.prefixes) localStorage.setItem('customPrefixes', data.prefixes);
         initDataConfig();
         await updateTableFromRecords();
         calculateStorageUsage();
