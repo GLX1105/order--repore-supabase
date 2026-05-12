@@ -927,7 +927,7 @@ document.getElementById('numAmountMax').addEventListener('input', updateTableFro
 document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
 document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
 
-window.onload = async function changeStartZodiac() {
+async function changeStartZodiac() {
   const select = document.getElementById('startZodiacSelect');
   const newZodiac = select.value;
   const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
