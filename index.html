@@ -748,185 +748,6 @@ function buildZodiacMap(startZodiac) {
   return map;
 }
 
-async function changeStartZodiac() { ... }
-
-function switchRiskReport() { ... }
-
-function initIndexedDB() { ... }
-
-async function getOrderRecords() { ... }
-async function getReportOrderRecords() { ... }
-async function saveOrderRecordToIDB(content, user, date, totalAmount = 0) { ... }
-async function saveReportOrderRecordToIDB(content, user, date, totalAmount = 0) { ... }
-async function deleteOrderRecordFromIDB(id) { ... }
-async function deleteReportOrderRecordFromIDB(id) { ... }
-async function batchDeleteOrderRecordFromIDB(ids) { ... }
-async function batchDeleteReportOrderRecordFromIDB(ids) { ... }
-async function clearAllOrderRecordsFromIDB() { ... }
-async function clearAllReportOrderRecordsFromIDB() { ... }
-
-async function calculateStorageUsage() { ... }
-async function showDatabase() { ... }
-function hideDatabase() { ... }
-
-async function saveOrderRecord(content, user, date, totalAmount) { ... }
-async function saveReportOrderRecord(content, user, date, totalAmount) { ... }
-async function deleteOrderRecord(id) { ... }
-async function deleteReportOrderRecord(id) { ... }
-async function batchDeleteOrderRecord(ids) { ... }
-async function batchDeleteReportOrderRecord(ids) { ... }
-async function resetTable() { ... }
-
-document.querySelectorAll('.category-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('active')));
-
-const DEFAULT_CONFIG = { ... };
-
-function quickAddWithAmount(text, button) { ... }
-
-// 获取各种配置
-function getReplacePresets() { try { return JSON.parse(localStorage.getItem('replacePresets') || '[]'); } catch (e) { return []; } }
-function getCategoryAliases() { try { return JSON.parse(localStorage.getItem('categoryAliases') || '[]'); } catch (e) { return []; } }
-function getCustomPrefixes() { try { return JSON.parse(localStorage.getItem('customPrefixes') || '[]'); } catch (e) { return []; } }
-function getCustomSuffixes() { try { return JSON.parse(localStorage.getItem('customSuffixes') || '[]'); } catch (e) { return []; } }
-function getCustomAmountSuffixes() { try { return JSON.parse(localStorage.getItem('customAmountSuffixes') || '[]'); } catch (e) { return []; } }
-
-// 去分隔
-function removeSeparators() { ... }
-
-// 统一替换分隔符为 -
-function replaceSeparators() { ... }
-
-// 金额后缀管理弹窗
-function showAmountSuffixManager() { ... }
-function renderAmountSuffixList() { ... }
-async function addAmountSuffix() { ... }
-async function deleteAmountSuffix(index) { ... }
-
-// 后缀管理
-function showSuffixManager() { ... }
-function renderSuffixList() { ... }
-async function addSuffix() { ... }
-async function deleteSuffix(index) { ... }
-
-// 前缀管理
-function showPrefixManager() { ... }
-function renderPrefixList() { ... }
-async function addPrefix() { ... }
-async function deletePrefix(index) { ... }
-
-// 分类缩写管理
-function showCategoryAliases() { ... }
-function renderAliasList() { ... }
-async function addCategoryAlias() { ... }
-async function deleteCategoryAlias(index) { ... }
-
-// 替换预设
-function showReplacePreset() { ... }
-function renderPresetList() { ... }
-async function addReplacePreset() { ... }
-async function deleteReplacePreset(index) { ... }
-
-// 应用分类别名和替换预设
-function applyCategoryAliases(text) { ... }
-function applyReplacePresets(text) { ... }
-
-// 语义转换
-async function semanticReplace() { ... }
-
-// 核心分词
-function tokenizeAndJoin(content) { ... }
-
-function convertOrderText() { ... }
-
-function getAllValidCategories(configData) { ... }
-
-async function saveOrder() { ... }
-async function saveReportOrder() { ... }
-
-function countItemsInLine(line, configData, categoryKeys) { ... }
-
-function processCurrentOrder(input, user, isNormal, date = null) { ... }
-
-async function updateTableFromRecords() { ... }
-
-function updateOrderTotalDisplay() { ... }
-function computeCurrentOrderTotal() { ... }
-function updateAmountDisplays() { ... }
-function updateReportAmountTotal() { ... }
-
-function getAllConfigData() { ... }
-
-function getUsers() { ... }
-function saveUsers(users) { ... }
-function addUser(name) { ... }
-async function deleteUser(name) { ... }
-function rebuildTotal() { ... }
-function refreshAll() { ... }
-function updateSelects() { ... }
-
-function showUserManager() { ... }
-function renderUserList() { ... }
-async function addUserAction() { ... }
-async function deleteUserAction(name) { ... }
-
-function handleTableRowClick(event) { ... }
-
-function generateRiskTable() { ... }
-function applyReportCap() { ... }
-function generateReportTable() { ... }
-async function copyReportCapText() { ... }
-
-async function screenshotTable(tableId) { ... }
-
-function renderReportAmountTable() { ... }
-function renderFrequencyCards() { ... }
-function renderAmountFrequencyCards() { ... }
-
-function formatTimestampToCST(isoString) { ... }
-function getUserColor(username) { ... }
-
-// 对奖系统
-function getNumberListForCategory(catName, configData) { ... }
-function isTokenMatching(token, targetNum, configData) { ... }
-function highlightContent(content, targetNum, configData) { ... }
-function orderContainsTarget(content, targetNum, configData) { ... }
-
-async function applyPrizeFilter() { ... }
-
-async function showOrderRecord(filter='all') { ... }
-async function showReportOrderRecord(filter='all') { ... }
-function closeOrderModal() { ... }
-function closeReportModal() { ... }
-function checkAll() { ... }
-function uncheckAll() { ... }
-function checkAllReport() { ... }
-function uncheckAllReport() { ... }
-async function deleteChecked() { ... }
-async function deleteCheckedReport() { ... }
-
-function clearAllInput() { ... }
-async function pasteOrder() { ... }
-
-function lockAllInputs() { ... }
-function unlockAllInputs() { ... }
-function initDataConfig() { ... }
-async function enableEditConfig() { ... }
-async function saveDataConfig() { ... }
-async function resetDataConfig() { ... }
-
-async function exportData() { ... }
-async function importData() { ... }
-
-document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
-document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
-document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
-document.getElementById('reportMultipleVal').addEventListener('input', generateReportTable);
-document.getElementById('startZodiacSelect').addEventListener('change', changeStartZodiac);
-document.getElementById('numAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('numAmountMax').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
-document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
-
 async function changeStartZodiac() {
   const select = document.getElementById('startZodiacSelect');
   const newZodiac = select.value;
@@ -1391,8 +1212,7 @@ function convertOrderText() {
   document.getElementById('orderResult').value = resultLines.join('\n');
   updateOrderTotalDisplay();
 }
-
-function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
+    function getAllValidCategories(configData) { const set = new Set(); Object.keys(configData.zodiac).forEach(k=>set.add(k)); Object.keys(configData.shengxiaoAttr).forEach(k=>set.add(k)); Object.keys(configData.wuxing).forEach(k=>set.add(k)); Object.keys(configData.bose).forEach(k=>set.add(k)); Object.keys(configData.banbo).forEach(k=>set.add(k)); Object.keys(configData.danshuang).forEach(k=>set.add(k)); Object.keys(configData.weishu).forEach(k=>set.add(k)); Object.keys(configData.daxiaodanshuang).forEach(k=>set.add(k)); Object.keys(configData.daxiao).forEach(k=>set.add(k)); Object.keys(configData.heshu).forEach(k=>set.add(k)); Object.keys(configData.toushu).forEach(k=>set.add(k)); Object.keys(configData.menshu).forEach(k=>set.add(k)); Object.keys(configData.duanwei).forEach(k=>set.add(k)); Object.keys(configData.hedahexiao).forEach(k=>set.add(k)); Object.keys(configData.weidaweixiao).forEach(k=>set.add(k)); Object.keys(configData.hewei).forEach(k=>set.add(k)); Object.keys(configData.heshudanshuang).forEach(k=>set.add(k)); Object.keys(configData.toushuDanshuang).forEach(k=>set.add(k)); return set; }
 
 async function saveOrder(){
   const user = document.getElementById('orderUserSelect').value;
@@ -1482,8 +1302,7 @@ function handleTableRowClick(event) {
     allRows.forEach(r => r.classList.remove('selected-row'));
     tr.classList.add('selected-row');
 }
-
-function generateRiskTable() {
+    function generateRiskTable() {
   const switcher = document.getElementById('riskReportSwitcher').value;
   let data;
   if (switcher === 'total') data = tableBetData;
