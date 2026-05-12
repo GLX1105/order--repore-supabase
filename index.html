@@ -266,13 +266,29 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
   pointer-events: none;
 }
 .toast-message.show { opacity: 1; }
+
+/* 登录界面 blur 遮罩 */
+.login-overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  backdrop-filter: blur(15px); background: rgba(0,0,0,0.6); z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+  border-radius: 20px; padding: 30px 20px; width: 90%; max-width: 380px;
+  text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+}
+.login-box h3 { margin-bottom: 20px; color:#1a1a2e; }
+.login-box input { width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:16px; margin-bottom:12px; }
+.login-box .btn { width:100%; margin-bottom:8px; }
+.login-box .link { font-size:13px; color:#3498db; cursor:pointer; margin-top:5px; }
 </style>
 </head>
 <body>
 
-<div class="navbar">
+<div class="navbar" id="mainNavbar">
   <div class="navbar-title">港澳识别系统</div>
-  <div class="navbar-actions">
+  <div class="navbar-actions" id="navbarActions">
     <button class="btn btn-reset" onclick="resetTable()">清空</button>
     <button class="btn btn-save-order" onclick="showOrderRecord()">订单记录</button>
     <button class="btn btn-primary" onclick="showReportOrderRecord()">上报数据</button>
@@ -282,10 +298,12 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
     <button class="btn btn-primary" onclick="showCategoryAliases()">分类缩写</button>
     <button class="btn btn-export" onclick="exportData()">导出</button>
     <button class="btn btn-import" onclick="importData()">导入</button>
+    <button class="btn btn-primary" id="cardMgrBtn" style="display:none;" onclick="showCardManager()">卡密管理</button>
+    <button class="btn btn-clear" onclick="logout()">退出登录</button>
   </div>
 </div>
 
-<div class="container">
+<div class="container" id="mainContent">
   <div class="recognize-wrap">
       <div class="card recognize-card">
         <div class="card-title">
@@ -730,6 +748,135 @@ window.alert = async (msg) => { await customAlert(msg); };
 window.confirm = async (msg) => { return await customConfirm(msg); };
 window.prompt = async (msg, def) => { return await customPrompt(msg, def); };
 
+// ===== 卡密认证系统 =====
+const ADMIN_PASSWORD = "150408";
+const CARD_KEYS_STORE = 'cardKeys';
+const SESSION_KEY = 'authSession';
+
+function getCardKeys() {
+  try { return JSON.parse(localStorage.getItem(CARD_KEYS_STORE) || '[]'); } catch (e) { return []; }
+}
+function saveCardKeys(keys) {
+  localStorage.setItem(CARD_KEYS_STORE, JSON.stringify(keys));
+}
+
+function getAuthSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { return null; }
+}
+function setAuthSession(session) {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+function clearAuthSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+function isCardExpired(card) {
+  if (!card.createTime || !card.expireDays) return false;
+  const created = new Date(card.createTime);
+  const expires = created.getTime() + card.expireDays * 86400000;
+  return Date.now() > expires;
+}
+
+function generateCardCode(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function isAdmin() {
+  const session = getAuthSession();
+  return session && session.role === 'admin';
+}
+
+function checkCardAccess(code) {
+  const keys = getCardKeys();
+  const now = Date.now();
+  const card = keys.find(k => k.code === code);
+  if (!card) return { valid: false, reason: '卡密不存在' };
+  if (card.status === 'disabled') return { valid: false, reason: '卡密已被禁用' };
+  if (isCardExpired(card)) {
+    card.status = 'expired';
+    saveCardKeys(keys);
+    return { valid: false, reason: '卡密已过期' };
+  }
+  return { valid: true, card };
+}
+
+function checkCurrentAccess() {
+  const session = getAuthSession();
+  if (!session) return false;
+  if (session.role === 'admin') return true;
+  if (session.role === 'card' && session.cardCode) {
+    const result = checkCardAccess(session.cardCode);
+    if (!result.valid) {
+      clearAuthSession();
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+function showLoginScreen() {
+  const overlay = document.createElement('div');
+  overlay.className = 'login-overlay';
+  overlay.id = 'loginOverlay';
+  overlay.innerHTML = `
+    <div class="login-box">
+      <h3>🔐 系统登录</h3>
+      <input type="password" id="loginPassword" placeholder="管理员密码">
+      <button class="btn" style="background:#2c3e50;color:#fff;" id="adminLoginBtn">管理员登录</button>
+      <hr style="margin:15px 0;">
+      <input type="text" id="cardCodeInput" placeholder="卡密">
+      <button class="btn" style="background:#e67e22;color:#fff;" id="cardLoginBtn">卡密登录</button>
+      <div class="link" id="switchToCard">使用卡密登录</div>
+      <div class="link" id="switchToAdmin" style="display:none;">管理员登录</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById('adminLoginBtn').onclick = () => {
+    const pwd = document.getElementById('loginPassword').value.trim();
+    if (pwd === ADMIN_PASSWORD) {
+      setAuthSession({ role: 'admin' });
+      overlay.remove();
+      initMainSystem();
+    } else {
+      showToast('管理员密码错误');
+    }
+  };
+
+  document.getElementById('cardLoginBtn').onclick = () => {
+    const code = document.getElementById('cardCodeInput').value.trim().toUpperCase();
+    if (!code) { showToast('请输入卡密'); return; }
+    const result = checkCardAccess(code);
+    if (result.valid) {
+      setAuthSession({ role: 'card', cardCode: code });
+      overlay.remove();
+      initMainSystem();
+    } else {
+      showToast(result.reason);
+    }
+  };
+}
+
+function logout() {
+  clearAuthSession();
+  location.reload();
+}
+
+function initMainSystem() {
+  document.getElementById('mainContent').style.display = '';
+  if (isAdmin()) {
+    document.getElementById('cardMgrBtn').style.display = '';
+  }
+  window._systemReady();
+}
+
+// ===== 原系统代码（部分变量和函数定义在此前） =====
 let tableBetData = {};
 let userBetData = {};
 let reportBetData = {};
@@ -1671,6 +1818,89 @@ async function importData() {
   input.click();
 }
 
+// ===== 卡密管理面板 =====
+function showCardManager() {
+  if (!isAdmin()) { showToast('需要管理员权限'); return; }
+  const keys = getCardKeys();
+  let html = `<div class="modal-overlay" id="cardManagerModal">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header"><h3>🔑 卡密管理</h3><button onclick="document.getElementById('cardManagerModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div>
+      <div class="modal-body">
+        <div style="margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;">
+          <select id="expireDaysSelect" style="padding:5px;border-radius:4px;border:1px solid #ccc;">
+            <option value="7">7天有效</option>
+            <option value="30" selected>30天有效</option>
+            <option value="90">90天有效</option>
+            <option value="365">一年有效</option>
+          </select>
+          <button onclick="generateCardKey()" style="padding:6px 15px;background:#28a745;color:#fff;border:none;border-radius:4px;">生成卡密</button>
+        </div>
+        <div id="cardListContainer">`;
+  if (keys.length === 0) {
+    html += `<div style="text-align:center;color:#666;padding:20px;">暂无卡密</div>`;
+  } else {
+    keys.forEach((card, idx) => {
+      const created = card.createTime ? new Date(card.createTime).toLocaleString('zh-CN') : '未知';
+      const expired = card.expireDays ? `有效${card.expireDays}天` : '永久';
+      const statusClass = { active: 'green', disabled: 'red', expired: 'gray' }[card.status] || 'gray';
+      html += `<div style="border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-weight:bold;font-size:16px;">${card.code}</span>
+        <span style="color:${statusClass};font-size:12px;">[${card.status === 'active' ? '启用' : card.status === 'disabled' ? '禁用' : '过期'}]</span>
+        <span style="font-size:11px;color:#666;">创建:${created} ${expired}</span>
+        <div style="margin-left:auto;display:flex;gap:5px;">
+          ${card.status === 'active' ? `<button onclick="disableCard(${idx})" style="background:#f39c12;color:#fff;border:none;padding:3px 8px;border-radius:3px;">禁用</button>` : ''}
+          ${card.status === 'disabled' ? `<button onclick="enableCard(${idx})" style="background:#2ecc71;color:#fff;border:none;padding:3px 8px;border-radius:3px;">启用</button>` : ''}
+          <button onclick="deleteCard(${idx})" style="background:#e74c3c;color:#fff;border:none;padding:3px 8px;border-radius:3px;">删除</button>
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function generateCardKey() {
+  const expireDays = parseInt(document.getElementById('expireDaysSelect').value) || 30;
+  const code = generateCardCode();
+  const keys = getCardKeys();
+  keys.push({
+    code,
+    status: 'active',
+    createTime: new Date().toISOString(),
+    expireDays
+  });
+  saveCardKeys(keys);
+  document.getElementById('cardManagerModal').remove();
+  showCardManager();
+  showToast(`卡密 ${code} 已生成`);
+}
+
+async function disableCard(index) {
+  if (!(await confirm('确定禁用该卡密？'))) return;
+  const keys = getCardKeys();
+  keys[index].status = 'disabled';
+  saveCardKeys(keys);
+  document.getElementById('cardManagerModal').remove();
+  showCardManager();
+}
+
+async function enableCard(index) {
+  const keys = getCardKeys();
+  keys[index].status = 'active';
+  saveCardKeys(keys);
+  document.getElementById('cardManagerModal').remove();
+  showCardManager();
+}
+
+async function deleteCard(index) {
+  if (!(await confirm('确定删除该卡密？'))) return;
+  const keys = getCardKeys();
+  keys.splice(index, 1);
+  saveCardKeys(keys);
+  document.getElementById('cardManagerModal').remove();
+  showCardManager();
+}
+
 document.getElementById('rebateRate').addEventListener('input', generateRiskTable);
 document.getElementById('multipleVal').addEventListener('input', generateRiskTable);
 document.getElementById('reportRebateRate').addEventListener('input', generateReportTable);
@@ -1681,6 +1911,7 @@ document.getElementById('numAmountMax').addEventListener('input', updateTableFro
 document.getElementById('zodiacAmountMin').addEventListener('input', updateTableFromRecords);
 document.getElementById('zodiacAmountMax').addEventListener('input', updateTableFromRecords);
 
+// 启动流程
 window.onload = async () => {
   await initIndexedDB();
   initDataConfig();
@@ -1691,10 +1922,24 @@ window.onload = async () => {
   document.getElementById('startZodiacSelect').value = savedZodiac;
   currentZodiacMap = buildZodiacMap(savedZodiac);
   updateSelects();
-  await updateTableFromRecords();
-  calculateStorageUsage();
-  updateOrderTotalDisplay();
-  updateReportAmountTotal();
+
+  // 注册系统初始化函数，在登录成功后调用
+  window._systemReady = async () => {
+    await updateTableFromRecords();
+    calculateStorageUsage();
+    updateOrderTotalDisplay();
+    updateReportAmountTotal();
+  };
+
+  // 检查登录状态
+  if (!checkCurrentAccess()) {
+    showLoginScreen();
+  } else {
+    if (isAdmin()) {
+      document.getElementById('cardMgrBtn').style.display = '';
+    }
+    await window._systemReady();
+  }
 };
 </script>
 </body>
