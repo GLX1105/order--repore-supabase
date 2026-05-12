@@ -265,7 +265,7 @@ tr.selected-row {
 .amount-stat-box span:first-child { color: #e67e22; }
 .amount-stat-box span:last-child { color: #d35400; }
 
-/* 替换预设专用样式 */
+/* 替换预设/分类缩写专用样式 */
 .replace-preset-item {
   display: flex; align-items: center; gap: 6px; padding: 4px 0;
   border-bottom: 1px solid #eee;
@@ -282,11 +282,12 @@ tr.selected-row {
   <div class="navbar-title">港澳识别系统</div>
   <div class="navbar-actions">
     <button class="btn btn-reset" onclick="resetTable()">清空</button>
-    <button class="btn btn-save-order" onclick="showOrderRecord()">记录</button>
+    <button class="btn btn-save-order" onclick="showOrderRecord()">订单记录</button>
     <button class="btn btn-primary" onclick="showReportOrderRecord()">上报数据</button>
     <button class="btn btn-primary" onclick="showUserManager()">添加用户</button>
     <button class="btn btn-primary" onclick="showDatabase()">数据库</button>
     <button class="btn btn-primary" onclick="showReplacePreset()">替换预设</button>
+    <button class="btn btn-primary" onclick="showCategoryAliases()">分类缩写</button>
     <button class="btn btn-export" onclick="exportData()">导出</button>
     <button class="btn btn-import" onclick="importData()">导入</button>
   </div>
@@ -359,8 +360,7 @@ tr.selected-row {
           <button class="category-btn" onclick="quickAddWithAmount('土', this)">土</button>
         </div>
       </div>
-
-      <div class="card" style="margin-top:0;">
+            <div class="card" style="margin-top:0;">
         <div class="card-title">下注统计</div>
         <div class="freq-container">
           <div class="freq-card">
@@ -395,8 +395,7 @@ tr.selected-row {
           </div>
         </div>
       </div>
-
-      <div class="card" style="margin-top:0;">
+            <div class="card" style="margin-top:0;">
         <div class="card-title">上报控制</div>
         <div class="freq-container">
           <div class="freq-card">
@@ -661,7 +660,6 @@ tr.selected-row {
     </div>
   </div>
 </div>
-
 <script>
 // ===== 自定义毛玻璃弹窗系统 =====
 function showCustomDialog({ title = '提示', message = '', type = 'alert', defaultValue = '', placeholder = '' }) {
@@ -842,7 +840,7 @@ function quickAddWithAmount(text, button) {
   convertOrderText();
 }
 
-// 获取替换预设数组
+// 获取通用替换预设数组
 function getReplacePresets() {
   try {
     return JSON.parse(localStorage.getItem('replacePresets') || '[]');
@@ -851,7 +849,32 @@ function getReplacePresets() {
   }
 }
 
-// 应用所有替换预设到文本
+// 获取分类缩写映射数组
+function getCategoryAliases() {
+  try {
+    return JSON.parse(localStorage.getItem('categoryAliases') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+// 应用分类缩写替换（按长度降序，避免短词覆盖长词）
+function applyCategoryAliases(text) {
+  const aliases = getCategoryAliases();
+  if (!aliases.length) return text;
+  // 按别名长度降序排列
+  const sorted = [...aliases].sort((a, b) => b.alias.length - a.alias.length);
+  let result = text;
+  for (const item of sorted) {
+    if (item.alias && item.target) {
+      // 使用全局替换，不区分大小写（中文无所谓），注意替换的稳定性
+      result = result.split(item.alias).join(item.target);
+    }
+  }
+  return result;
+}
+
+// 应用通用替换预设
 function applyReplacePresets(text) {
   const presets = getReplacePresets();
   let result = text;
@@ -871,15 +894,24 @@ function tokenizeAndJoin(content) {
   const rawTokens = content.split(SEPARATORS).filter(t => t.trim()).map(t => t.trim());
   const tokens = [];
   rawTokens.forEach(t => {
-    if (/^\d{1,2}$/.test(t)) {
+    // 处理连续数字+尾 (>=2 digits)
+    const tailMatch = t.match(/^(\d{2,})尾$/);
+    const headMatch = t.match(/^(\d{2,})头$/);
+    if (tailMatch) {
+      const digits = tailMatch[1].split('').map(d => d + '尾');
+      tokens.push(...digits);
+    } else if (headMatch) {
+      const digits = headMatch[1].split('').map(d => d + '头');
+      tokens.push(...digits);
+    } else if (/^\d{1,2}$/.test(t)) {
       const num = parseInt(t);
-      if (num >= 1 && num <= 49) tokens.push(t.length === 1 ? `0${t}` : t);
+      if (num >= 1 && num <= 49) tokens.push(t.length === 1 ? '0' + t : t);
     } else if (validCategories.has(t)) {
       tokens.push(t);
     } else if (/^[\u4e00-\u9fa5]+$/.test(t)) {
       const chars = t.match(/[\u4e00-\u9fa5]/g) || [];
       if (chars.every(c => validCategories.has(c))) {
-        tokens.push(...chars); // 拆成单字
+        tokens.push(...chars);
       }
     }
   });
@@ -888,7 +920,11 @@ function tokenizeAndJoin(content) {
 
 function convertOrderText() {
   let inputText = document.querySelector('.source-order-input').value.trim();
+  // 先应用分类别名
+  inputText = applyCategoryAliases(inputText);
+  // 再应用通用替换预设
   inputText = applyReplacePresets(inputText);
+  
   if (!inputText) { document.getElementById('orderResult').value = ''; updateOrderTotalDisplay(); return; }
   const lines = inputText.split('\n'); const resultLines = [];
   const SEPARATORS = /[\s,，.。、+\-*＊\/\\|]+/;
@@ -1011,32 +1047,7 @@ async function saveReportOrder(){
   document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
 }
 
-function countItemsInLine(line, configData, categoryKeys) {
-  const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/;
-  const match = line.match(pattern);
-  if (!match) return { numbers:[], zodiacs:[], amount:0 };
-  let content = match[1];
-  const amount = parseInt(match[2])||0;
-  // 统一按 - 拆分，处理所有 token
-  const items = content.split('-').map(i=>i.trim()).filter(i=>i);
-  const numbers = [], zodiacs = [];
-  items.forEach(item => {
-    if (/^\d+$/.test(item)) {
-      numbers.push(item.padStart(2,'0'));
-    } else if (configData.shengxiaoAttr[item]) {
-      const zodiacList = configData.shengxiaoAttr[item] || [];
-      zodiacList.forEach(z=>zodiacs.push(z));
-    } else if (configData.zodiac[item]) {
-      zodiacs.push(item);
-    } else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) {
-      (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0')));
-    } else {
-      const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item];
-      if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0')));
-    }
-  });
-  return { numbers, zodiacs, amount };
-}
+function countItemsInLine(line, configData, categoryKeys) { const pattern = /([\u4e00-\u9fa5\d\-]+)\s+各数\s+(\d+)/; const match = line.match(pattern); if (!match) return { numbers:[], zodiacs:[], amount:0 }; let content = match[1]; const amount = parseInt(match[2])||0; const isNumber = /^[\d\-]+$/.test(content); let items = []; if (isNumber) items = content.split('-').map(i=>i.trim()).filter(i=>i); else { if (categoryKeys.has(content)) items = [content]; else items = content.match(/[\u4e00-\u9fa5]/g) || []; } const numbers = [], zodiacs = []; items.forEach(item => { if (/^\d+$/.test(item)) numbers.push(item.padStart(2,'0')); else if (configData.shengxiaoAttr[item]) { const zodiacList = configData.shengxiaoAttr[item] || []; zodiacList.forEach(z=>zodiacs.push(z)); } else if (configData.zodiac[item]) zodiacs.push(item); else if (configData.toushuDanshuang && configData.toushuDanshuang[item]) { (configData.toushuDanshuang[item] || []).forEach(n => numbers.push(n.padStart(2,'0'))); } else { const numList = configData.wuxing[item] || configData.bose[item] || configData.banbo[item] || configData.danshuang[item] || configData.weishu[item] || configData.daxiaodanshuang[item] || configData.daxiao[item] || configData.heshu[item] || configData.toushu[item] || configData.menshu[item] || configData.duanwei[item] || configData.hedahexiao[item] || configData.weidaweixiao[item] || configData.hewei[item] || configData.heshudanshuang[item] || configData.toushuDanshuang[item]; if (numList) numList.forEach(n => numbers.push(n.padStart(2,'0'))); } }); return { numbers, zodiacs, amount }; }
 
 function processCurrentOrder(input, user, isNormal, date = null) { const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const lines = input.split('\n').filter(l=>l.trim()); if (!userBetData[user]) userBetData[user] = {}; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; if (isNormal) { if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } } numbers.forEach(num => { if (isNormal) { userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; } else { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; } }); zodiacs.forEach(z => { if (isNormal) { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); } else { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); } }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); }
 
@@ -1185,6 +1196,16 @@ function renderAmountFrequencyCards() { const numTable = document.getElementById
 
 function formatTimestampToCST(isoString) { const date = new Date(isoString); return new Intl.DateTimeFormat('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:'Asia/Shanghai' }).format(date); }
 
+// 用户颜色生成函数
+function getUserColor(username) {
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = (hash % 360 + 360) % 360;
+  return `hsl(${hue}, 70%, 45%)`;
+}
+
 // ========== 对奖系统（精准高亮） ==========
 function getNumberListForCategory(catName, configData) {
   const nums = [];
@@ -1275,6 +1296,7 @@ async function applyPrizeFilter() {
   container.innerHTML = finalList.map(item => {
     const timeStr = formatTimestampToCST(item.timestamp);
     const userDisplay = item.user || '未知';
+    const color = getUserColor(userDisplay);
     const totalAmt = item.totalAmount || 0;
     const lines = item.content.split('\n');
     const highlightedLines = lines.map(line => {
@@ -1284,7 +1306,7 @@ async function applyPrizeFilter() {
       const hlContent = highlightContent(cont, prizeNum, configData);
       return `${hlContent} 各数 ${amt}`;
     }).join('<br>');
-    return `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${highlightedLines}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
+    return `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${highlightedLines}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:${color};">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
   }).join('');
 }
 
@@ -1295,8 +1317,8 @@ async function showOrderRecord(filter='all'){
     const today = getTodayCST();
     let html = `<div class="modal-overlay" id="orderModal"><div class="modal-box" style="max-width:700px;"><div class="modal-header"><h3>下单记录</h3><button onclick="closeOrderModal()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body">`;
     html += `<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-    <select id="recordUserFilter" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter === 'all' ? 'selected' : ''}>全部用户</option>`;
-    users.forEach(u => html += `<option value="${u}" ${u === filter ? 'selected' : ''}>${u}</option>`);
+    <select id="recordUserFilter" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter==='all'?'selected':''}>全部用户</option>`;
+    users.forEach(u => html += `<option value="${u}" ${u===filter?'selected':''}>${u}</option>`);
     html += `</select>
     <button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button>
     <button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button>
@@ -1314,8 +1336,9 @@ async function showOrderRecord(filter='all'){
       filtered.forEach(item => {
         const timeStr = formatTimestampToCST(item.timestamp);
         const userDisplay = item.user || '未知';
+        const color = getUserColor(userDisplay);
         const totalAmt = item.totalAmount || 0;
-        html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:red;">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
+        html += `<div class="order-item"><input type="checkbox" class="order-check" data-id="${item.id}"><div class="order-content">${item.content.replace(/\n/g,'<br>')}</div><div class="order-info"><span class="order-total" style="color:#000;">合计：${totalAmt}</span><span class="order-meta"><span style="color:${color};">用户：${userDisplay}</span> &nbsp; ${timeStr}</span></div><button class="order-del" onclick="deleteOrderRecord(${item.id})">删除</button></div>`;
       });
     }
     html += `</div></div><div class="modal-footer"><button onclick="closeOrderModal()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
@@ -1369,32 +1392,144 @@ async function enableEditConfig(){ if((await prompt("输入修改密码："))===
 async function saveDataConfig(){ if((await prompt("输入保存密码："))!==PASSWORD) { await alert("密码错误"); return; } const newConfig={}; document.querySelectorAll('.config-input').forEach(el=>{ newConfig[el.id.replace('config_','')]=el.value.trim(); }); localStorage.setItem('customDataConfigObj',JSON.stringify(newConfig)); lockAllInputs(); await alert("保存成功"); }
 async function resetDataConfig(){ if((await prompt("输入密码："))!==PASSWORD) { await alert("密码错误"); return; } localStorage.removeItem('customDataConfigObj'); initDataConfig(); await alert("已恢复默认"); }
 
-// ========== 替换预设功能 ==========
+// ========== 分类缩写管理 ==========
+function showCategoryAliases() {
+  const aliases = getCategoryAliases();
+  let html = `<div class="modal-overlay" id="categoryAliasModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>分类缩写</h3>
+        <button onclick="document.getElementById('categoryAliasModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="aliasOld" placeholder="缩写（如 红蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            <span style="align-self:center;">→</span>
+            <input type="text" id="aliasNew" placeholder="正规分类（如 红波-蓝波）" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addCategoryAlias()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="aliasList"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('categoryAliasModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  renderAliasList();
+}
+
+function renderAliasList() {
+  const aliases = getCategoryAliases();
+  const container = document.getElementById('aliasList');
+  if (!container) return;
+  if (aliases.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无分类缩写</div>';
+    return;
+  }
+  container.innerHTML = aliases.map((item, index) => `
+    <div class="replace-preset-item">
+      <span>${item.alias} → ${item.target}</span>
+      <button onclick="deleteCategoryAlias(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
+    </div>
+  `).join('');
+}
+
+async function addCategoryAlias() {
+  const alias = document.getElementById('aliasOld').value.trim();
+  const target = document.getElementById('aliasNew').value.trim();
+  if (!alias || !target) {
+    await alert('请输入缩写和目标分类');
+    return;
+  }
+  const aliases = getCategoryAliases();
+  if (aliases.some(a => a.alias === alias)) {
+    await alert('该缩写已存在，请先删除旧规则再添加');
+    return;
+  }
+  aliases.push({ alias, target });
+  // 按别名长度降序排序保存
+  aliases.sort((a,b) => b.alias.length - a.alias.length);
+  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
+  document.getElementById('aliasOld').value = '';
+  document.getElementById('aliasNew').value = '';
+  renderAliasList();
+}
+
+async function deleteCategoryAlias(index) {
+  if (!(await confirm('确定删除该缩写吗？'))) return;
+  const aliases = getCategoryAliases();
+  aliases.splice(index, 1);
+  localStorage.setItem('categoryAliases', JSON.stringify(aliases));
+  renderAliasList();
+}
+
+// ========== 替换预设功能（保留） ==========
 function showReplacePreset() {
   const presets = getReplacePresets();
-  let html = `<div class="modal-overlay" id="replacePresetModal"><div class="modal-box" style="max-width:500px;"><div class="modal-header"><h3>替换预设</h3><button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button></div><div class="modal-body"><div style="margin-bottom:12px;"><div style="display:flex; gap:6px; margin-bottom:8px;"><input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;"><span style="align-self:center;">→</span><input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;"></div><button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button></div><div id="presetList"></div></div><div class="modal-footer"><button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button></div></div></div>`;
+  let html = `<div class="modal-overlay" id="replacePresetModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>替换预设</h3>
+        <button onclick="document.getElementById('replacePresetModal').remove()" style="background:none;border:none;color:#fff;font-size:18px;">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <input type="text" id="presetOld" placeholder="原文字" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            <span style="align-self:center;">→</span>
+            <input type="text" id="presetNew" placeholder="替换为" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+          </div>
+          <button onclick="addReplacePreset()" style="padding:6px 12px; background:#007bff; color:#fff; border:none; border-radius:4px;">添加</button>
+        </div>
+        <div id="presetList"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('replacePresetModal').remove()" style="padding:8px 16px;background:#6c757d;color:#fff;border:none;border-radius:4px;">关闭</button>
+      </div>
+    </div>
+  </div>`;
   document.body.insertAdjacentHTML('beforeend', html);
   renderPresetList();
 }
+
 function renderPresetList() {
   const presets = getReplacePresets();
   const container = document.getElementById('presetList');
   if (!container) return;
-  if (presets.length === 0) { container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>'; return; }
-  container.innerHTML = presets.map((preset, index) => `<div class="replace-preset-item"><span>${preset.old} → ${preset.new}</span><button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button></div>`).join('');
+  if (presets.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#666;padding:10px;">暂无替换预设</div>';
+    return;
+  }
+  container.innerHTML = presets.map((preset, index) => `
+    <div class="replace-preset-item">
+      <span>${preset.old} → ${preset.new}</span>
+      <button onclick="deleteReplacePreset(${index})" style="margin-left:auto;padding:2px 8px;background:#e74c3c;color:#fff;border:none;border-radius:3px;">删除</button>
+    </div>
+  `).join('');
 }
+
 async function addReplacePreset() {
   const oldText = document.getElementById('presetOld').value.trim();
   const newText = document.getElementById('presetNew').value.trim();
-  if (!oldText || !newText) { await alert('请输入原文字和替换文字'); return; }
+  if (!oldText || !newText) {
+    await alert('请输入原文字和替换文字');
+    return;
+  }
   const presets = getReplacePresets();
-  if (presets.some(p => p.old === oldText)) { await alert('该原文字已有替换规则，请先删除旧规则再添加'); return; }
+  if (presets.some(p => p.old === oldText)) {
+    await alert('该原文字已有替换规则，请先删除旧规则再添加');
+    return;
+  }
   presets.push({ old: oldText, new: newText });
   localStorage.setItem('replacePresets', JSON.stringify(presets));
   document.getElementById('presetOld').value = '';
   document.getElementById('presetNew').value = '';
   renderPresetList();
 }
+
 async function deleteReplacePreset(index) {
   if (!(await confirm('确定删除该替换预设吗？'))) return;
   const presets = getReplacePresets();
@@ -1419,7 +1554,8 @@ async function exportData() {
     const reports = await getReportOrderRecords();
     const config = localStorage.getItem('customDataConfigObj');
     const presets = localStorage.getItem('replacePresets');
-    const data = { orders, reports, config, presets, exportTime: new Date().toISOString() };
+    const aliases = localStorage.getItem('categoryAliases');
+    const data = { orders, reports, config, presets, aliases, exportTime: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `港澳识别数据_${getTodayCST()}.json`; a.click();
@@ -1439,6 +1575,7 @@ async function importData() {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data.orders || !data.reports) { await alert('无效的数据格式'); document.body.removeChild(input); return; }
+
         const existingOrders = await getOrderRecords();
         const existingReports = await getReportOrderRecords();
         let skipOrders = 0, newOrders = 0;
@@ -1454,6 +1591,7 @@ async function importData() {
         for (const rec of data.reports) { const exist = existingReports.find(o => o.timestamp === rec.timestamp && o.content === rec.content && o.user === rec.user); if (!exist) await saveReportOrderRecordToIDB(rec.content, rec.user, rec.date, rec.totalAmount || 0); }
         if (data.config) localStorage.setItem('customDataConfigObj', data.config);
         if (data.presets) localStorage.setItem('replacePresets', data.presets);
+        if (data.aliases) localStorage.setItem('categoryAliases', data.aliases);
         initDataConfig();
         await updateTableFromRecords();
         calculateStorageUsage();
