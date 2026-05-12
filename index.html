@@ -292,12 +292,12 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
           订单输入
           <select id="orderUserSelect" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;"></select>
           <input type="date" id="orderDate" style="padding:4px;border-radius:4px;border:1px solid #ccc;margin-left:8px;">
-          <button class="btn btn-prefix" onclick="showPrefixManager()" style="margin-left:auto;">前缀</button>
-          <button class="btn btn-suffix" onclick="showSuffixManager()">后缀</button>
-          <button class="btn btn-amount-prefix" onclick="showAmountSuffixManager()">金额后缀</button>
           <div class="amount-stat-box" id="orderTotalAmountBox" style="display:none;">
             <span>合计：</span><span id="orderTotalAmount">0</span>
           </div>
+          <button class="btn btn-prefix" onclick="showPrefixManager()" style="margin-left:auto;">前缀</button>
+          <button class="btn btn-suffix" onclick="showSuffixManager()">后缀</button>
+          <button class="btn btn-amount-prefix" onclick="showAmountSuffixManager()">金额后缀</button>
         </div>
         <div class="order-input-container">
           <div class="input-column">
@@ -316,9 +316,9 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
           <button class="btn btn-save-order" onclick="saveOrder()">保存下单</button>
           <button class="btn btn-report" onclick="saveReportOrder()">上报</button>
           <button class="btn btn-clear" onclick="clearAllInput()">清空</button>
-          <button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
-          <button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button>
           <button class="btn btn-replace-sep" onclick="replaceSeparators()">换分隔</button>
+          <button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button>
+          <button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
         </div>
       </div>
 
@@ -1291,9 +1291,70 @@ function countItemsInLine(line, configData, categoryKeys) {
   return { numbers, zodiacs, amount };
 }
 
-function processCurrentOrder(input, user, isNormal, date = null) { const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const lines = input.split('\n').filter(l=>l.trim()); if (!userBetData[user]) userBetData[user] = {}; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; if (isNormal) { if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } } numbers.forEach(num => { if (isNormal) { userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; } else { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; } }); zodiacs.forEach(z => { if (isNormal) { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[user][num] = (userBetData[user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); } else { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); } }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); }
+function processCurrentOrder(input, user, isNormal, date = null) { 
+  const configData = getAllConfigData(); 
+  const categoryKeys = getAllValidCategories(configData); 
+  const lines = input.split('\n').filter(l=>l.trim()); 
+  if (!userBetData[user]) userBetData[user] = {}; 
+  const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; 
+  lines.forEach(line => { 
+    const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); 
+    const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; 
+    const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; 
+    if (isNormal) { 
+      if (zodiacs.length > 0) { 
+        zodiacs.forEach(z => { 
+          const weight = z === currentStartZodiac ? 5 : 4; 
+          zodiacWeightedTotal += amount * weight; 
+        }); 
+      } else if (numbers.length > 0) { 
+        numberOrderTotal += numbers.length * amount; 
+      } 
+    }
+    numbers.forEach(num => { 
+      if (isNormal) { 
+        userBetData[user][num] = (userBetData[user][num]||0)+amount; 
+        tableBetData[num] = (tableBetData[num]||0) + amount; 
+        reportBetData[num] = (reportBetData[num]||0) + amount; 
+        numberCount[num] = (numberCount[num]||0)+1; 
+        if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; 
+      } else { 
+        // 上报：用户风险表和上报表都减，同时记录上报金额
+        userBetData[user][num] = (userBetData[user][num]||0) - amount; 
+        reportBetData[num] = (reportBetData[num]||0) - amount; 
+        reportAmountData[num] = (reportAmountData[num]||0) + amount; 
+      } 
+    }); 
+    zodiacs.forEach(z => { 
+      if (isNormal) { 
+        zodiacCount[z] = (zodiacCount[z]||0)+1; 
+        if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; 
+        (configData.zodiac[z]||[]).forEach(n => { 
+          const num = n.padStart(2,'0'); 
+          userBetData[user][num] = (userBetData[user][num]||0)+amount; 
+          tableBetData[num] = (tableBetData[num]||0) + amount; 
+          reportBetData[num] = (reportBetData[num]||0) + amount; 
+        }); 
+      } else { 
+        (configData.zodiac[z]||[]).forEach(n => { 
+          const num = n.padStart(2,'0'); 
+          userBetData[user][num] = (userBetData[user][num]||0) - amount; 
+          reportBetData[num] = (reportBetData[num]||0) - amount; 
+          reportAmountData[num] = (reportAmountData[num]||0) + amount; 
+        }); 
+      } 
+    }); 
+  }); 
+  generateRiskTable(); 
+  generateReportTable(); 
+  renderFrequencyCards(); 
+  renderAmountFrequencyCards(); 
+  renderReportAmountTable(); 
+  updateReportAmountTotal(); 
+  updateAmountDisplays(); 
+}
 
-async function updateTableFromRecords() { try { const filterDate = document.getElementById('filterDate').value; tableBetData = {}; userBetData = {}; reportBetData = {}; reportAmountData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; numberOrderTotal = 0; zodiacWeightedTotal = 0; const records = await getOrderRecords(); const reportRecords = await getReportOrderRecords(); const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; const filteredOrders = filterDate ? records.filter(r => r.date === filterDate) : records; const filteredReports = filterDate ? reportRecords.filter(r => r.date === filterDate) : reportRecords; filteredOrders.forEach(record => { if (!userBetData[record.user]) userBetData[record.user] = {}; record.content.split('\n').filter(l=>l.trim()).forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } numbers.forEach(num => { userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; }); zodiacs.forEach(z => { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); }); }); }); filteredReports.forEach(record => { record.content.split('\n').filter(l=>l.trim()).forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); numbers.forEach(num => { reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); zodiacs.forEach(z => { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); }); }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); } catch (e) { console.error('更新表格失败', e); } }
+async function updateTableFromRecords() { try { const filterDate = document.getElementById('filterDate').value; tableBetData = {}; userBetData = {}; reportBetData = {}; reportAmountData = {}; numberCount = {}; zodiacCount = {}; numberAmountCount = {}; zodiacAmountCount = {}; numberOrderTotal = 0; zodiacWeightedTotal = 0; const records = await getOrderRecords(); const reportRecords = await getReportOrderRecords(); const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); const numMin = parseInt(document.getElementById('numAmountMin').value)||1, numMax = parseInt(document.getElementById('numAmountMax').value)||50000; const zodMin = parseInt(document.getElementById('zodiacAmountMin').value)||1, zodMax = parseInt(document.getElementById('zodiacAmountMax').value)||50000; const currentStartZodiac = localStorage.getItem('selectedStartZodiac') || '马'; const filteredOrders = filterDate ? records.filter(r => r.date === filterDate) : records; const filteredReports = filterDate ? reportRecords.filter(r => r.date === filterDate) : reportRecords; filteredOrders.forEach(record => { if (!userBetData[record.user]) userBetData[record.user] = {}; record.content.split('\n').filter(l=>l.trim()).forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); if (zodiacs.length > 0) { zodiacs.forEach(z => { const weight = z === currentStartZodiac ? 5 : 4; zodiacWeightedTotal += amount * weight; }); } else if (numbers.length > 0) { numberOrderTotal += numbers.length * amount; } numbers.forEach(num => { userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; numberCount[num] = (numberCount[num]||0)+1; if (amount>=numMin && amount<=numMax) numberAmountCount[num] = (numberAmountCount[num]||0)+1; }); zodiacs.forEach(z => { zodiacCount[z] = (zodiacCount[z]||0)+1; if (amount>=zodMin && amount<=zodMax) zodiacAmountCount[z] = (zodiacAmountCount[z]||0)+1; (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[record.user][num] = (userBetData[record.user][num]||0)+amount; tableBetData[num] = (tableBetData[num]||0) + amount; reportBetData[num] = (reportBetData[num]||0) + amount; }); }); }); }); filteredReports.forEach(record => { record.content.split('\n').filter(l=>l.trim()).forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); numbers.forEach(num => { userBetData[record.user][num] = (userBetData[record.user][num]||0) - amount; reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); zodiacs.forEach(z => { (configData.zodiac[z]||[]).forEach(n => { const num = n.padStart(2,'0'); userBetData[record.user][num] = (userBetData[record.user][num]||0) - amount; reportBetData[num] = (reportBetData[num]||0) - amount; reportAmountData[num] = (reportAmountData[num]||0) + amount; }); }); }); }); generateRiskTable(); generateReportTable(); renderFrequencyCards(); renderAmountFrequencyCards(); renderReportAmountTable(); updateReportAmountTotal(); updateAmountDisplays(); } catch (e) { console.error('更新表格失败', e); } }
 
 function updateOrderTotalDisplay() { const resultText = document.getElementById('orderResult').value.trim(); const box = document.getElementById('orderTotalAmountBox'); const span = document.getElementById('orderTotalAmount'); if (!resultText) { box.style.display = 'none'; return; } const lines = resultText.split('\n'); const configData = getAllConfigData(); const categoryKeys = getAllValidCategories(configData); let total = 0; lines.forEach(line => { const { numbers, zodiacs, amount } = countItemsInLine(line, configData, categoryKeys); let numCount = numbers.length; zodiacs.forEach(z => { const zNums = configData.zodiac[z] || []; numCount += zNums.length; }); if (numCount > 0) { total += numCount * amount; } }); span.textContent = total; box.style.display = 'inline-flex'; }
 
