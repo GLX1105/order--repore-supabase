@@ -1035,7 +1035,7 @@ function convertOrderText() {
   if(!text){resultEl.value='';updateOrderTotalDisplay();return;}
   const lines=text.split('\n'); const resultLines=[];
   const AMP='(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';
-  const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
+  const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳特','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
   const cusPre=getCustomPrefixes(); const allPre=[...IGN,...cusPre];
   const cusSuf=getCustomSuffixes(); const baseSuf='元块咪斤#،。\\s';
   const cusAmtSuf=getCustomAmountSuffixes(); const allAmtChars=[...new Set([...baseSuf.split(''),...cusAmtSuf])].join('');
