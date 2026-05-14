@@ -458,7 +458,7 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
         <div class="card-title">上报控制</div>
         <div class="freq-container">
           <div class="freq-card">
-            <div class="freq-title">截断阈值：<input type="number" id="reportCapInput" class="range-input" value="" placeholder="当前最大..." oninput="applyReportCap()"><button class="btn-copy" onclick="copyReportCapText()" style="padding:4px 10px;font-size:12px;margin-left:4px;">复制</button></div>
+            <div class="freq-title">截断阈值：<input type="number" id="reportCapInput" class="range-input" value="" placeholder="" oninput="applyReportCap()"><button class="btn-copy" onclick="copyReportCapText()" style="padding:4px 10px;font-size:12px;margin-left:4px;">复制</button></div>
             <div id="reportCapInfo" style="font-size:12px;margin-top:5px;color:#333;line-height:1.6;"></div>
           </div>
           <div class="freq-card">
@@ -763,7 +763,8 @@ function pinWindow(winId) { const win = document.getElementById(winId); if (!win
 // ===== 数据库弹窗显示/隐藏 =====
 async function showDatabase() { const pwd = await prompt("请输入数据库密码：",""); if (pwd === PASSWORD) { const modal = document.getElementById('databaseModal'); if (!modal) return; modal.style.display = 'flex'; highestZ += 1; modal.style.zIndex = highestZ; renderCustomConfigContainer(); makeWindowDraggable('databaseModalBox'); } else { await alert("密码错误"); } }
 function hideDatabase() { const modal = document.getElementById('databaseModal'); if (modal) modal.style.display = 'none'; }
-    // ===== 识别弹窗 =====
+
+// ===== 识别弹窗 =====
 function showRecognizeModal() {
   if (document.getElementById('recognizeWin')) return;
   const win = document.createElement('div'); win.className = 'floating-window'; win.id = 'recognizeWin';
@@ -1019,7 +1020,8 @@ async function deleteReplacePreset(i){ if(!(await confirm('确定删除？')))re
 
 function applyCategoryAliases(text) { const a=getCategoryAliases(); if(!a.length)return text; const s=[...a].sort((x,y)=>y.alias.length-x.alias.length); let r=text; s.forEach(x=>{ if(x.alias&&x.target)r=r.split(x.alias).join(x.target); }); return r; }
 function applyReplacePresets(text) { const p=getReplacePresets(); let r=text; p.forEach(x=>{ if(x.old&&x.new)r=r.split(x.old).join(x.new); }); return r; }
-    // ===== 语义转换 =====
+
+// ===== 语义转换 =====
 async function semanticReplace() { const ta=document.querySelector('.source-order-input'); if(!ta)return; const s=ta.selectionStart,e=ta.selectionEnd; if(s===e){showToast('请先选择文本');return;} const sel=ta.value.substring(s,e); const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=sel.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()); const matched=tokens.filter(t=>vc.has(t)); if(!matched.length){showToast('未识别有效分类');return;} let sets=matched.map(cat=>{ let nums=[]; if(cfg.shengxiaoAttr[cat]){ cfg.shengxiaoAttr[cat].forEach(z=>{ if(cfg.zodiac[z])nums.push(...cfg.zodiac[z].map(n=>n.toString().padStart(2,'0'))); }); } const dir=cfg.wuxing[cat]||cfg.bose[cat]||cfg.banbo[cat]||cfg.danshuang[cat]||cfg.weishu[cat]||cfg.daxiaodanshuang[cat]||cfg.daxiao[cat]||cfg.heshu[cat]||cfg.toushu[cat]||cfg.menshu[cat]||cfg.duanwei[cat]||cfg.hedahexiao[cat]||cfg.weidaweixiao[cat]||cfg.hewei[cat]||cfg.heshudanshuang[cat]||cfg.toushuDanshuang[cat]; if(dir)nums.push(...dir.map(n=>n.toString().padStart(2,'0'))); if(cfg.zodiac[cat])nums.push(...cfg.zodiac[cat].map(n=>n.toString().padStart(2,'0'))); return new Set(nums); }); let inter=sets[0]; for(let i=1;i<sets.length;i++)inter=new Set([...inter].filter(x=>sets[i].has(x))); const res=[...inter].sort((a,b)=>parseInt(a)-parseInt(b)); if(!res.length){showToast('无共同号码');return;} const str=res.join('-'); const cf=await confirm(`转换结果：${str}\n是否替换选中文本？`); if(cf){ta.value=ta.value.substring(0,s)+str+ta.value.substring(e);convertOrderText();} }
 
 function tokenizeAndJoin(content) { const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=content.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()).map(t=>t.trim()); const res=[]; tokens.forEach(t=>{ const tm=t.match(/^(\d{2,})尾$/); const hm=t.match(/^(\d{2,})头$/); if(tm){ const ds=tm[1].split('').map(d=>d+'尾'); res.push(...ds); } else if(hm){ const ds=hm[1].split('').map(d=>d+'头'); res.push(...ds); } else if(/^\d{1,2}$/.test(t)){ const n=parseInt(t); if(n>=1&&n<=49)res.push(t.length===1?'0'+t:t); } else if(vc.has(t)){ res.push(t); } else if(/^[\u4e00-\u9fa5]+$/.test(t)){ const cs=t.match(/[\u4e00-\u9fa5]/g)||[]; if(cs.every(c=>vc.has(c)))res.push(...cs); } }); return res.join('-'); }
@@ -1033,31 +1035,24 @@ function convertOrderText() {
   if(!text){resultEl.value='';updateOrderTotalDisplay();return;}
   const lines=text.split('\n'); const resultLines=[];
   const AMP='(?:各|各号|号|个|=|各数|每数|每号|个号|每个号|各码|各号码)';
-  const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳特','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
+  const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
   const cusPre=getCustomPrefixes(); const allPre=[...IGN,...cusPre];
   const cusSuf=getCustomSuffixes(); const baseSuf='元块咪斤#،。\\s';
   const cusAmtSuf=getCustomAmountSuffixes(); const allAmtChars=[...new Set([...baseSuf.split(''),...cusAmtSuf])].join('');
   const AMTS=`[${allAmtChars}]*`;
   function cn2n(s){ const m={'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'百':100,'千':1000}; let sum=0,tmp=0; for(let c of s){ const v=m[c]; if(v===10||v===100||v===1000){ if(tmp===0)tmp=1; tmp*=v; sum+=tmp; tmp=0; }else if(v!==undefined){ if(tmp>0){sum+=tmp;tmp=0;} tmp=v; } } sum+=tmp; return sum; }
-
-  // 简单双数字模式：仅由“号码(1-2位) + 分隔符 + 金额”组成
   const SIMPLE_PAIR = /^(\d{1,2})[^\d\s]+(\d+)$/;
-
   lines.forEach(line=>{
     line=line.trim();
     if(!line)return;
-
-    // 先尝试简单双数字模式（02.30 或 02-300）
     const pairMatch = line.match(SIMPLE_PAIR);
     if(pairMatch){
       let num = pairMatch[1];
       const amount = pairMatch[2];
       if(num.length===1) num = '0'+num;
       resultLines.push(`${num} 各数 ${amount}`);
-      return; // 跳过后续复杂逻辑
+      return;
     }
-
-    // 原有复杂逻辑
     let cl=line;
     allPre.forEach(p=>{if(cl.startsWith(p))cl=cl.substring(p.length).trim();});
     cusSuf.forEach(s=>{if(cl.endsWith(s))cl=cl.slice(0,-s.length).trim();});
@@ -1095,7 +1090,6 @@ function convertOrderText() {
   updateOrderTotalDisplay();
 }
 
-// ===== 以下所有代码保持不变 =====
 function getAllValidCategories(cfg) { const s=new Set(); Object.keys(cfg.zodiac).forEach(k=>s.add(k)); Object.keys(cfg.shengxiaoAttr).forEach(k=>s.add(k)); Object.keys(cfg.wuxing).forEach(k=>s.add(k)); Object.keys(cfg.bose).forEach(k=>s.add(k)); Object.keys(cfg.banbo).forEach(k=>s.add(k)); Object.keys(cfg.danshuang).forEach(k=>s.add(k)); Object.keys(cfg.weishu).forEach(k=>s.add(k)); Object.keys(cfg.daxiaodanshuang).forEach(k=>s.add(k)); Object.keys(cfg.daxiao).forEach(k=>s.add(k)); Object.keys(cfg.heshu).forEach(k=>s.add(k)); Object.keys(cfg.toushu).forEach(k=>s.add(k)); Object.keys(cfg.menshu).forEach(k=>s.add(k)); Object.keys(cfg.duanwei).forEach(k=>s.add(k)); Object.keys(cfg.hedahexiao).forEach(k=>s.add(k)); Object.keys(cfg.weidaweixiao).forEach(k=>s.add(k)); Object.keys(cfg.hewei).forEach(k=>s.add(k)); Object.keys(cfg.heshudanshuang).forEach(k=>s.add(k)); Object.keys(cfg.toushuDanshuang).forEach(k=>s.add(k)); return s; }
 
 // ===== 保存订单 =====
@@ -1144,7 +1138,47 @@ function handleTableRowClick(event){ const td=event.target.closest('td'); if(!td
 
 function generateRiskTable(){ const sw=document.getElementById('riskReportSwitcher')?.value; let data; if(sw==='total')data=tableBetData; else if(sw==='user'){const u=document.getElementById('viewUserSelect')?.value;data=userBetData[u]||{};} else data=reportBetData; const tbody=document.getElementById('tableBody'); if(!tbody)return; tbody.innerHTML=''; let total=0; const mul=parseFloat(document.getElementById('multipleVal')?.value)||1; const rr=parseFloat(document.getElementById('rebateRate')?.value)||0; let list=[]; for(let n in data){const b=data[n];total+=b;list.push({num:n,bet:b});} for(let i=1;i<=49;i++){const n=i.toString().padStart(2,'0');if(!data[n])list.push({num:n,bet:0});} list.sort((a,b)=>b.bet-a.bet); const reb=(total*rr/100).toFixed(2); list.forEach((item,idx)=>{ const{num,bet}=item; const risk=Math.round(total-bet*mul-parseFloat(reb)); const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); const tr=document.createElement('tr'); tr.className=cls; tr.innerHTML=`<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td><td>${idx+1}</td>`; tbody.appendChild(tr); }); document.getElementById('totalBet').textContent=total; document.getElementById('totalRebate').textContent=reb; }
 function applyReportCap(){ generateReportTable(); }
-function generateReportTable(){ const cap=document.getElementById('reportCapInput'); let cv=parseFloat(cap?.value); if(isNaN(cv)||cv<=0)cap.value=''; const data=reportBetData; const tbody=document.getElementById('reportTableBody'); if(!tbody)return; tbody.innerHTML=''; const mul=parseFloat(document.getElementById('reportMultipleVal')?.value)||1; const rr=parseFloat(document.getElementById('reportRebateRate')?.value)||0; let total=0; let list=[]; for(let n in data){ let b=data[n]; if(!isNaN(cv)&&cv>0&&b>cv)b=cv; total+=b; list.push({num:n,bet:b}); } for(let i=1;i<=49;i++){const n=i.toString().padStart(2,'0');if(!data[n])list.push({num:n,bet:0});} list.sort((a,b)=>b.bet-a.bet); const reb=(total*rr/100).toFixed(2); list.forEach((item,idx)=>{ const{num,bet}=item; const risk=Math.round(total-bet*mul-parseFloat(reb)); const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text'); const tr=document.createElement('tr'); tr.className=cls; tr.innerHTML=`<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td><td>${idx+1}</td>`; tbody.appendChild(tr); }); document.getElementById('reportTotalBet').textContent=total; document.getElementById('reportTotalRebate').textContent=reb; const info=document.getElementById('reportCapInfo'); if(!isNaN(cv)&&cv>0){ const exc=[]; for(let n in data){if(data[n]>cv)exc.push({num:n,exceed:data[n]-cv});} if(exc.length>0){ exc.sort((a,b)=>a.exceed-b.exceed); let txt='';let te=0; exc.forEach(x=>{txt+=`${x.num}各${x.exceed}米<br>`;te+=x.exceed;}); txt+=`合计${te}`; info.innerHTML=txt; }else{info.textContent='无超出的号码';} }else{info.textContent='';} if(Object.keys(data).length>0){const max=Math.max(...Object.values(data));cap.placeholder=`当前最大: ${max}`;} }
+function generateReportTable(){
+  const cap=document.getElementById('reportCapInput');
+  let cv=parseFloat(cap?.value);
+  if(isNaN(cv)||cv<=0)cap.value='';
+  const data=reportBetData;
+  const tbody=document.getElementById('reportTableBody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  const mul=parseFloat(document.getElementById('reportMultipleVal')?.value)||1;
+  const rr=parseFloat(document.getElementById('reportRebateRate')?.value)||0;
+  let total=0;
+  let list=[];
+  for(let n in data){ let b=data[n]; if(!isNaN(cv)&&cv>0&&b>cv)b=cv; total+=b; list.push({num:n,bet:b}); }
+  for(let i=1;i<=49;i++){const n=i.toString().padStart(2,'0');if(!data[n])list.push({num:n,bet:0});}
+  list.sort((a,b)=>b.bet-a.bet);
+  const reb=(total*rr/100).toFixed(2);
+  list.forEach((item,idx)=>{
+    const{num,bet}=item;
+    const risk=Math.round(total-bet*mul-parseFloat(reb));
+    const cls=redNumbers.includes(num)?'red-text':(blueNumbers.includes(num)?'blue-text':'green-text');
+    const tr=document.createElement('tr');
+    tr.className=cls;
+    tr.innerHTML=`<td>${num}${currentZodiacMap[num]||''}</td><td>${bet}</td><td>${risk}</td><td>${num}</td><td>${idx+1}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('reportTotalBet').textContent=total;
+  document.getElementById('reportTotalRebate').textContent=reb;
+  const info=document.getElementById('reportCapInfo');
+  if(!isNaN(cv)&&cv>0){
+    const exc=[];
+    for(let n in data){if(data[n]>cv)exc.push({num:n,exceed:data[n]-cv});}
+    if(exc.length>0){
+      exc.sort((a,b)=>a.exceed-b.exceed);
+      let txt='';let te=0;
+      exc.forEach(x=>{txt+=`${x.num}各${x.exceed}米<br>`;te+=x.exceed;});
+      txt+=`合计${te}`;
+      info.innerHTML=txt;
+    }else{info.textContent='无超出的号码';}
+  }else{info.textContent='';}
+  if(Object.keys(data).length>0){const max=Math.max(...Object.values(data));cap.placeholder=max;}
+}
 async function copyReportCapText(){ const info=document.getElementById('reportCapInfo'); const txt=info.innerText||info.textContent; if(!txt||txt==='无超出的号码'){showToast('没有可复制的文本');return;} navigator.clipboard.writeText(txt).then(()=>showToast('已复制')).catch(()=>showToast('复制失败')); }
 async function screenshotTable(tid){ const tbl=document.getElementById(tid); if(!tbl){showToast('表格不存在');return;} try{ const canvas=await html2canvas(tbl,{backgroundColor:'#ffffff',scale:2,logging:false}); canvas.toBlob(async blob=>{ if(!blob){showToast('生成图片失败');return;} try{ const item=new ClipboardItem({'image/png':blob}); await navigator.clipboard.write([item]); showToast('截图已复制'); }catch(e){showToast('复制失败'); } },'image/png'); }catch(e){showToast('截图失败');} }
 function renderReportAmountTable(){ const tbl=document.getElementById('reportAmountTable'); if(!tbl)return; tbl.innerHTML=''; const cols=[...Array(5)].map((_,c)=>Array.from({length:c===4?9:10},(_,r)=>(c*10+r+1).toString().padStart(2,'0'))); let th='<thead><tr>'; for(let c=0;c<5;c++)th+='<th>号码</th><th>金额</th>'; th+='</tr></thead>'; let tb='<tbody>'; for(let r=0;r<10;r++){ tb+='<tr>'; for(let c=0;c<5;c++){ const n=cols[c][r]||''; if(n){ const a=reportAmountData[n]||0; const cls=redNumbers.includes(n)?'red-text':(blueNumbers.includes(n)?'blue-text':'green-text'); tb+=`<td class="${cls}">${n}</td><td class="black-text">${a||''}</td>`; }else{tb+='<td></td><td></td>';} } tb+='</tr>'; } tb+='</tbody>'; tbl.innerHTML=th+tb; updateReportAmountTotal(); }
