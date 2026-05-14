@@ -441,7 +441,7 @@ tr.selected-row {background-color: #dceeff !important; font-weight: bold; box-sh
         <div class="card-title">上报控制</div>
         <div class="freq-container">
           <div class="freq-card">
-            <div class="freq-title">截断阈值：<input type="number" id="reportCapInput" class="range-input" value="" placeholder="..." oninput="applyReportCap()"><button class="btn-copy" onclick="copyReportCapText()" style="padding:4px 10px;font-size:12px;margin-left:4px;">复制</button></div>
+            <div class="freq-title">截断阈值：<input type="number" id="reportCapInput" class="range-input" value="" placeholder="当前最大..." oninput="applyReportCap()"><button class="btn-copy" onclick="copyReportCapText()" style="padding:4px 10px;font-size:12px;margin-left:4px;">复制</button></div>
             <div id="reportCapInfo" style="font-size:12px;margin-top:5px;color:#333;line-height:1.6;"></div>
           </div>
           <div class="freq-card">
@@ -762,7 +762,7 @@ function hideDatabase() {
   const modal = document.getElementById('databaseModal');
   if (modal) modal.style.display = 'none';
 }
-// ===== 识别弹窗 =====
+    // ===== 识别弹窗 =====
 function showRecognizeModal() {
   if (document.getElementById('recognizeWin')) return;
   const win = document.createElement('div'); win.className = 'floating-window'; win.id = 'recognizeWin';
@@ -1018,7 +1018,7 @@ async function deleteReplacePreset(i){ if(!(await confirm('确定删除？')))re
 
 function applyCategoryAliases(text) { const a=getCategoryAliases(); if(!a.length)return text; const s=[...a].sort((x,y)=>y.alias.length-x.alias.length); let r=text; s.forEach(x=>{ if(x.alias&&x.target)r=r.split(x.alias).join(x.target); }); return r; }
 function applyReplacePresets(text) { const p=getReplacePresets(); let r=text; p.forEach(x=>{ if(x.old&&x.new)r=r.split(x.old).join(x.new); }); return r; }
-// ===== 语义转换 =====
+    // ===== 语义转换 =====
 async function semanticReplace() { const ta=document.querySelector('.source-order-input'); if(!ta)return; const s=ta.selectionStart,e=ta.selectionEnd; if(s===e){showToast('请先选择文本');return;} const sel=ta.value.substring(s,e); const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=sel.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()); const matched=tokens.filter(t=>vc.has(t)); if(!matched.length){showToast('未识别有效分类');return;} let sets=matched.map(cat=>{ let nums=[]; if(cfg.shengxiaoAttr[cat]){ cfg.shengxiaoAttr[cat].forEach(z=>{ if(cfg.zodiac[z])nums.push(...cfg.zodiac[z].map(n=>n.toString().padStart(2,'0'))); }); } const dir=cfg.wuxing[cat]||cfg.bose[cat]||cfg.banbo[cat]||cfg.danshuang[cat]||cfg.weishu[cat]||cfg.daxiaodanshuang[cat]||cfg.daxiao[cat]||cfg.heshu[cat]||cfg.toushu[cat]||cfg.menshu[cat]||cfg.duanwei[cat]||cfg.hedahexiao[cat]||cfg.weidaweixiao[cat]||cfg.hewei[cat]||cfg.heshudanshuang[cat]||cfg.toushuDanshuang[cat]; if(dir)nums.push(...dir.map(n=>n.toString().padStart(2,'0'))); if(cfg.zodiac[cat])nums.push(...cfg.zodiac[cat].map(n=>n.toString().padStart(2,'0'))); return new Set(nums); }); let inter=sets[0]; for(let i=1;i<sets.length;i++)inter=new Set([...inter].filter(x=>sets[i].has(x))); const res=[...inter].sort((a,b)=>parseInt(a)-parseInt(b)); if(!res.length){showToast('无共同号码');return;} const str=res.join('-'); const cf=await confirm(`转换结果：${str}\n是否替换选中文本？`); if(cf){ta.value=ta.value.substring(0,s)+str+ta.value.substring(e);convertOrderText();} }
 
 function tokenizeAndJoin(content) { const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=content.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()).map(t=>t.trim()); const res=[]; tokens.forEach(t=>{ const tm=t.match(/^(\d{2,})尾$/); const hm=t.match(/^(\d{2,})头$/); if(tm){ const ds=tm[1].split('').map(d=>d+'尾'); res.push(...ds); } else if(hm){ const ds=hm[1].split('').map(d=>d+'头'); res.push(...ds); } else if(/^\d{1,2}$/.test(t)){ const n=parseInt(t); if(n>=1&&n<=49)res.push(t.length===1?'0'+t:t); } else if(vc.has(t)){ res.push(t); } else if(/^[\u4e00-\u9fa5]+$/.test(t)){ const cs=t.match(/[\u4e00-\u9fa5]/g)||[]; if(cs.every(c=>vc.has(c)))res.push(...cs); } }); return res.join('-'); }
@@ -1145,8 +1145,60 @@ function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.ch
 function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
 function checkAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=true); }
 function uncheckAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=false); }
-async function deleteChecked(){ const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){showToast('请选择');return;} await batchDeleteOrderRecord(ids); }
-async function deleteCheckedReport(){ const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id))); if(ids.length===0){showToast('请选择');return;} await batchDeleteReportOrderRecord(ids); }
+// --- 修复后的删除相关函数 ---
+async function deleteOrderRecord(id) {
+  if (!(await confirm('确定删除这条订单吗？'))) return;
+  await deleteOrderRecordFromIDB(id);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showToast('删除成功，金额已撤回');
+  if (document.getElementById('orderWin')) {
+    await showOrderRecord(document.getElementById('recordUserFilter')?.value || 'all');
+  }
+}
+async function deleteReportOrderRecord(id) {
+  if (!(await confirm('确定删除这条上报记录吗？'))) return;
+  await deleteReportOrderRecordFromIDB(id);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showToast('删除成功，金额已撤回');
+  if (document.getElementById('reportWin')) {
+    await showReportOrderRecord(document.getElementById('reportRecordUserFilter')?.value || 'all');
+  }
+}
+async function batchDeleteOrderRecord(ids) {
+  if (!(await confirm(`确定删除选中的 ${ids.length} 条订单吗？`))) return;
+  await batchDeleteOrderRecordFromIDB(ids);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showToast(`已删除 ${ids.length} 条订单，金额已撤回`);
+  if (document.getElementById('orderWin')) {
+    await showOrderRecord(document.getElementById('recordUserFilter')?.value || 'all');
+  }
+}
+async function batchDeleteReportOrderRecord(ids) {
+  if (!(await confirm(`确定删除选中的 ${ids.length} 条上报记录吗？`))) return;
+  await batchDeleteReportOrderRecordFromIDB(ids);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showToast(`已删除 ${ids.length} 条上报记录，金额已撤回`);
+  if (document.getElementById('reportWin')) {
+    await showReportOrderRecord(document.getElementById('reportRecordUserFilter')?.value || 'all');
+  }
+}
+async function deleteChecked() {
+  const ids = [];
+  document.querySelectorAll('.order-check:checked').forEach(cb => ids.push(Number(cb.dataset.id)));
+  if (ids.length === 0) { showToast('请先选择要删除的订单'); return; }
+  await batchDeleteOrderRecord(ids);
+}
+async function deleteCheckedReport() {
+  const ids = [];
+  document.querySelectorAll('.report-order-check:checked').forEach(cb => ids.push(Number(cb.dataset.id)));
+  if (ids.length === 0) { showToast('请先选择要删除的上报记录'); return; }
+  await batchDeleteReportOrderRecord(ids);
+}
+// --- 删除函数修复结束 ---
 
 async function resetTable(){ if((await prompt("输入清空密码：",""))!==PASSWORD){await alert("密码错误");return;} tableBetData={};userBetData={};reportBetData={};reportAmountData={};numberCount={};zodiacCount={};numberAmountCount={};zodiacAmountCount={};numberOrderTotal=0;zodiacWeightedTotal=0; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); location.reload(); }
 function clearAllInput(){ const si=document.querySelector('.source-order-input'); if(si)si.value=''; const re=document.getElementById('orderResult'); if(re)re.value=''; updateOrderTotalDisplay(); }
