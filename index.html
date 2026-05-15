@@ -1117,7 +1117,7 @@ function convertOrderText() {
   const AMP_ORIGINAL = '(?:' + allAmpList.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')';
   const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
   const cusPre=getCustomPrefixes(); const allPre=[...IGN,...cusPre];
-  const baseSuf='元块咪米斤#،。\\s';
+  const baseSuf='元块咪斤#،。\\s';
   const cusAmtSuf=getCustomAmountSuffixes(); const allAmtChars=[...new Set([...baseSuf.split(''),...cusAmtSuf])].join('');
   const AMTS=`[${allAmtChars}]*`;
   function cn2n(s){ const m={'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'百':100,'千':1000}; let sum=0,tmp=0; for(let c of s){ const v=m[c]; if(v===10||v===100||v===1000){ if(tmp===0)tmp=1; tmp*=v; sum+=tmp; tmp=0; }else if(v!==undefined){ if(tmp>0){sum+=tmp;tmp=0;} tmp=v; } } sum+=tmp; return sum; }
@@ -1391,23 +1391,32 @@ async function deleteReportOrderRecord(id) {
   showReportOrderRecord();
 }
 
+// ===== 全选/取消全选/批量删除（已修复） =====
 function checkAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=true); }
 function uncheckAll(){ document.querySelectorAll('.order-check').forEach(cb=>cb.checked=false); }
 function checkAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=true); }
 function uncheckAllReport(){ document.querySelectorAll('.report-order-check').forEach(cb=>cb.checked=false); }
 async function deleteChecked(){
-  const ids=[]; document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
+  const ids=[];
+  document.querySelectorAll('.order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
   if(ids.length===0){showToast('请选择');return;}
   await batchDeleteOrderRecord(ids);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showOrderRecord();
 }
 async function deleteCheckedReport(){
-  const ids=[]; document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
+  const ids=[];
+  document.querySelectorAll('.report-order-check:checked').forEach(cb=>ids.push(Number(cb.dataset.id)));
   if(ids.length===0){showToast('请选择');return;}
   await batchDeleteReportOrderRecord(ids);
+  await updateTableFromRecords();
+  calculateStorageUsage();
+  showReportOrderRecord();
 }
 
 // ===== 清空、粘贴、切换 =====
-async function resetTable(){ if((await prompt("输入清空密码：",""))!==PASSWORD){await alert("密码错误");return;} tableBetData={};userBetData={};reportBetData={};reportAmountData={};numberCount={};zodiacCount={};numberAmountCount={};zodiacAmountCount={};numberOrderTotal=0;zodiacWeightedTotal=0; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); location.reload(); }
+async function resetTable(){ if((await prompt("输入清空密码：",""))!==PASSWORD){await alert("密码错误");return;} tableBetData={};userBetData={};reportBetData={};reportAmountData={};numberCount={};zodiacCount={};numberAmountCount={};zodiacAmountCount={};numberOrderTotal=0;zodiacWeightedTotal=0; await clearAllOrderRecordsFromIDB(); await clearAllReportOrderRecordsFromIDB(); localStorage.removeItem('customDataConfigObj'); location.replace(location.href); }
 function clearAllInput(){ const si=document.querySelector('.source-order-input'); if(si)si.value=''; const re=document.getElementById('orderResult'); if(re)re.value=''; updateOrderTotalDisplay(); }
 async function pasteOrder(){ try{ const text=await navigator.clipboard.readText(); if(text){const si=document.querySelector('.source-order-input');if(si){si.value=text;convertOrderText();}} }catch(err){showToast('无法访问剪贴板');} }
 
@@ -1507,26 +1516,31 @@ document.getElementById('zodiacAmountMin')?.addEventListener('input', updateTabl
 document.getElementById('zodiacAmountMax')?.addEventListener('input', updateTableFromRecords);
 
 window.onload = async () => {
-  await initIndexedDB();
-  initDataConfig();
-  const today = getTodayCST();
-  const filterDateEl = document.getElementById('filterDate');
-  if (filterDateEl) filterDateEl.value = today;
-  const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
-  document.getElementById('startZodiacSelect').value = savedZodiac;
-  currentZodiacMap = buildZodiacMap(savedZodiac);
-  updateSelects();
-  renderAllTablesPlaceholder();
-  window._systemReady = async () => {
-    await updateTableFromRecords();
-    calculateStorageUsage();
-    updateOrderTotalDisplay();
-    updateReportAmountTotal();
-  };
-  if (!checkCurrentAccess()) { showLoginScreen(); }
-  else {
-    if (isAdmin()) document.getElementById('cardMgrBtn').style.display = '';
-    await window._systemReady();
+  try {
+    await initIndexedDB();
+    initDataConfig();
+    const today = getTodayCST();
+    const filterDateEl = document.getElementById('filterDate');
+    if (filterDateEl) filterDateEl.value = today;
+    const savedZodiac = localStorage.getItem('selectedStartZodiac') || '马';
+    document.getElementById('startZodiacSelect').value = savedZodiac;
+    currentZodiacMap = buildZodiacMap(savedZodiac);
+    updateSelects();
+    renderAllTablesPlaceholder();
+    window._systemReady = async () => {
+      await updateTableFromRecords();
+      calculateStorageUsage();
+      updateOrderTotalDisplay();
+      updateReportAmountTotal();
+    };
+    if (!checkCurrentAccess()) { showLoginScreen(); }
+    else {
+      if (isAdmin()) document.getElementById('cardMgrBtn').style.display = '';
+      await window._systemReady();
+    }
+  } catch (error) {
+    console.error('初始化失败:', error);
+    if (typeof showLoginScreen === 'function') showLoginScreen();
   }
 };
 </script>
