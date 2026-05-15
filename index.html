@@ -757,7 +757,48 @@ function initMainSystem() { document.getElementById('mainContent').style.display
 // ===== 浮动窗口控制 =====
 let highestZ = 2000;
 function makeWindowDraggable(winId) { const win = document.getElementById(winId); if (!win) return; const header = win.querySelector('.modal-header') || win.querySelector('.database-modal-header'); if (!header) return; let isDragging = false, startX, startY, startLeft, startTop; header.addEventListener('mousedown', (e) => { if (e.target.closest('.window-controls')) return; isDragging = true; const rect = win.getBoundingClientRect(); startX = e.clientX; startY = e.clientY; startLeft = rect.left; startTop = rect.top; win.style.cursor = 'grabbing'; e.preventDefault(); }); document.addEventListener('mousemove', (e) => { if (!isDragging) return; const dx = e.clientX - startX; const dy = e.clientY - startY; win.style.left = (startLeft + dx) + 'px'; win.style.top = (startTop + dy) + 'px'; win.style.transform = 'none'; }); document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; win.style.cursor = ''; } }); win.addEventListener('mousedown', () => { highestZ += 1; win.style.zIndex = highestZ; }); }
-function maximizeWindow(winId) { const win = document.getElementById(winId); if (!win) return; if (win.style.width === '100vw' && win.style.height === '100vh') { win.style.width = ''; win.style.height = ''; win.style.left = '50%'; win.style.top = '50%'; win.style.transform = 'translate(-50%, -50%)'; } else { win.style.width = '100vw'; win.style.height = '100vh'; win.style.left = '0'; win.style.top = '0'; win.style.transform = 'none'; } }
+
+// ===== 最大化窗口（修复：保存并恢复 transform，确保还原位置准确） =====
+function maximizeWindow(winId) {
+  const win = document.getElementById(winId);
+  if (!win) return;
+  const isMaximized = win.getAttribute('data-maximized') === 'true';
+  if (isMaximized) {
+    const origWidth = win.getAttribute('data-orig-width');
+    const origHeight = win.getAttribute('data-orig-height');
+    const origLeft = win.getAttribute('data-orig-left');
+    const origTop = win.getAttribute('data-orig-top');
+    const origTransform = win.getAttribute('data-orig-transform');
+    if (origWidth) win.style.width = origWidth;
+    if (origHeight) win.style.height = origHeight;
+    if (origLeft) win.style.left = origLeft;
+    if (origTop) win.style.top = origTop;
+    if (origTransform !== null) win.style.transform = origTransform;
+    win.style.right = '';
+    win.style.bottom = '';
+    win.setAttribute('data-maximized', 'false');
+    win.style.resize = 'both';
+    win.style.overflow = 'auto';
+  } else {
+    const rect = win.getBoundingClientRect();
+    win.setAttribute('data-orig-width', win.style.width || (rect.width + 'px'));
+    win.setAttribute('data-orig-height', win.style.height || (rect.height + 'px'));
+    win.setAttribute('data-orig-left', win.style.left || (rect.left + 'px'));
+    win.setAttribute('data-orig-top', win.style.top || (rect.top + 'px'));
+    win.setAttribute('data-orig-transform', win.style.transform || '');
+    win.style.left = '0';
+    win.style.top = '0';
+    win.style.right = '0';
+    win.style.bottom = '0';
+    win.style.width = 'auto';
+    win.style.height = 'auto';
+    win.style.transform = 'none';
+    win.setAttribute('data-maximized', 'true');
+    win.style.resize = 'none';
+    win.style.overflow = 'auto';
+  }
+}
+
 function pinWindow(winId) { const win = document.getElementById(winId); if (!win) return; highestZ += 1; win.style.zIndex = highestZ; showToast('窗口已置顶'); }
 
 // ===== 数据库弹窗显示/隐藏 =====
@@ -769,6 +810,8 @@ function showRecognizeModal() {
   if (document.getElementById('recognizeWin')) return;
   const win = document.createElement('div'); win.className = 'floating-window'; win.id = 'recognizeWin';
   win.style.width = '850px'; win.style.height = '650px'; win.style.left = '50%'; win.style.top = '50%'; win.style.transform = 'translate(-50%, -50%)';
+  win.setAttribute('data-orig-width', '850px');
+  win.setAttribute('data-orig-height', '650px');
   win.innerHTML = `
     <div class="modal-header">订单输入<div class="window-controls"><button onclick="maximizeWindow('recognizeWin')">🗖</button><button onclick="pinWindow('recognizeWin')">📌</button><button onclick="document.getElementById('recognizeWin').remove()">×</button></div></div>
     <div class="modal-body" style="display:flex; flex-direction:column; gap:10px;">
@@ -1026,6 +1069,7 @@ async function semanticReplace() { const ta=document.querySelector('.source-orde
 
 function tokenizeAndJoin(content) { const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=content.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()).map(t=>t.trim()); const res=[]; tokens.forEach(t=>{ const tm=t.match(/^(\d{2,})尾$/); const hm=t.match(/^(\d{2,})头$/); if(tm){ const ds=tm[1].split('').map(d=>d+'尾'); res.push(...ds); } else if(hm){ const ds=hm[1].split('').map(d=>d+'头'); res.push(...ds); } else if(/^\d{1,2}$/.test(t)){ const n=parseInt(t); if(n>=1&&n<=49)res.push(t.length===1?'0'+t:t); } else if(vc.has(t)){ res.push(t); } else if(/^[\u4e00-\u9fa5]+$/.test(t)){ const cs=t.match(/[\u4e00-\u9fa5]/g)||[]; if(cs.every(c=>vc.has(c)))res.push(...cs); } }); return res.join('-'); }
 
+// ===== 订单识别核心（含生肖各/各肖新逻辑） =====
 function convertOrderText() {
   const inputEl=document.querySelector('.source-order-input');
   if(!inputEl)return;
@@ -1042,6 +1086,9 @@ function convertOrderText() {
   const AMTS=`[${allAmtChars}]*`;
   function cn2n(s){ const m={'零':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'百':100,'千':1000}; let sum=0,tmp=0; for(let c of s){ const v=m[c]; if(v===10||v===100||v===1000){ if(tmp===0)tmp=1; tmp*=v; sum+=tmp; tmp=0; }else if(v!==undefined){ if(tmp>0){sum+=tmp;tmp=0;} tmp=v; } } sum+=tmp; return sum; }
   const SIMPLE_PAIR = /^(\d{1,2})[^\d\s]+(\d+)$/;
+  const cfg = getAllConfigData();
+  const ZODIAC_SET = new Set(Object.keys(cfg.zodiac));
+
   lines.forEach(line=>{
     line=line.trim();
     if(!line)return;
@@ -1057,6 +1104,55 @@ function convertOrderText() {
     allPre.forEach(p=>{if(cl.startsWith(p))cl=cl.substring(p.length).trim();});
     cusSuf.forEach(s=>{if(cl.endsWith(s))cl=cl.slice(0,-s.length).trim();});
     cl=cl.replace(/([一二三四五六七八九十百千]+)/g,(m)=>cn2n(m));
+
+    // ----- 生肖各/各肖模式（仅当纯生肖 + 各/各肖 时触发） -----
+    const shxMatch = cl.match(new RegExp(`^([\\u4e00-\\u9fa5${allAmtChars}]+)(各肖|各)(\\d+)${AMTS}$`));
+    if (shxMatch) {
+      const rawContent = shxMatch[1];
+      const amtRaw = parseInt(shxMatch[3]) || 0;
+
+      // 检查是否包含数字，若有数字则不按此逻辑（回退）
+      if (/\d/.test(rawContent)) {
+        // 包含数字，走原有逻辑
+      } else {
+        // 纯汉字内容，提取生肖
+        const zodiacs = [];
+        for (const ch of rawContent) {
+          if (ZODIAC_SET.has(ch)) zodiacs.push(ch);
+        }
+
+        // 如果提取到了生肖（至少一个），则按新逻辑处理
+        if (zodiacs.length > 0) {
+          const uniqueZodiacs = [];
+          const seen = new Set();
+          zodiacs.forEach(z => { if (!seen.has(z)) { seen.add(z); uniqueZodiacs.push(z); } });
+
+          const curBenming = document.getElementById('startZodiacSelect')?.value || '马';
+          const benmingIdx = uniqueZodiacs.indexOf(curBenming);
+          let benmingZodiac = null;
+          const otherZodiacs = [];
+
+          if (benmingIdx !== -1) {
+            benmingZodiac = uniqueZodiacs[benmingIdx];
+            uniqueZodiacs.forEach((z, i) => { if (i !== benmingIdx) otherZodiacs.push(z); });
+          } else {
+            otherZodiacs.push(...uniqueZodiacs);
+          }
+
+          if (benmingZodiac) {
+            const amtBen = Math.round(amtRaw / 5);
+            resultLines.push(`${benmingZodiac} 各数 ${amtBen}`);
+          }
+          if (otherZodiacs.length > 0) {
+            const amtOther = Math.round(amtRaw / 4);
+            resultLines.push(`${otherZodiacs.join('-')} 各数 ${amtOther}`);
+          }
+          return; // 已按新逻辑处理，跳过原有逻辑
+        }
+      }
+    }
+
+    // 原有逻辑（分类、号码混合等）
     const op=new RegExp(`(${AMP}\\d+${AMTS})`,'g');
     const om=cl.match(op);
     if(om&&om.length>0){
