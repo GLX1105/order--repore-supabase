@@ -1105,49 +1105,44 @@ function convertOrderText() {
     cusSuf.forEach(s=>{if(cl.endsWith(s))cl=cl.slice(0,-s.length).trim();});
     cl=cl.replace(/([一二三四五六七八九十百千]+)/g,(m)=>cn2n(m));
 
-    // ----- 生肖各/各肖模式（仅当纯生肖 + 各/各肖 时触发） -----
+    // ----- 生肖各/各肖模式（不去重，每个生肖单独计算） -----
     const shxMatch = cl.match(new RegExp(`^([\\u4e00-\\u9fa5${allAmtChars}]+)(各肖|各)(\\d+)${AMTS}$`));
     if (shxMatch) {
       const rawContent = shxMatch[1];
       const amtRaw = parseInt(shxMatch[3]) || 0;
 
-      // 检查是否包含数字，若有数字则不按此逻辑（回退）
-      if (/\d/.test(rawContent)) {
-        // 包含数字，走原有逻辑
-      } else {
-        // 纯汉字内容，提取生肖
+      // 必须纯汉字（不能包含数字）
+      if (!/\d/.test(rawContent)) {
         const zodiacs = [];
         for (const ch of rawContent) {
           if (ZODIAC_SET.has(ch)) zodiacs.push(ch);
         }
 
-        // 如果提取到了生肖（至少一个），则按新逻辑处理
         if (zodiacs.length > 0) {
-          const uniqueZodiacs = [];
-          const seen = new Set();
-          zodiacs.forEach(z => { if (!seen.has(z)) { seen.add(z); uniqueZodiacs.push(z); } });
-
           const curBenming = document.getElementById('startZodiacSelect')?.value || '马';
-          const benmingIdx = uniqueZodiacs.indexOf(curBenming);
-          let benmingZodiac = null;
-          const otherZodiacs = [];
+          const benmingList = [];   // 本命肖列表
+          const otherList = [];     // 非本命肖列表
 
-          if (benmingIdx !== -1) {
-            benmingZodiac = uniqueZodiacs[benmingIdx];
-            uniqueZodiacs.forEach((z, i) => { if (i !== benmingIdx) otherZodiacs.push(z); });
-          } else {
-            otherZodiacs.push(...uniqueZodiacs);
-          }
+          zodiacs.forEach(z => {
+            if (z === curBenming) {
+              benmingList.push(z);
+            } else {
+              otherList.push(z);
+            }
+          });
 
-          if (benmingZodiac) {
-            const amtBen = Math.round(amtRaw / 5);
-            resultLines.push(`${benmingZodiac} 各数 ${amtBen}`);
+          const amtPerBen = Math.round(amtRaw / 5);
+          const amtPerOther = Math.round(amtRaw / 4);
+
+          // 本命肖：每个单独金额 ÷5，输出用 - 连接
+          if (benmingList.length > 0) {
+            resultLines.push(`${benmingList.join('-')} 各数 ${amtPerBen}`);
           }
-          if (otherZodiacs.length > 0) {
-            const amtOther = Math.round(amtRaw / 4);
-            resultLines.push(`${otherZodiacs.join('-')} 各数 ${amtOther}`);
+          // 非本命肖：每个单独金额 ÷4，输出用 - 连接
+          if (otherList.length > 0) {
+            resultLines.push(`${otherList.join('-')} 各数 ${amtPerOther}`);
           }
-          return; // 已按新逻辑处理，跳过原有逻辑
+          return; // 已处理，跳过原有逻辑
         }
       }
     }
