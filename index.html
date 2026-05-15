@@ -1067,9 +1067,9 @@ function applyReplacePresets(text) { const p=getReplacePresets(); let r=text; p.
 // ===== 语义转换 =====
 async function semanticReplace() { const ta=document.querySelector('.source-order-input'); if(!ta)return; const s=ta.selectionStart,e=ta.selectionEnd; if(s===e){showToast('请先选择文本');return;} const sel=ta.value.substring(s,e); const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=sel.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()); const matched=tokens.filter(t=>vc.has(t)); if(!matched.length){showToast('未识别有效分类');return;} let sets=matched.map(cat=>{ let nums=[]; if(cfg.shengxiaoAttr[cat]){ cfg.shengxiaoAttr[cat].forEach(z=>{ if(cfg.zodiac[z])nums.push(...cfg.zodiac[z].map(n=>n.toString().padStart(2,'0'))); }); } const dir=cfg.wuxing[cat]||cfg.bose[cat]||cfg.banbo[cat]||cfg.danshuang[cat]||cfg.weishu[cat]||cfg.daxiaodanshuang[cat]||cfg.daxiao[cat]||cfg.heshu[cat]||cfg.toushu[cat]||cfg.menshu[cat]||cfg.duanwei[cat]||cfg.hedahexiao[cat]||cfg.weidaweixiao[cat]||cfg.hewei[cat]||cfg.heshudanshuang[cat]||cfg.toushuDanshuang[cat]; if(dir)nums.push(...dir.map(n=>n.toString().padStart(2,'0'))); if(cfg.zodiac[cat])nums.push(...cfg.zodiac[cat].map(n=>n.toString().padStart(2,'0'))); return new Set(nums); }); let inter=sets[0]; for(let i=1;i<sets.length;i++)inter=new Set([...inter].filter(x=>sets[i].has(x))); const res=[...inter].sort((a,b)=>parseInt(a)-parseInt(b)); if(!res.length){showToast('无共同号码');return;} const str=res.join('-'); const cf=await confirm(`转换结果：${str}\n是否替换选中文本？`); if(cf){ta.value=ta.value.substring(0,s)+str+ta.value.substring(e);convertOrderText();} }
 
-function tokenizeAndJoin(content) { const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=content.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()).map(t=>t.trim()); const res=[]; tokens.forEach(t=>{ const tm=t.match(/^(\d{2,})尾$/); const hm=t.match(/^(\d{2,})头$/); if(tm){ const ds=tm[1].split('').map(d=>d+'尾'); res.push(...ds); } else if(hm){ const ds=hm[1].split('').map(d=>d+'头'); res.push(...ds); } else if(/^\d{1,2}$/.test(t)){ const n=parseInt(t); if(n>=1&&n<=49)res.push(t.length===1?'0'+t:t); } else if(vc.has(t)){ res.push(t); } else if(/^[\u4e00-\u9fa5]+$/.test(t)){ const cs=t.match(/[\u4e00-\u9fa5]/g)||[]; if(cs.every(c=>vc.has(c)))res.push(...cs); } }); return res.join('-'); }
+function tokenizeAndJoin(content) { const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=content.split(/[^\u4e00-\u9fa5\d]+/).filter(t=>t.trim()).map(t=>t.trim()); const res=[]; tokens.forEach(t=>{ const tm=t.match(/^(\d{2,})尾$/); const hm=t.match(/^(\d{2,})头$/); if(tm){ const ds=tm[1].split('').map(d=>d+'尾'); res.push(...ds); } else if(hm){ const ds=hm[1].split('').map(d=>d+'头'); res.push(...ds); } else if(/^\d{1,2}$/.test(t)){ const n=parseInt(t); if(n>=1&&n<=49)res.push(t.length===1?'0'+t:t); } else if(vc.has(t)){ res.push(t); } else if(/^[\u4e00-\u9fa5]+$/.test(t)){ const cs=t.match(/[\u4e00-\u9fa5]/g)||[]; if(cs.every(c=>vc.has(c)))res.push(...cs); } }); return res.join('-'); }
 
-// ===== 订单识别核心（含生肖各/各肖新逻辑） =====
+// ===== 订单识别核心（含生肖各/各肖新逻辑——不去重，任意分隔符） =====
 function convertOrderText() {
   const inputEl=document.querySelector('.source-order-input');
   if(!inputEl)return;
@@ -1106,12 +1106,12 @@ function convertOrderText() {
     cl=cl.replace(/([一二三四五六七八九十百千]+)/g,(m)=>cn2n(m));
 
     // ----- 生肖各/各肖模式（不去重，每个生肖单独计算） -----
-    const shxMatch = cl.match(new RegExp(`^([\\u4e00-\\u9fa5${allAmtChars}]+)(各肖|各)(\\d+)${AMTS}$`));
+    const shxMatch = cl.match(new RegExp(`^(.+?)(各肖|各)(\\d+)${AMTS}$`));
     if (shxMatch) {
       const rawContent = shxMatch[1];
       const amtRaw = parseInt(shxMatch[3]) || 0;
 
-      // 必须纯汉字（不能包含数字）
+      // 必须纯非数字内容（分隔符等可任意）
       if (!/\d/.test(rawContent)) {
         const zodiacs = [];
         for (const ch of rawContent) {
@@ -1120,8 +1120,8 @@ function convertOrderText() {
 
         if (zodiacs.length > 0) {
           const curBenming = document.getElementById('startZodiacSelect')?.value || '马';
-          const benmingList = [];   // 本命肖列表
-          const otherList = [];     // 非本命肖列表
+          const benmingList = [];
+          const otherList = [];
 
           zodiacs.forEach(z => {
             if (z === curBenming) {
@@ -1134,15 +1134,13 @@ function convertOrderText() {
           const amtPerBen = Math.round(amtRaw / 5);
           const amtPerOther = Math.round(amtRaw / 4);
 
-          // 本命肖：每个单独金额 ÷5，输出用 - 连接
           if (benmingList.length > 0) {
             resultLines.push(`${benmingList.join('-')} 各数 ${amtPerBen}`);
           }
-          // 非本命肖：每个单独金额 ÷4，输出用 - 连接
           if (otherList.length > 0) {
             resultLines.push(`${otherList.join('-')} 各数 ${amtPerOther}`);
           }
-          return; // 已处理，跳过原有逻辑
+          return; // 已按新逻辑处理
         }
       }
     }
