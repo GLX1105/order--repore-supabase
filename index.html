@@ -1199,28 +1199,9 @@ function convertOrderText() {
       resultLines.push(`${num} 各数 ${amount}`);
       return;
     }
-    let cl=line;
-    allPre.forEach(p=>{if(cl.startsWith(p))cl=cl.substring(p.length).trim();});
-    cl = cl.replace(/[^\u4e00-\u9fa5\d]+$/, '');
-    cl=cl.replace(/([一二三四五六七八九十百千]+)/g,(m)=>cn2n(m));
-    while (cl && !/^[\d\u4e00-\u9fa5]/.test(cl)) {
-      cl = cl.substring(1).trim();
-    }
-    const leadingChineseMatch = cl.match(/^([\u4e00-\u9fa5]+)/);
-    if (leadingChineseMatch) {
-      const leadingChinese = leadingChineseMatch[1];
-      let isValidPrefix = false;
-      for (let i = 1; i <= leadingChinese.length; i++) {
-        const sub = leadingChinese.substring(0, i);
-        if (vc.has(sub)) {
-          isValidPrefix = true;
-          break;
-        }
-      }
-      if (!isValidPrefix) {
-        cl = cl.substring(leadingChinese.length).trim();
-      }
-    }
+let cl = line;
+// 只做中文数字转换，不再剥离任何前缀或验证首段中文
+cl = cl.replace(/([一二三四五六七八九十百千]+)/g, (m) => cn2n(m));
 
     const shxMatch = cl.match(new RegExp(`^(.+?)(各肖|各)(\\d+)${AMTS}$`));
     if (shxMatch) {
