@@ -912,6 +912,31 @@ function tokenizeAndJoin(content) {
   return allKeywords.join('-');
 }
 
+// ===== 检测一行是否存在无效字符（忽略分隔符和空格） =====
+function hasInvalidChars(line, cfg, vc) {
+  // 移除所有分隔符和空格，只保留汉字和数字
+  const cleaned = line.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
+  
+  // 检查数字：提取所有连续数字，判断是否在 1~49 内
+  const numbers = cleaned.match(/\d+/g) || [];
+  for (const numStr of numbers) {
+    const num = parseInt(numStr);
+    if (num < 1 || num > 49) {
+      return true; // 发现无效数字
+    }
+  }
+  
+  // 检查汉字：提取所有中文字符，判断是否在有效分类库里
+  const chineseChars = cleaned.match(/[\u4e00-\u9fa5]/g) || [];
+  for (const ch of chineseChars) {
+    if (!vc.has(ch)) {
+      return true; // 发现无效汉字
+    }
+  }
+  
+  return false; // 全部有效
+}
+
 // ===== 数据库配置读写（基于静态HTML input，并支持自定义分类） =====
 function getAllConfigData() {
   const configData = {
@@ -1158,7 +1183,7 @@ function applyReplacePresets(text) { const p=getReplacePresets(); let r=text; p.
 // ===== 语义转换 =====
 async function semanticReplace() { const ta=document.querySelector('.source-order-input'); if(!ta)return; const s=ta.selectionStart,e=ta.selectionEnd; if(s===e){showToast('请先选择文本');return;} const sel=ta.value.substring(s,e); const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=sel.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()); const matched=tokens.filter(t=>vc.has(t)); if(!matched.length){showToast('未识别有效分类');return;} let sets=matched.map(cat=>{ let nums=[]; if(cfg.shengxiaoAttr[cat]){ cfg.shengxiaoAttr[cat].forEach(z=>{ if(cfg.zodiac[z])nums.push(...cfg.zodiac[z].map(n=>n.toString().padStart(2,'0'))); }); } const dir=cfg.wuxing[cat]||cfg.bose[cat]||cfg.banbo[cat]||cfg.danshuang[cat]||cfg.weishu[cat]||cfg.daxiaodanshuang[cat]||cfg.daxiao[cat]||cfg.heshu[cat]||cfg.toushu[cat]||cfg.menshu[cat]||cfg.duanwei[cat]||cfg.hedahexiao[cat]||cfg.weidaweixiao[cat]||cfg.hewei[cat]||cfg.heshudanshuang[cat]||cfg.toushuDanshuang[cat]; if(dir)nums.push(...dir.map(n=>n.toString().padStart(2,'0'))); if(cfg.zodiac[cat])nums.push(...cfg.zodiac[cat].map(n=>n.toString().padStart(2,'0'))); return new Set(nums); }); let inter=sets[0]; for(let i=1;i<sets.length;i++)inter=new Set([...inter].filter(x=>sets[i].has(x))); const res=[...inter].sort((a,b)=>parseInt(a)-parseInt(b)); if(!res.length){showToast('无共同号码');return;} const str=res.join('-'); const cf=await confirm(`转换结果：${str}\n是否替换选中文本？`); if(cf){ta.value=ta.value.substring(0,s)+str+ta.value.substring(e);convertOrderText();} }
 
-// ===== 订单识别核心（包含繁体转换、智能提取、红色高亮） =====
+// ===== 订单识别核心（包含繁体转换、智能提取、无效字符红色高亮） =====
 function convertOrderText() {
   const inputEl=document.querySelector('.source-order-input');
   if(!inputEl)return;
@@ -1177,8 +1202,6 @@ function convertOrderText() {
   const allAmpList = [...HARD_AMP_LIST, ...cusAmp];
   allAmpList.sort((a,b) => b.length - a.length);
   const AMP_ORIGINAL = '(?:' + allAmpList.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')';
-  const IGN=['奥特','特码','澳门特码','特','奥','澳','澳门','澳門','澳門特碼','澳门特码','澳門特码',':','。','.','新',',','新','新奥','门','，','新澳','新特','新澳特','特碼'];
-  const cusPre=getCustomPrefixes(); const allPre=[...IGN,...cusPre];
   const baseSuf='元块咪米斤#،。\\s';
   const cusAmtSuf=getCustomAmountSuffixes(); const allAmtChars=[...new Set([...baseSuf.split(''),...cusAmtSuf])].join('');
   const AMTS=`[${allAmtChars}]*`;
@@ -1199,10 +1222,11 @@ function convertOrderText() {
       resultLines.push(`${num} 各数 ${amount}`);
       return;
     }
-let cl = line;
-// 只做中文数字转换，不再剥离任何前缀或验证首段中文
-cl = cl.replace(/([一二三四五六七八九十百千]+)/g, (m) => cn2n(m));
+    let cl=line;
+    // 只做中文数字转换，不再剥离任何前缀或验证首段中文
+    cl = cl.replace(/([一二三四五六七八九十百千]+)/g, (m) => cn2n(m));
 
+    // 处理"各肖"的情况
     const shxMatch = cl.match(new RegExp(`^(.+?)(各肖|各)(\\d+)${AMTS}$`));
     if (shxMatch) {
       const rawContent = shxMatch[1];
@@ -1229,24 +1253,26 @@ cl = cl.replace(/([一二三四五六七八九十百千]+)/g, (m) => cn2n(m));
       }
     }
 
+    // 通用的金额指示符拆分
     const op=new RegExp(`(${AMP_ORIGINAL}\\d+${AMTS})`,'g');
     const om=cl.match(op);
     if(om&&om.length>0){
       let rl=cl;
-      om.forEach(om=>{
-        const oi=rl.indexOf(om);
+      om.forEach(omPart=>{
+        const oi=rl.indexOf(omPart);
         if(oi!==-1){
           const cont=rl.substring(0,oi).trim();
-          const am=om.match(/(\d+)/);
+          const am=omPart.match(/(\d+)/);
           if(am){
             const amt=am[1];
             if(cont){ const jo=tokenizeAndJoin(cont); if(jo)resultLines.push(`${jo} 各数 ${amt}`); }
-            rl=rl.substring(oi+om.length);
+            rl=rl.substring(oi+omPart.length);
           }
         }
       });
       if(rl.trim()){ const jo=tokenizeAndJoin(rl.trim()); if(jo)resultLines.push(`${jo} 各数 0`); }
     }else{
+      // 没有明确的金额指示符，尝试整个行匹配
       const pat=new RegExp(`^(.+?)${AMP_ORIGINAL}(\\d+)$`);
       const m=cl.match(pat);
       if(m){ const jo=tokenizeAndJoin(m[1].trim()); if(jo)resultLines.push(`${jo} 各数 ${m[2]}`); }
@@ -1261,20 +1287,29 @@ cl = cl.replace(/([一二三四五六七八九十百千]+)/g, (m) => cn2n(m));
 
   // 生成 HTML，无效行红色
   let html = '';
-  resultLines.forEach(line => {
-    const m = line.match(/^(.+?)\s+各数\s+(\d+)$/);
+  resultLines.forEach((resultLine, index) => {
+    // 获取对应的原始行
+    const originalLine = lines[index] || resultLine;
+    const m = resultLine.match(/^(.+?)\s+各数\s+(\d+)$/);
     if (!m) {
-      html += `<div style="color:red;">${line}</div>`;
+      html += `<div style="color:red;">${resultLine}</div>`;
       return;
     }
     const content = m[1];
     const amt = parseInt(m[2]) || 0;
-    const { numbers, zodiacs } = countItemsInLine(line, cfg, vc);
+    const { numbers, zodiacs } = countItemsInLine(resultLine, cfg, vc);
     const totalItems = numbers.length + zodiacs.length;
+    
+    // 检查是否有效
     if (totalItems === 0 || amt <= 0) {
-      html += `<div style="color:red;">${line}</div>`;
+      html += `<div style="color:red;">${resultLine}</div>`;
     } else {
-      html += `<div>${line}</div>`;
+      // 检查原始行是否存在无效字符
+      if (hasInvalidChars(originalLine, cfg, vc)) {
+        html += `<div style="color:red;">${resultLine}</div>`;
+      } else {
+        html += `<div>${resultLine}</div>`;
+      }
     }
   });
   resultEl.innerHTML = html;
