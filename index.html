@@ -21,8 +21,8 @@ body {background:#f5f7fa;font-size:14px;line-height:1.4;overflow-x:hidden;positi
     .order-input-container {flex-direction:column!important;min-height:auto!important;height:auto!important;}
     .input-column,.result-column {width:100%!important;}
     .result-column {border-top:1px solid #ddd!important;}
-    .source-order-input {height:150px!important;}
-    .result-content {height:150px!important;}
+    .source-order-input {height:180px!important;}
+    .result-content {height:180px!important;}
     .btn-group {display:grid!important;grid-template-columns:repeat(auto-fill,minmax(60px,1fr))!important;gap:4px!important;}
     .category-btn {padding:4px 2px!important;font-size:11px!important;min-height:30px!important;}
     .table-container {overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;margin-left:-10px!important;margin-right:-10px!important;padding:0 10px!important;}
@@ -144,6 +144,7 @@ input[type="number"].small-input {width:50px;padding:3px 5px;border:1px solid #d
 .btn-amount-prefix2 {background:#8e44ad;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
 .btn-remove-sep {background:#7f8c8d;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
 .btn-replace-sep {background:#8e44ad;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
+.btn-mark {background:#3498db;color:white;padding:6px 10px;font-size:12px;min-height:30px;border-radius:15px;}
 
 .recognize-card .btn-group {margin-top:12px;display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;}
 .recognize-card .btn-group .btn {flex:1;}
@@ -805,7 +806,7 @@ function pinWindow(winId) { const win = document.getElementById(winId); if (!win
 async function showDatabase() { const pwd = await prompt("请输入数据库密码：",""); if (pwd === PASSWORD) { const modal = document.getElementById('databaseModal'); if (!modal) return; modal.style.display = 'flex'; highestZ += 1; modal.style.zIndex = highestZ; renderCustomConfigContainer(); makeWindowDraggable('databaseModalBox'); } else { await alert("密码错误"); } }
 function hideDatabase() { const modal = document.getElementById('databaseModal'); if (modal) modal.style.display = 'none'; }
 
-// ===== 识别弹窗（添加了标记按钮，结果区改为 div） =====
+// ===== 识别弹窗（标记按钮蓝色） =====
 function showRecognizeModal() {
   if (document.getElementById('recognizeWin')) return;
   const win = document.createElement('div'); win.className = 'floating-window'; win.id = 'recognizeWin';
@@ -846,12 +847,69 @@ function markSelection() {
   const start = ta.selectionStart, end = ta.selectionEnd;
   if (start === end) { showToast('请先选择文本'); return; }
   const selectedText = ta.value.substring(start, end);
-  // 将选中内容按常见分隔符拆开，过滤空串，用 '-' 连接
   const tokens = selectedText.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t => t.trim());
   if (tokens.length === 0) { showToast('所选内容无有效文字'); return; }
   const merged = tokens.join('-');
   ta.value = ta.value.substring(0, start) + merged + ta.value.substring(end);
   convertOrderText();
+}
+
+// ===== 繁体生肖转简体 =====
+function convertTraditionalZodiac(text) {
+  const map = { '馬':'马', '雞':'鸡', '豬':'猪', '龍':'龙' };
+  return text.replace(/[馬雞豬龍]/g, m => map[m] || m);
+}
+
+// ===== 从混合文本中提取有效关键词 =====
+function extractKeywordsFromToken(token, cfg, vc) {
+  const result = [];
+  let i = 0;
+  while (i < token.length) {
+    let matched = false;
+    // 如果是数字开头，尝试提取一个完整的数字串
+    if (/\d/.test(token[i])) {
+      let numStr = '';
+      while (i < token.length && /\d/.test(token[i])) {
+        numStr += token[i];
+        i++;
+      }
+      const num = parseInt(numStr);
+      // 只有数字在 1~49 之间才视为有效号码
+      if (num >= 1 && num <= 49) {
+        result.push(num.toString().padStart(2, '0'));
+      }
+      // 无效数字（如 67、050）直接丢弃整段，不拆分
+      continue;
+    }
+    // 尝试匹配最长的有效分类名（从当前位置开始，最长4个字符）
+    for (let len = Math.min(4, token.length - i); len >= 1; len--) {
+      const sub = token.substring(i, i + len);
+      if (vc.has(sub)) {
+        result.push(sub);
+        i += len;
+        matched = true;
+        break;
+      }
+    }
+    // 如果没有匹配到任何有效词，丢弃当前字符
+    if (!matched) {
+      i++;
+    }
+  }
+  return result;
+}
+
+// ===== 改进的 tokenizeAndJoin 使用智能提取 =====
+function tokenizeAndJoin(content) {
+  const cfg = getAllConfigData();
+  const vc = getAllValidCategories(cfg);
+  const rawTokens = content.split(/[^\u4e00-\u9fa5\d]+/).filter(t => t.trim());
+  const allKeywords = [];
+  rawTokens.forEach(t => {
+    const extracted = extractKeywordsFromToken(t, cfg, vc);
+    allKeywords.push(...extracted);
+  });
+  return allKeywords.join('-');
 }
 
 // ===== 数据库配置读写（基于静态HTML input，并支持自定义分类） =====
@@ -1100,38 +1158,16 @@ function applyReplacePresets(text) { const p=getReplacePresets(); let r=text; p.
 // ===== 语义转换 =====
 async function semanticReplace() { const ta=document.querySelector('.source-order-input'); if(!ta)return; const s=ta.selectionStart,e=ta.selectionEnd; if(s===e){showToast('请先选择文本');return;} const sel=ta.value.substring(s,e); const cfg=getAllConfigData(); const vc=getAllValidCategories(cfg); const tokens=sel.split(/[\s,，.。、+\-*＊\/\\|]+/).filter(t=>t.trim()); const matched=tokens.filter(t=>vc.has(t)); if(!matched.length){showToast('未识别有效分类');return;} let sets=matched.map(cat=>{ let nums=[]; if(cfg.shengxiaoAttr[cat]){ cfg.shengxiaoAttr[cat].forEach(z=>{ if(cfg.zodiac[z])nums.push(...cfg.zodiac[z].map(n=>n.toString().padStart(2,'0'))); }); } const dir=cfg.wuxing[cat]||cfg.bose[cat]||cfg.banbo[cat]||cfg.danshuang[cat]||cfg.weishu[cat]||cfg.daxiaodanshuang[cat]||cfg.daxiao[cat]||cfg.heshu[cat]||cfg.toushu[cat]||cfg.menshu[cat]||cfg.duanwei[cat]||cfg.hedahexiao[cat]||cfg.weidaweixiao[cat]||cfg.hewei[cat]||cfg.heshudanshuang[cat]||cfg.toushuDanshuang[cat]; if(dir)nums.push(...dir.map(n=>n.toString().padStart(2,'0'))); if(cfg.zodiac[cat])nums.push(...cfg.zodiac[cat].map(n=>n.toString().padStart(2,'0'))); return new Set(nums); }); let inter=sets[0]; for(let i=1;i<sets.length;i++)inter=new Set([...inter].filter(x=>sets[i].has(x))); const res=[...inter].sort((a,b)=>parseInt(a)-parseInt(b)); if(!res.length){showToast('无共同号码');return;} const str=res.join('-'); const cf=await confirm(`转换结果：${str}\n是否替换选中文本？`); if(cf){ta.value=ta.value.substring(0,s)+str+ta.value.substring(e);convertOrderText();} }
 
-function tokenizeAndJoin(content) {
-  const cfg = getAllConfigData();
-  const vc = getAllValidCategories(cfg);
-  const tokens = content.split(/[^\u4e00-\u9fa5\d]+/).filter(t => t.trim()).map(t => t.trim());
-  const res = [];
-  tokens.forEach(t => {
-    const tm = t.match(/^(\d{2,})尾$/);
-    const hm = t.match(/^(\d{2,})头$/);
-    if (tm) {
-      const ds = tm[1].split('').map(d => d + '尾');
-      res.push(...ds);
-    } else if (hm) {
-      const ds = hm[1].split('').map(d => d + '头');
-      res.push(...ds);
-    } else if (/^\d{1,2}$/.test(t)) {
-      const n = parseInt(t);
-      if (n >= 1 && n <= 49) res.push(t.length === 1 ? '0' + t : t);
-    } else if (vc.has(t)) {
-      res.push(t);
-    } else if (/^[\u4e00-\u9fa5]+$/.test(t)) {
-      const cs = t.match(/[\u4e00-\u9fa5]/g) || [];
-      if (cs.every(c => vc.has(c))) res.push(...cs);
-    }
-  });
-  return res.join('-');
-}
-
-// ===== 订单识别核心（修改为输出 HTML 并高亮无效行） =====
+// ===== 订单识别核心（包含繁体转换、智能提取、红色高亮） =====
 function convertOrderText() {
   const inputEl=document.querySelector('.source-order-input');
   if(!inputEl)return;
-  let text=applyCategoryAliases(applyReplacePresets(inputEl.value.trim()));
+  let text = inputEl.value.trim();
+  // 繁体生肖转简体
+  text = convertTraditionalZodiac(text);
+  // 应用分类缩写和替换预设
+  text = applyCategoryAliases(applyReplacePresets(text));
+
   const resultEl=document.getElementById('orderResult');
   if(!resultEl)return;
   if(!text){resultEl.innerHTML='';updateOrderTotalDisplay();return;}
@@ -1252,7 +1288,6 @@ function convertOrderText() {
     }
     const content = m[1];
     const amt = parseInt(m[2]) || 0;
-    // 检查是否有效：必须有号码/生肖/分类，且金额 > 0
     const { numbers, zodiacs } = countItemsInLine(line, cfg, vc);
     const totalItems = numbers.length + zodiacs.length;
     if (totalItems === 0 || amt <= 0) {
