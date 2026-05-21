@@ -806,7 +806,7 @@ function pinWindow(winId) { const win = document.getElementById(winId); if (!win
 async function showDatabase() { const pwd = await prompt("请输入数据库密码：",""); if (pwd === PASSWORD) { const modal = document.getElementById('databaseModal'); if (!modal) return; modal.style.display = 'flex'; highestZ += 1; modal.style.zIndex = highestZ; renderCustomConfigContainer(); makeWindowDraggable('databaseModalBox'); } else { await alert("密码错误"); } }
 function hideDatabase() { const modal = document.getElementById('databaseModal'); if (modal) modal.style.display = 'none'; }
 
-// ===== 识别弹窗（标记按钮蓝色） =====
+// ===== 识别弹窗（标记按钮蓝色，语义转换右边加无效字符提示） =====
 function showRecognizeModal() {
   if (document.getElementById('recognizeWin')) return;
   const win = document.createElement('div'); win.className = 'floating-window'; win.id = 'recognizeWin';
@@ -826,8 +826,8 @@ function showRecognizeModal() {
           <button class="btn btn-amount-prefix2" onclick="showAmountSuffixManager()">金额后缀</button>
         </div>
         <div class="order-input-container" style="flex:1;"><div class="input-column"><div class="box-label">订单输入框</div><textarea class="source-order-input" placeholder="" oninput="convertOrderText()"></textarea></div><div class="result-column"><div class="box-label">识别结果</div><div class="result-area-new"><div class="result-content" id="orderResult" contenteditable="false"></div></div></div></div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-paste" onclick="pasteOrder()">粘贴订单</button><button class="btn btn-save-order" onclick="saveOrder()">保存下单</button><button class="btn btn-report" onclick="saveReportOrder()">上报</button><button class="btn btn-clear" onclick="clearAllInput()">清空</button><button class="btn btn-replace-sep" onclick="replaceSeparators()">换分隔</button><button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button><button class="btn btn-mark" onclick="markSelection()">标记</button><button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-paste" onclick="pasteOrder()">粘贴订单</button><button class="btn btn-save-order" onclick="saveOrder()">保存下单</button><button class="btn btn-report" onclick="saveReportOrder()">上报</button><button class="btn btn-clear" onclick="clearAllInput()">清空</button><button class="btn btn-replace-sep" onclick="replaceSeparators()">换分隔</button><button class="btn btn-remove-sep" onclick="removeSeparators()">去分隔</button><button class="btn btn-mark" onclick="markSelection()">标记</button><button class="btn btn-cancel" onclick="semanticReplace()">语义转换</button><span id="invalidCharsHint" style="margin-left:auto;font-size:12px;color:red;display:none;"></span>
         </div>
       </div>
       <div class="card category-card"><div class="card-title">分类快捷选择</div><div class="btn-group">
@@ -907,6 +907,71 @@ function tokenizeAndJoin(content) {
   return allKeywords.join('-');
 }
 
+// ===== 将原始行中的无效字符用红色 span 包裹 =====
+function highlightInvalidInLine(line, cfg, vc) {
+  const HARD_AMP_LIST = ['各','各号','号','个','=','各数','每数','每号','个号','每个号','各码','各号码'];
+  const cusAmp = getCustomAmountPrefixes();
+  const allAmps = [...HARD_AMP_LIST, ...cusAmp];
+  allAmps.sort((a,b) => b.length - a.length);
+  const baseSuf = '元块咪米斤#،';
+  const cusAmtSuf = getCustomAmountSuffixes();
+  const amtSufSet = new Set([...baseSuf.split(''), ...cusAmtSuf]);
+
+  let result = '';
+  let i = 0;
+  while (i < line.length) {
+    const ch = line[i];
+    if (/[\s,，.。、+\-*＊\/\\|]/.test(ch)) {
+      result += ch;
+      i++;
+      continue;
+    }
+    if (/\d/.test(ch)) {
+      let numStr = '';
+      let j = i;
+      while (j < line.length && /\d/.test(line[j])) {
+        numStr += line[j];
+        j++;
+      }
+      const num = parseInt(numStr);
+      if (num >= 1 && num <= 49) {
+        result += numStr;
+      } else {
+        result += `<span style="color:red;">${numStr}</span>`;
+      }
+      i = j;
+      continue;
+    }
+    let matchedAmp = false;
+    for (const amp of allAmps) {
+      if (line.substring(i, i + amp.length) === amp) {
+        result += amp;
+        i += amp.length;
+        matchedAmp = true;
+        break;
+      }
+    }
+    if (matchedAmp) continue;
+    if (amtSufSet.has(ch)) {
+      result += ch;
+      i++;
+      continue;
+    }
+    if (/[\u4e00-\u9fa5]/.test(ch)) {
+      if (vc.has(ch)) {
+        result += ch;
+      } else {
+        result += `<span style="color:red;">${ch}</span>`;
+      }
+      i++;
+      continue;
+    }
+    result += ch;
+    i++;
+  }
+  return result;
+}
+
 // ===== 检测一行是否存在无效字符（忽略分隔符、金额指示符、金额后缀，支持多字分类） =====
 function hasInvalidChars(line, cfg, vc) {
   let cleaned = line.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
@@ -920,7 +985,6 @@ function hasInvalidChars(line, cfg, vc) {
   allAmps.forEach(amp => { cleaned = cleaned.split(amp).join(''); });
   for (const ch of allAmtChars) { cleaned = cleaned.split(ch).join(''); }
   cleaned = cleaned.replace(/\d+/g, '');
-  // 现在 cleaned 中只剩下汉字，检查是否能被有效分类名完全覆盖
   let remaining = cleaned;
   while (remaining.length > 0) {
     let matched = false;
@@ -932,7 +996,7 @@ function hasInvalidChars(line, cfg, vc) {
         break;
       }
     }
-    if (!matched) return true; // 存在无法匹配的汉字
+    if (!matched) return true;
   }
   return false;
 }
@@ -1279,12 +1343,16 @@ function convertOrderText() {
     }
   });
 
+  // 收集无效行
+  const invalidLinesArr = [];
+
   let html = '';
   resultLines.forEach((resultLine, index) => {
     const originalLine = lines[index] || resultLine;
     const m = resultLine.match(/^(.+?)\s+各数\s+(\d+)$/);
     if (!m) {
       html += `<div style="color:red;">${resultLine}</div>`;
+      invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
       return;
     }
     const content = m[1];
@@ -1293,15 +1361,30 @@ function convertOrderText() {
     const totalItems = numbers.length + zodiacs.length;
     if (totalItems === 0 || amt <= 0) {
       html += `<div style="color:red;">${resultLine}</div>`;
+      invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
     } else {
       if (hasInvalidChars(originalLine, cfg, vc)) {
         html += `<div style="color:red;">${resultLine}</div>`;
+        invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
       } else {
         html += `<div>${resultLine}</div>`;
       }
     }
   });
   resultEl.innerHTML = html;
+
+  // 更新无效字符提示
+  const hint = document.getElementById('invalidCharsHint');
+  if (hint) {
+    if (invalidLinesArr.length > 0) {
+      hint.style.display = 'inline';
+      hint.innerHTML = invalidLinesArr.join(' | ');
+    } else {
+      hint.style.display = 'none';
+      hint.innerHTML = '';
+    }
+  }
+
   updateOrderTotalDisplay();
 }
 
@@ -1365,7 +1448,7 @@ async function updateTableFromRecords(){
     fReps.forEach(rec=>{
       try{
         const user=rec.user;
-        if(user && !userBetData[user]) userBetData[user] = {}; // 修复无下单记录用户上报问题
+        if(user && !userBetData[user]) userBetData[user] = {};
         rec.content.split('\n').filter(l=>l.trim()).forEach(line=>{
           const{numbers,zodiacs,amount}=countItemsInLine(line,cfg,keys);
           numbers.forEach(num=>{
@@ -1509,17 +1592,12 @@ function updatePrizeResult() {
 
   const formattedNum = numStr.length === 1 ? '0' + numStr : numStr;
 
-  // 读取总下注
   const totalBetEl = document.getElementById('totalBet');
   const totalBet = totalBetEl ? parseInt(totalBetEl.textContent) || 0 : 0;
 
-  // 原下注数（总风险表该号码下注额）
   const originalBet = tableBetData[formattedNum] || 0;
-
-  // 下注数（上报风险表该号码下注额）
   const reportBet = reportBetData[formattedNum] || 0;
 
-  // 盈亏（上报风险表该号码风险值）
   let reportRisk = 0;
   const reportTbody = document.getElementById('reportTableBody');
   if (reportTbody) {
@@ -1540,7 +1618,6 @@ function updatePrizeResult() {
     }
   }
 
-  // 判断是否全部为零，如果是则隐藏
   if (totalBet === 0 && originalBet === 0 && reportBet === 0 && reportRisk === 0) {
     container.style.display = 'none';
     return;
@@ -1588,7 +1665,6 @@ async function showOrderRecord(filter='all'){
     html+=`<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="recordUserFilter" onchange="applyPrizeFilter()" style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;"><option value="all" ${filter==='all'?'selected':''}>全部用户</option>`;
     users.forEach(u=>html+=`<option value="${u}" ${u===filter?'selected':''}>${u}</option>`);
     html+=`</select><button onclick="checkAll()" style="padding:6px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">全选</button><button onclick="uncheckAll()" style="padding:6px 12px;background:#6c757d;color:#fff;border:none;border-radius:4px;">取消全选</button><button onclick="deleteChecked()" style="padding:6px 12px;background:#e74c3c;color:#fff;border:none;border-radius:4px;">批量删除</button><span style="margin-left:auto;">对奖：</span><input type="text" id="prizeNumberInput" placeholder="号码" maxlength="2" oninput="applyPrizeFilter();updatePrizeResult();" style="padding:4px;border-radius:4px;border:1px solid #ccc;width:50px;">`;
-    // 对奖信息显示区域
     html+=`<span id="prizeInfoContainer" style="display:none;margin-left:8px;gap:12px;align-items:center;font-size:13px;color:#333;">
       <span>总下注：<b id="prizeTotalBet">0</b></span>
       <span>原下注数：<b id="prizeOriginalBet">0</b></span>
