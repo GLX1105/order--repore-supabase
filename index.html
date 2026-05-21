@@ -912,21 +912,34 @@ function tokenizeAndJoin(content) {
   return allKeywords.join('-');
 }
 
-// ===== 检测一行是否存在无效字符（忽略分隔符和空格） =====
+// ===== 检测一行是否存在无效字符（忽略分隔符、金额指示符、金额后缀） =====
 function hasInvalidChars(line, cfg, vc) {
-  // 移除所有分隔符和空格，只保留汉字和数字
-  const cleaned = line.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
+  // 移除所有分隔符和空格
+  let cleaned = line.replace(/[\s,，.。、+\-*＊\/\\|]+/g, '');
   
-  // 检查数字：提取所有连续数字，判断是否在 1~49 内
-  const numbers = cleaned.match(/\d+/g) || [];
-  for (const numStr of numbers) {
-    const num = parseInt(numStr);
-    if (num < 1 || num > 49) {
-      return true; // 发现无效数字
-    }
+  // 收集所有金额指示符（硬编码 + 自定义）
+  const HARD_AMP_LIST = ['各','各号','号','个','=','各数','每数','每号','个号','每个号','各码','各号码'];
+  const cusAmp = getCustomAmountPrefixes();
+  const allAmps = [...HARD_AMP_LIST, ...cusAmp];
+  allAmps.sort((a,b) => b.length - a.length);
+  
+  // 收集所有金额后缀
+  const baseSuf = '元块咪米斤#،';
+  const cusAmtSuf = getCustomAmountSuffixes();
+  const allAmtChars = [...new Set([...baseSuf.split(''), ...cusAmtSuf])].join('');
+  
+  // 从文本中移除金额指示符和金额后缀
+  allAmps.forEach(amp => {
+    cleaned = cleaned.split(amp).join('');
+  });
+  // 移除金额后缀字符
+  for (const ch of allAmtChars) {
+    cleaned = cleaned.split(ch).join('');
   }
+  // 移除所有数字（包括金额数字）
+  cleaned = cleaned.replace(/\d+/g, '');
   
-  // 检查汉字：提取所有中文字符，判断是否在有效分类库里
+  // 现在检查剩余的汉字是否都在有效库里
   const chineseChars = cleaned.match(/[\u4e00-\u9fa5]/g) || [];
   for (const ch of chineseChars) {
     if (!vc.has(ch)) {
