@@ -907,8 +907,8 @@ function tokenizeAndJoin(content) {
   return allKeywords.join('-');
 }
 
-// ===== 将原始行中的无效字符用红色 span 包裹 =====
-function highlightInvalidInLine(line, cfg, vc) {
+// ===== 从原始行中提取无效字符（只返回无效字符的红色HTML片段） =====
+function extractInvalidChars(line, cfg, vc) {
   const HARD_AMP_LIST = ['各','各号','号','个','=','各数','每数','每号','个号','每个号','各码','各号码'];
   const cusAmp = getCustomAmountPrefixes();
   const allAmps = [...HARD_AMP_LIST, ...cusAmp];
@@ -917,15 +917,25 @@ function highlightInvalidInLine(line, cfg, vc) {
   const cusAmtSuf = getCustomAmountSuffixes();
   const amtSufSet = new Set([...baseSuf.split(''), ...cusAmtSuf]);
 
-  let result = '';
+  const invalids = [];
   let i = 0;
   while (i < line.length) {
     const ch = line[i];
-    if (/[\s,，.。、+\-*＊\/\\|]/.test(ch)) {
-      result += ch;
-      i++;
-      continue;
+    // 跳过分隔符
+    if (/[\s,，.。、+\-*＊\/\\|]/.test(ch)) { i++; continue; }
+    // 跳过金额指示符
+    let matchedAmp = false;
+    for (const amp of allAmps) {
+      if (line.substring(i, i + amp.length) === amp) {
+        i += amp.length;
+        matchedAmp = true;
+        break;
+      }
     }
+    if (matchedAmp) continue;
+    // 跳过金额后缀字符
+    if (amtSufSet.has(ch)) { i++; continue; }
+    // 处理数字
     if (/\d/.test(ch)) {
       let numStr = '';
       let j = i;
@@ -934,42 +944,23 @@ function highlightInvalidInLine(line, cfg, vc) {
         j++;
       }
       const num = parseInt(numStr);
-      if (num >= 1 && num <= 49) {
-        result += numStr;
-      } else {
-        result += `<span style="color:red;">${numStr}</span>`;
+      if (num < 1 || num > 49) {
+        invalids.push(`<span style="color:red;">${numStr}</span>`);
       }
       i = j;
       continue;
     }
-    let matchedAmp = false;
-    for (const amp of allAmps) {
-      if (line.substring(i, i + amp.length) === amp) {
-        result += amp;
-        i += amp.length;
-        matchedAmp = true;
-        break;
-      }
-    }
-    if (matchedAmp) continue;
-    if (amtSufSet.has(ch)) {
-      result += ch;
-      i++;
-      continue;
-    }
+    // 处理汉字
     if (/[\u4e00-\u9fa5]/.test(ch)) {
-      if (vc.has(ch)) {
-        result += ch;
-      } else {
-        result += `<span style="color:red;">${ch}</span>`;
+      if (!vc.has(ch)) {
+        invalids.push(`<span style="color:red;">${ch}</span>`);
       }
       i++;
       continue;
     }
-    result += ch;
     i++;
   }
-  return result;
+  return invalids;
 }
 
 // ===== 检测一行是否存在无效字符（忽略分隔符、金额指示符、金额后缀，支持多字分类） =====
@@ -1343,16 +1334,17 @@ function convertOrderText() {
     }
   });
 
-  // 收集无效行
-  const invalidLinesArr = [];
-
+  // 收集无效字符（只取无效字/数字本身）
+  const allInvalidChars = [];
   let html = '';
   resultLines.forEach((resultLine, index) => {
     const originalLine = lines[index] || resultLine;
     const m = resultLine.match(/^(.+?)\s+各数\s+(\d+)$/);
     if (!m) {
       html += `<div style="color:red;">${resultLine}</div>`;
-      invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
+      // 提取无效字符
+      const invalids = extractInvalidChars(originalLine, cfg, vc);
+      if (invalids.length > 0) allInvalidChars.push(...invalids);
       return;
     }
     const content = m[1];
@@ -1361,11 +1353,13 @@ function convertOrderText() {
     const totalItems = numbers.length + zodiacs.length;
     if (totalItems === 0 || amt <= 0) {
       html += `<div style="color:red;">${resultLine}</div>`;
-      invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
+      const invalids = extractInvalidChars(originalLine, cfg, vc);
+      if (invalids.length > 0) allInvalidChars.push(...invalids);
     } else {
       if (hasInvalidChars(originalLine, cfg, vc)) {
         html += `<div style="color:red;">${resultLine}</div>`;
-        invalidLinesArr.push(highlightInvalidInLine(originalLine, cfg, vc));
+        const invalids = extractInvalidChars(originalLine, cfg, vc);
+        if (invalids.length > 0) allInvalidChars.push(...invalids);
       } else {
         html += `<div>${resultLine}</div>`;
       }
@@ -1373,12 +1367,12 @@ function convertOrderText() {
   });
   resultEl.innerHTML = html;
 
-  // 更新无效字符提示
+  // 更新语义转换右边的无效字符提示（只显示无效字符本身）
   const hint = document.getElementById('invalidCharsHint');
   if (hint) {
-    if (invalidLinesArr.length > 0) {
+    if (allInvalidChars.length > 0) {
       hint.style.display = 'inline';
-      hint.innerHTML = invalidLinesArr.join(' | ');
+      hint.innerHTML = allInvalidChars.join(' ');
     } else {
       hint.style.display = 'none';
       hint.innerHTML = '';
